@@ -1,6 +1,12 @@
 # Title
 
-## Project
+## Project A
+
+- The first KR (KR1)
+  - @engA (0 days)
+  - Work
+
+## Project B
 
 - Another KR (KR123)
   - @engineer1 (1 day), @engineer2 (0.5 days)
@@ -27,3 +33,9 @@
   - finally asda
     asdas adasd adad
     > this is a great quote!
+
+## Project C
+
+- This is a new KR (NEW KR)
+  - @engB (2 days)
+  - Work
