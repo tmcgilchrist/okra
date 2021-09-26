@@ -112,11 +112,18 @@ let rec pp_inline ppf = function
       string ppf ")"
   | Html s -> string ppf s
 
+let rec insert_breaks_between_paragraph = function
+  | [] -> []
+  | (Paragraph _ as h) :: (Paragraph _ :: _ as t) ->
+      h :: Paragraph (Concat []) :: insert_breaks_between_paragraph t
+  | h :: t -> h :: insert_breaks_between_paragraph t
+
 let rec pp ppf = function
   | Paragraph t -> pp_inline ppf t
   | List (Ordered (i, c), y) ->
       list ~sep:nop
         (fun ppf e ->
+          let e = insert_breaks_between_paragraph e in
           int ppf i;
           char ppf c;
           char ppf ' ';
@@ -125,6 +132,7 @@ let rec pp ppf = function
   | List (Bullet c, y) ->
       list ~sep:newline
         (fun ppf e ->
+          let e = insert_breaks_between_paragraph e in
           char ppf c;
           char ppf ' ';
           nest 2 (list ~sep:newline pp) ppf e)
