@@ -7,7 +7,7 @@ authors: ["Magnus Skjegstad"]
 license: "ISC"
 depends: [
   "dune" {>= "2.8"}
-  "ocaml" {>= "4.07"}
+  "ocaml" {>= "4.10"}
   "alcotest" {with-test}
   "fmt"
   "get-activity"

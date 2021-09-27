@@ -32,59 +32,23 @@ exception No_KR_ID_found of string (* Empty or no KR ID *)
 
 exception No_title_found of string (* No title found *)
 
-(* Type for sanitized post-ast version *)
-type t = {
-  counter : int;
-  project : string;
-  objective : string;
-  kr_title : string;
-  kr_id : string;
-  time_entries : string list;
-  time_per_engineer : (string, float) Hashtbl.t;
-  work : string list;
-}
+exception Invalid_markdown_in_work_items of string
+(* Subset of markdown not supported in work items *)
 
-let compare a b =
-  if String.compare a.project b.project = 0 then
-    (* compare on project first *)
-    if String.compare a.objective b.objective = 0 then
-      (* then obj if proj equal *)
-      (* Check if KR IDs are the same --if one of the KR IDs are
-         blank, compare on title instead *)
-      let compare_kr_id =
-        if
-          a.kr_id = ""
-          || b.kr_id = ""
-          || a.kr_id = "NEW KR"
-          || b.kr_id = "NEW KR"
-          || a.kr_id = "NEW OKR"
-          || b.kr_id = "NEW OKR"
-        then String.compare a.kr_title b.kr_title
-        else String.compare a.kr_id b.kr_id
-      in
-      (* If KRs match, check counter *)
-      if compare_kr_id = 0 then compare a.counter b.counter else compare_kr_id
-    else String.compare a.objective b.objective
-  else String.compare a.project b.project
+(* Types for parsing the AST *)
+type elt =
+  | O of string (* Objective name, without lead *)
+  | Proj of string (* Project name / pillar *)
+  | KR of string (* Full name of KR, with ID *)
+  | KR_id of string (* ID of KR *)
+  | KR_title of string (* Title without ID, tech lead *)
+  | Work of Item.t list list (*  Work items *)
+  | Time of string (* Time entry *)
+  | Counter of int
+(* Increasing counter to be able to sort multiple entries by time *)
 
-module Weekly = struct
-  (* Types for parsing the AST *)
-  type elt =
-    | O of string (* Objective name, without lead *)
-    | Proj of string (* Project name / pillar *)
-    | KR of string (* Full name of KR, with ID *)
-    | KR_id of string (* ID of KR *)
-    | KR_title of string (* Title without ID, tech lead *)
-    | Work of string list (* List of work items *)
-    | Time of string (* Time entry *)
-    | Counter of int
-  (* Increasing counter to be able to sort multiple entries by time *)
-
-  type t = elt list list
-  type table = (string, t) Hashtbl.t
-end
-
-open Weekly
+type t = (string, elt list list) Hashtbl.t
+type markdown = (string * string) list Omd.block list
 
 let okr_re = Str.regexp "\\(.+\\) (\\([a-zA-Z]+[0-9]+\\))$"
 (* Header: This is a KR (KR12) *)
@@ -132,20 +96,17 @@ let parse_okr_title s =
             String.trim (Str.matched_group 2 s) )
 
 let pp ppf okr =
-  let pf fmt = Fmt.pf ppf fmt in
   let pp ppf = function
-    | Proj s -> pf "P: %s" s
-    | O s -> pf "O: %s" s
-    | KR s -> pf "KR: %s" s
-    | KR_id s -> pf "KR id: %s" s
-    | KR_title s -> pf "KR title: %s" s
-    | Work w ->
-        let pp ppf e = Fmt.pf ppf "W: %s" e in
-        Fmt.list ~sep:(Fmt.unit ", ") pp ppf w
-    | Time _ -> pf "Time: <not shown>"
-    | Counter c -> pf "Cnt: %d" c
+    | Proj s -> Fmt.pf ppf "P: %s" s
+    | O s -> Fmt.pf ppf "O: %s" s
+    | KR s -> Fmt.pf ppf "KR: %s" s
+    | KR_id s -> Fmt.pf ppf "KR id: %s" s
+    | KR_title s -> Fmt.pf ppf "KR title: %s" s
+    | Work w -> Fmt.pf ppf "W: %a" Fmt.Dump.(list (list Item.dump)) w
+    | Time _ -> Fmt.pf ppf "Time: <not shown>"
+    | Counter c -> Fmt.pf ppf "Cnt: %d" c
   in
-  Fmt.list ~sep:(Fmt.unit ", ") pp ppf okr
+  Fmt.Dump.list pp ppf okr
 
 let store_result store okr_list =
   let key1 =
@@ -169,76 +130,70 @@ let store_result store okr_list =
   match has_time with
   | false ->
       raise
-        (No_time_found
-           (Fmt.str "WARNING: Time not found. Ignored %a\n" pp okr_list))
+        (No_time_found (Fmt.str "@[<hov 2>Time not found.@ %a@]\n" pp okr_list))
   | true -> (
       match Hashtbl.find_opt store key with
       | None -> Hashtbl.add store key [ okr_list ]
       | Some x -> Hashtbl.replace store key (x @ [ okr_list ]))
 
 let rec inline = function
-  | Concat (_, xs) -> List.concat (List.map inline xs)
-  | Text (_, s) -> [ s ]
-  | Emph (_, s) -> "*" :: inline s @ [ "*" ]
-  | Strong (_, s) -> "**" :: inline s @ [ "**" ]
-  | Code (_, s) -> [ "`"; s; "`" ]
-  | Hard_break _ -> [ "\n\n" ]
-  | Soft_break _ -> [ "\n" ]
-  | Link (_, { label; destination; _ }) ->
-      "[" :: inline label @ [ "]("; destination; ")" ]
-  | Html _ -> [ "**html-ignored**" ]
-  | Image _ -> [ "**img ignored**" ]
+  | Concat (_, xs) -> Item.Concat (List.map inline xs)
+  | Text (_, s) -> Item.Text s
+  | Emph (_, s) -> Item.Emph (inline s)
+  | Strong (_, s) -> Item.Strong (inline s)
+  | Code (_, s) -> Item.Code s
+  | Hard_break _ -> Item.Hard_break
+  | Soft_break _ -> Item.Soft_break
+  | Link (_, { label; destination; title }) ->
+      Item.Link { label = inline label; destination; title }
+  | Html (_, s) -> Item.Html s
+  | Image (_, { label; destination; title }) ->
+      Item.Image { label = inline label; destination; title }
 
-let insert_indent l =
-  let rec aux = function
-    | [] -> []
-    | "\n" :: t -> "\n" :: aux t
-    | x :: t -> ("  " ^ x) :: aux t
-  in
-  match l with [] -> [] | h :: t -> h :: aux t
+let list_type = function
+  | Ordered (i, c) -> Item.Ordered (i, c)
+  | Bullet c -> Item.Bullet c
 
 let rec block = function
-  | Paragraph (_, x) -> inline x @ [ "\n" ]
-  | List (_, _, _, bls) -> List.map list_items bls
-  | Blockquote (_, x) -> "> " :: List.concat (List.map block x)
-  | Thematic_break _ -> [ "*thematic-break-ignored*" ]
-  | Heading (_, level, text) -> String.make level '#' :: inline text @ [ "\n" ]
-  | Code_block (_, info, _) -> [ "```"; info; "```" ]
-  | Html_block _ -> [ "*html-ignored*" ]
-  | Definition_list _ -> [ "*def-list-ignored*" ]
+  | Paragraph (_, x) -> Item.Paragraph (inline x)
+  | List (_, x, _, bls) -> Item.List (list_type x, List.map (List.map block) bls)
+  | Blockquote (_, x) -> Item.Blockquote (List.map block x)
+  | Code_block (_, x, y) -> Item.Code_block (x, y)
+  | Html_block _ -> raise (Invalid_markdown_in_work_items "Html_bloc")
+  | Definition_list _ ->
+      raise (Invalid_markdown_in_work_items "Definition_list")
+  | Thematic_break _ -> raise (Invalid_markdown_in_work_items "Thematic_break")
+  | Heading _ -> raise (Invalid_markdown_in_work_items "Heading")
 
-and list_items items =
-  let items = List.map block items in
-  let items = List.concat @@ List.map insert_indent items in
-  String.concat "" ("- " :: items)
+let inline_to_string = Printer.to_string Item.pp_inline
+let item_to_string = Printer.to_string Item.pp
 
 let block_okr = function
   | Paragraph (_, x) -> (
-      let okr_title = String.trim (String.concat "" (inline x)) in
+      let okr_title = String.trim (inline_to_string (inline x)) in
       match parse_okr_title okr_title with
       | None -> [ KR okr_title; KR_title okr_title ]
       | Some (title, id) -> [ KR okr_title; KR_title title; KR_id id ])
-  | List (_, _, _, bls) ->
+  | List (_, _, _, bls) -> (
       if List.length (List.filter is_time_block bls) > 1 then
         (* This is fatal, as we can miss tracked time if this occurs
-            -- time should always be summarised in first entry *)
+           -- time should always be summarised in first entry *)
         raise (Multiple_time_entries "Multiple time entries found")
       else ();
-      let tb = List.hd bls in
-      (* Assume first block is time if present, and ... *)
-      if is_time_block tb then
-        (* todo verify that this is true *)
-        let time_s =
-          String.concat "" (List.map (fun xs -> String.concat "" (block xs)) tb)
-        in
-        let work_items =
-          Work
-            (List.map
-               (fun xs -> String.concat "" (List.concat (List.map block xs)))
-               (List.tl bls))
-        in
-        [ Time time_s; work_items ]
-      else []
+      match bls with
+      | [] -> []
+      | tb :: tl ->
+          if
+            (* Assume first block is time if present, and ... *)
+            is_time_block tb
+          then
+            (* todo verify that this is true *)
+            let time_s =
+              String.concat "" (List.map (fun b -> item_to_string (block b)) tb)
+            in
+            let work_items = List.map (List.map block) tl in
+            [ Time time_s; Work work_items ]
+          else [])
   | _ -> []
 
 let strip_obj_lead s =
@@ -337,8 +292,8 @@ let rec process t ht ast =
   | hd :: tl -> process t ht (process_entry t ht hd tl)
   | [] -> ()
 
-let process ?(ignore_sections = [ "OKR Updates" ]) ?(include_sections = []) ast
-    =
+let of_markdown ?(ignore_sections = [ "OKR Updates" ]) ?(include_sections = [])
+    ast =
   let u_ignore = List.map String.uppercase_ascii ignore_sections in
   let u_include = List.map String.uppercase_ascii include_sections in
   let state = init ~ignore_sections:u_ignore ~include_sections:u_include () in
@@ -346,7 +301,7 @@ let process ?(ignore_sections = [ "OKR Updates" ]) ?(include_sections = []) ast
   process state store ast;
   store
 
-let of_weekly okr_list =
+let entry okr_list =
   (* This function expects a list of entries for the same KR, typically
      corresponding to a set of weekly reports. Each list item will consist of
      a list of okr_t items, which provides time, work items etc for this entry.
@@ -429,14 +384,9 @@ let of_weekly okr_list =
 
   (* Add work items in order, concat all the lists *)
   let work =
-    List.concat
-      (List.map
-         (fun elements ->
-           List.concat
-             (List.map
-                (fun el -> match el with Work w -> w | _ -> [])
-                elements))
-         okr_list)
+    List.concat_map
+      (List.concat_map (function Work e -> e | _ -> []))
+      okr_list
   in
 
   (* Some basic sanity checking *)
@@ -464,7 +414,7 @@ let of_weekly okr_list =
 
   (* Construct final entry *)
   {
-    counter = !okr_counter;
+    Reports.counter = !okr_counter;
     project = !okr_proj;
     objective = !okr_obj;
     kr_title = !okr_kr_title;
@@ -479,14 +429,19 @@ let ht_add_or_sum ht k v =
   | None -> Hashtbl.add ht k v
   | Some x -> Hashtbl.replace ht k (Float.add v x)
 
+let entries okrs = List.map entry (List.of_seq (Hashtbl.to_seq_values okrs))
+let reports okrs = Reports.v (entries okrs)
+
 let by_engineer ?(include_krs = []) okrs =
-  let v = List.map of_weekly (List.of_seq (Hashtbl.to_seq_values okrs)) in
+  let v = entries okrs in
   let uppercase_include_krs = List.map String.uppercase_ascii include_krs in
   let result = Hashtbl.create 7 in
   List.iter
     (fun e ->
       (* only proceed if include_krs is empty or has a match *)
-      if List.length include_krs = 0 || List.mem e.kr_id uppercase_include_krs
+      if
+        List.length include_krs = 0
+        || List.mem e.Reports.kr_id uppercase_include_krs
       then
         Hashtbl.iter (fun k w -> ht_add_or_sum result k w) e.time_per_engineer
       else ()) (* skip this KR *)

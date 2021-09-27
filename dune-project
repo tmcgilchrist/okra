@@ -25,7 +25,7 @@
  (synopsis "Report parsing prototypes")
  (description "A library of tools for report parsing")
  (depends
-  (ocaml (>= 4.07))
+  (ocaml (>= 4.10))
   (alcotest :with-test)
   fmt
   get-activity

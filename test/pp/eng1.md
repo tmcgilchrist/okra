@@ -1,6 +1,16 @@
 # Title
 
-## Project
+## Project A
+
+- The first KR (KR1)
+  - @engA (0 days)
+  - Work
+
+## Project B
+
+- Another KR (KR123)
+  - @engineer1 (1 day), @engineer2 (0.5 days)
+  - A work item
 
 - Yo (YO1)
   - @bar (1 day), @foo (2 days), @zorro (0.5 days)
@@ -9,7 +19,25 @@
     - one
       asda
     - two
+
       asd ada
-      ads
+
+      ads `foo` *hello*
+      ```ocaml
+      test
+
+      with a space
+      ```
+      - 1 2 3 4 <b>test</b>
+      - `hello` **hello** *hello*
+      - ![img](http://here.com)
+      - [link](here.io) is really great
   - finally asda
     asdas adasd adad
+    > this is a great quote!
+
+## Project C
+
+- This is a new KR (NEW KR)
+  - @engB (2 days)
+  - Work

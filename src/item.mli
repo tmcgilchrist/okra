@@ -15,22 +15,32 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *)
 
-exception No_time_found of string
-exception Multiple_time_entries of string
-exception Invalid_time of string
-exception No_work_found of string
-exception No_KR_ID_found of string
-exception No_title_found of string
+(** The subset of mardown supported for work items *)
 
-type elt
-type t = (string, elt list list) Hashtbl.t
-type markdown = (string * string) list Omd.block list
+type list_type = Ordered of int * char | Bullet of char
 
-val of_markdown :
-  ?ignore_sections:string list -> ?include_sections:string list -> markdown -> t
-(** Process markdown data from omd. Optionally [ignore_sections] can be used to
-    ignore specific sections, or [include_sections] can be used to only process
-    specific sections. *)
+type inline =
+  | Concat of inline list
+  | Text of string
+  | Emph of inline
+  | Strong of inline
+  | Code of string
+  | Hard_break
+  | Soft_break
+  | Link of link
+  | Image of link
+  | Html of string
 
-val reports : t -> Reports.t
-val by_engineer : ?include_krs:string list -> t -> (string, float) Hashtbl.t
+and link = { label : inline; destination : string; title : string option }
+
+type t =
+  | Paragraph of inline
+  | List of list_type * t list list
+  | Blockquote of t list
+  | Code_block of string * string
+  | Title of int * string
+
+val pp : t Printer.t
+val pp_inline : inline Printer.t
+val dump : t Fmt.t
+val dump_inline : inline Fmt.t
