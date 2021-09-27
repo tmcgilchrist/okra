@@ -111,9 +111,9 @@ let test_no_kr_id_found f () =
         (Fmt.str "Invalid result in file %s:\n%s" f
            (Okra.Lint.string_of_result x))
 
-let test_no_title_found f () =
+let test_no_project_found f () =
   match lint_file f with
-  | Okra.Lint.No_title_found _ -> Alcotest.(check pass) "" 0 0
+  | Okra.Lint.No_project_found _ -> Alcotest.(check pass) "" 0 0
   | x ->
       Alcotest.fail
         (Fmt.str "Invalid result in file %s:\n%s" f
@@ -132,7 +132,7 @@ let tests =
       `Quick,
       test_invalid_team_report "./lint/team1.rej" );
     ("No_KR_ID_found", `Quick, test_no_kr_id_found "./lint/no-kr1.rej");
-    ("No_title_found", `Quick, test_no_title_found "./lint/no-title1.rej");
+    ("No_project_found", `Quick, test_no_project_found "./lint/no-title1.rej");
     ("No_work_found", `Quick, test_no_work_found "./lint/no-work1.rej");
     ("No_time_found", `Quick, test_no_time_found "./lint/no-time1.rej");
     ( "Multiple_time_entries",

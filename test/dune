@@ -3,4 +3,4 @@
  (deps
   (source_tree lint)
   (source_tree aggregate))
- (libraries alcotest okra))
+ (libraries alcotest okra logs.fmt))

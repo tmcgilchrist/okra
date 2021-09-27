@@ -15,6 +15,10 @@
  *)
 
 let () =
+  Logs.set_level (Some Logs.Debug);
+  Logs.set_reporter (Logs_fmt.reporter ())
+
+let () =
   Alcotest.run "Okra"
     [
       ("Calendar", Test_calendar.tests);

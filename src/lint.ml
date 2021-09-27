@@ -23,7 +23,7 @@ type lint_result =
   | Multiple_time_entries of string
   | No_work_found of string
   | No_KR_ID_found of string
-  | No_title_found of string
+  | No_project_found of string
 
 let fail_fmt_patterns =
   [
@@ -55,38 +55,36 @@ let string_of_result res =
         (List.length x)
   | No_time_found s ->
       Fmt.pf ppf
-        "No time entry found. Each KR must be followed by '- @... (x days)\n\
-         Error: %s\n"
+        "In KR %S:\n\
+        \  No time entry found. Each KR must be followed by '- @@... (x days)'\n"
         s
   | Invalid_time s ->
       Fmt.pf ppf
-        "Invalid time entry found. Format is '- @eng1 (x days), @eng2 (x days)'\n\
-         Error: %s\n"
+        "In KR %S:\n\
+        \  Invalid time entry found. Format is '- @@eng1 (x days), @@eng2 (x \
+         days)'\n"
         s
   | Multiple_time_entries s ->
       Fmt.pf ppf
-        "KR with multiple time entries found. Only one time entry should \
-         follow immediately after the KR.\n\
-         Error: %s\n"
+        "In KR %S:\n\
+        \  Multiple time entries found. Only one time entry should follow \
+         immediately after the KR.\n"
         s
   | No_work_found s ->
       Fmt.pf ppf
-        "No work items found. This may indicate an unreported parsing error. \
-         Remove the KR if it is without work.\n\
-         Error: %s\n"
-        s
-  | No_title_found s ->
-      Fmt.pf ppf
-        "The input should contain at least one title (starting with #)\n\
-         Error: %s\n"
+        "In KR %S:\n\
+        \  No work items found. This may indicate an unreported parsing error. \
+         Remove the KR if it is without work.\n"
         s
   | No_KR_ID_found s ->
       Fmt.pf ppf
-        "No KR ID found. KRs should be in the format \"This is a KR \
+        "In KR %S:\n\
+        \  No KR ID found. KRs should be in the format \"This is a KR \
          (PLAT123)\", where PLAT123 is the KR ID. For KRs that don't have an \
-         ID yet, use \"New KR\".\n\
-         Error: %s\n"
-        s);
+         ID yet, use \"New KR\".\n"
+        s
+  | No_project_found s ->
+      Fmt.pf ppf "In KR %S:\n  No project found (starting with '#')" s);
   Buffer.contents buf
 
 (* Check a single line for formatting errors returning
@@ -102,16 +100,16 @@ let check_line line pos =
 let check_document ~include_sections ~ignore_sections s =
   try
     let md = Omd.of_string s in
-    let okrs = Aggregate.of_markdown ~include_sections ~ignore_sections md in
-    let _ = Aggregate.reports okrs in
+    let okrs = Parser.of_markdown ~include_sections ~ignore_sections md in
+    let _report = Report.v okrs in
     No_error
   with
-  | Aggregate.No_time_found s -> No_time_found s
-  | Aggregate.Invalid_time s -> Invalid_time s
-  | Aggregate.Multiple_time_entries s -> Multiple_time_entries s
-  | Aggregate.No_work_found s -> No_work_found s
-  | Aggregate.No_KR_ID_found s -> No_KR_ID_found s
-  | Aggregate.No_title_found s -> No_title_found s
+  | Parser.No_time_found s -> No_time_found s
+  | Parser.Invalid_time s -> Invalid_time s
+  | Parser.Multiple_time_entries s -> Multiple_time_entries s
+  | Parser.No_work_found s -> No_work_found s
+  | Parser.No_KR_ID_found s -> No_KR_ID_found s
+  | Parser.No_project_found s -> No_project_found s
 
 let lint_string_list ?(include_sections = []) ?(ignore_sections = []) s =
   let format_errors = ref [] in

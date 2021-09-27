@@ -157,13 +157,8 @@ $ cat bactrian.bad.md
 $ okra lint --engineer bactrian.bad.md
 Error(s) in file bactrian.bad.md:
 
-No time entry found. Each KR must be followed by '-
-.. (x days)
-Error: Time not found.
-  [P: Last Week; O: Last Week; Cnt: 1;
-   KR: Make Okra, the OKR management tool (OKR1);
-   KR title: Make Okra, the OKR management tool; KR id: OKR1]
-
+In KR "Make Okra, the OKR management tool":
+  No time entry found. Each KR must be followed by '- @... (x days)'
 [1]
 ```
 And here's an example of a well-formatted report:
