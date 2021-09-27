@@ -60,7 +60,7 @@ let team_term =
 
 let run conf =
   try
-    if List.length conf.files > 0 then
+    if conf.files <> [] then
       List.iter
         (fun f ->
           let ic = open_in f in

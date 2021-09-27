@@ -122,7 +122,7 @@ let lint_string_list ?(include_sections = []) ?(ignore_sections = []) s =
         check_and_read buf (pos + 1) lines
   in
   let s = check_and_read (Buffer.create 1024) 1 s in
-  if List.length !format_errors > 0 then
+  if !format_errors <> [] then
     Format_error (List.sort (fun (x, _) (y, _) -> compare x y) !format_errors)
   else check_document ~include_sections ~ignore_sections s
 
@@ -140,6 +140,6 @@ let lint ?(include_sections = []) ?(ignore_sections = []) ic =
     | e -> raise e
   in
   let s = check_and_read (Buffer.create 1024) ic 1 in
-  if List.length !format_errors > 0 then
+  if !format_errors <> [] then
     Format_error (List.sort (fun (x, _) (y, _) -> compare x y) !format_errors)
   else check_document ~include_sections ~ignore_sections s
