@@ -104,7 +104,7 @@ let of_markdown ?ignore_sections ?include_sections m =
 let make_objective conf o =
   let krs = List.of_seq (Hashtbl.to_seq o.krs |> Seq.map snd) in
   let new_krs = List.of_seq (Hashtbl.to_seq o.new_krs |> Seq.map snd) in
-  let krs = List.sort KR.compare new_krs @ List.sort KR.compare krs in
+  let krs = List.sort KR.compare krs @ List.sort KR.compare new_krs in
   match List.concat_map (KR.items conf) krs with
   | [] -> []
   | krs -> Item.Title (2, o.name) :: krs
