@@ -279,7 +279,7 @@ let include_section t =
       List.mem (String.uppercase_ascii t.current_proj) l
       || List.mem (String.uppercase_ascii t.current_o) l
 
-let process_block state (krs : KR.t list) = function
+let process_block state acc = function
   | Heading (_, n, il) ->
       let title =
         match il with
@@ -293,22 +293,23 @@ let process_block state (krs : KR.t list) = function
         | 1 -> state.current_proj <- title
         | _ -> (* TODO: do now discard intermediate subsections *) ()
       in
-      krs
+      acc
   | List (_, _, _, bls) ->
-      let new_krs =
-        List.filter_map
-          (fun xs ->
-            if ignore_section state || not (include_section state) then None
-            else
-              let block = List.concat (List.map block_okr xs) in
-              Log.debug (fun l -> l "items: %a" dump block);
-              kr ~project:state.current_proj ~objective:state.current_o block)
-          bls
-      in
-      new_krs @ krs
+      List.fold_left
+        (fun acc xs ->
+          if ignore_section state || not (include_section state) then acc
+          else
+            let block = List.concat (List.map block_okr xs) in
+            Log.debug (fun l -> l "items: %a" dump block);
+            match
+              kr ~project:state.current_proj ~objective:state.current_o block
+            with
+            | None -> acc
+            | Some x -> x :: acc)
+        acc bls
   | _ ->
       (* FIXME: also keep floating text *)
-      krs
+      acc
 
 let process t ast = List.fold_left (process_block t) [] ast
 
@@ -317,4 +318,4 @@ let of_markdown ?(ignore_sections = [ "OKR Updates" ]) ?(include_sections = [])
   let u_ignore = List.map String.uppercase_ascii ignore_sections in
   let u_include = List.map String.uppercase_ascii include_sections in
   let state = init ~ignore_sections:u_ignore ~include_sections:u_include () in
-  process state ast
+  List.rev (process state ast)

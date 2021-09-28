@@ -88,25 +88,31 @@ let compare_no_case x y =
 
 let merge x y =
   let counter = x.counter in
+  let title =
+    match (x.title, y.title) with
+    | "", s | s, "" -> s
+    | x, y ->
+        if compare_no_case x y <> 0 then
+          Log.warn (fun l -> l "Conflicting titles:\n- %S\n- %S" x y);
+        x
+  in
   let project =
     match (x.project, y.project) with
     | "", s | s, "" -> s
     | x, y ->
-        assert (compare_no_case x y = 0);
+        if compare_no_case x y <> 0 then
+          Log.warn (fun l ->
+              l "KR %S appears in two projects:\n- %S\n- %S" title x y);
         x
   in
   let objective =
     match (x.objective, y.objective) with
     | "", s | s, "" -> s
     | x, y ->
-        assert (compare_no_case x y = 0);
+        if compare_no_case x y <> 0 then
+          Log.warn (fun l ->
+              l "KR %S appears in two objectives:\n- %S\n- %S" title x y);
         x
-  in
-  let title =
-    if compare_no_case x.title y.title <> 0 then
-      Log.warn (fun l ->
-          l "Conflicting titles:\n- %S\n- %S\n%!" x.title y.title);
-    x.title
   in
   let id =
     match (x.id, y.id) with

@@ -62,7 +62,7 @@ let test_kr_agg1 () =
     (contains_kr_cnt res (Some "KR123"));
   let res = Okra.Aggregate.by_engineer res in
   (* also check that time adds up *)
-  Alcotest.(check (float 0.0)) "eng1 time" 3.0 (Hashtbl.find res "eng1")
+  Alcotest.(check (float 0.0)) "eng1 time" 4.0 (Hashtbl.find res "eng1")
 
 let test_time_parsing f () =
   let res = aggregate_by_engineer f in

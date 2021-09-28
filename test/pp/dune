@@ -1,7 +1,7 @@
 (executable
  (name test)
  (modules test)
- (libraries okra))
+ (libraries okra logs.fmt))
 
 (rule
  (deps
