@@ -16,17 +16,26 @@
 
 module Cal = CalendarLib.Calendar
 
-type t = { week : int; year : int }
+type t = { week : int; month : int; year : int }
 
 let week { week; _ } = week
+let month { month; _ } = month
 let year { year; _ } = year
 let day = 60. *. 60. *. 24.
-let make ~week ~year = { week; year }
-let this_month () = Cal.now () |> Cal.month |> Cal.Date.int_of_month
 
-let this_week () =
+let now () =
   let now = Cal.now () in
-  { week = Cal.week now; year = Cal.year now }
+  {
+    week = Cal.week now;
+    month = Cal.month now |> Cal.Date.int_of_month;
+    year = Cal.year now;
+  }
+
+let this_month = now
+let make_week ~week ~year = { week; month = (now ()).month; year }
+let this_week = now
+let make_month ~month ~year = { week = (now ()).week; month; year }
+let make ~week ~month ~year = { week; month; year }
 
 (* ISO8601 compliant: https://en.wikipedia.org/wiki/ISO_week_date#Calculating_an_ordinal_or_month_date_from_a_week_date *)
 let monday_of_week week year =
@@ -51,10 +60,14 @@ let range_of_week =
     let monday = monday_of_week t.week t.year in
     (monday, Cal.Date.add monday six_days)
 
-let github_month m y =
-  let first = Cal.Date.lmake ~year:y ~month:m ~day:1 () in
+let range_of_month { week = _; month; year } =
+  let first = Cal.Date.lmake ~year ~month ~day:1 () in
   let days = Cal.Date.days_in_month first in
   let last = Cal.Date.add first @@ Cal.Date.Period.day days in
+  (first, last)
+
+let github_month t =
+  let first, last = range_of_month t in
   ( Cal.Date.to_unixfloat first |> Get_activity.Period.to_8601,
     Cal.Date.to_unixfloat last |> Get_activity.Period.to_8601 )
 

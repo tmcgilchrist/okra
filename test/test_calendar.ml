@@ -17,7 +17,7 @@
 open Okra
 
 let test_week monday sunday week year () =
-  let week = Calendar.make ~week ~year in
+  let week = Calendar.make_week ~week ~year in
   let gen_monday, gen_sunday = Calendar.github_week week in
   Alcotest.(check string) "same monday" monday gen_monday;
   Alcotest.(check string) "same sunday" sunday gen_sunday

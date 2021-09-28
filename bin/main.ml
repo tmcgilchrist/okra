@@ -33,6 +33,4 @@ let root_cmd =
   in
   (root_term, info)
 
-let () =
-  Term.(
-    exit @@ eval_choice root_cmd [ Cat.cmd; Lint.cmd; Generate.cmd; Stats.cmd; Monthly.cmd ])
+let () = Term.(exit @@ eval_choice root_cmd [ Cat.cmd; Lint.cmd; Stats.cmd; Generate.cmd ])

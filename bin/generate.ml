@@ -28,6 +28,14 @@ let week_term =
   @@ Arg.info ~doc:"The week of the year defaulting to the current week"
        ~docv:"WEEK" [ "w"; "week" ]
 
+let month_term =
+  Arg.value
+  @@ Arg.opt Arg.(some int) None
+  @@ Arg.info
+       ~doc:
+         "The month of the year defaulting to the current month (January = 1)"
+       ~docv:"MONTH" [ "m"; "month" ]
+
 let year_term =
   Arg.value
   @@ Arg.opt Arg.(some int) None
@@ -36,10 +44,39 @@ let year_term =
 
 let calendar_term : Calendar.t Term.t =
   let open Let_syntax_cmdliner in
-  let+ week = week_term and+ year = year_term in
+  let+ week = week_term and+ month = month_term and+ year = year_term in
   let week = Option.value ~default:(Cal.week (Cal.now ())) week in
+  let month =
+    Option.value
+      ~default:(Cal.month (Cal.now ()) |> Cal.Date.int_of_month)
+      month
+  in
   let year = Option.value ~default:(Cal.year (Cal.now ())) year in
-  Calendar.make ~week ~year
+  Calendar.make ~week ~month ~year
+
+let repos =
+  Arg.value
+  @@ Arg.pos_all Arg.string []
+  @@ Arg.info ~doc:"Repositories to generate reports for" []
+
+type template = Engineer | Monthly
+
+let pp_template ppf = function
+  | Engineer -> Fmt.pf ppf "engineer"
+  | Monthly -> Fmt.pf ppf "monthly"
+
+let parse_template = function
+  | "engineer" -> Ok Engineer
+  | "monthly" -> Ok Monthly
+  | _ -> Error (`Msg "Expected either engineer or monthly")
+
+let template : template Arg.conv = Arg.conv (parse_template, pp_template)
+
+let template_term =
+  Arg.value
+  @@ Arg.opt template Engineer
+  @@ Arg.info ~doc:"The template to use when generating this document"
+       ~docv:"TEMPLATE" [ "template" ]
 
 let no_activity =
   Arg.value
@@ -69,15 +106,9 @@ let token =
           ~/.github/github-activity-token"
        ~docv:"TOKEN" [ "t"; "token" ]
 
-let get_or_error = function
-  | Ok v -> v
-  | Error (`Msg m) ->
-      Fmt.epr "%s" m;
-      exit 1
-
 module Fetch = Get_activity.Contributions.Fetch (Cohttp_lwt_unix.Client)
 
-let run conf cal projects token no_activity =
+let run_engineer conf cal projects token no_activity =
   let period = Calendar.github_week cal in
   let week = Calendar.week cal in
   let activity =
@@ -100,12 +131,38 @@ let run conf cal projects token no_activity =
     pr "%s\n\n%a%a" header Activity.pp activity (option pp_footer)
       (Conf.footer conf))
 
+let get_or_error = function
+  | Ok v -> v
+  | Error (`Msg m) ->
+      Fmt.epr "%s" m;
+      exit 1
+
+module Monthly_fetch = Okra.Monthly.Make (Cohttp_lwt_unix.Client)
+
+let run_monthly cal repos token =
+  let from, to_ = Calendar.range_of_month cal in
+  let format_date f = CalendarLib.Printer.Date.fprint "%0Y/%0m/%0d" f in
+  let period = Calendar.github_month cal in
+  let stuff =
+    Lwt_main.run (Monthly_fetch.get ~period ~token repos) |> List.map snd
+  in
+  Fmt.(
+    pf stdout "# Reports (%a - %a)\n\n%a" format_date from format_date to_
+      (list Monthly.pp_data))
+    stuff
+
+let run cal okra_conf token no_activity repos = function
+  | Engineer -> run_engineer okra_conf cal (Conf.projects okra_conf) token no_activity
+  | Monthly -> run_monthly cal repos token
+
 let term =
   let open Let_syntax_cmdliner in
   let+ cal = calendar_term
   and+ okra_file = Conf.cmdliner
   and+ token_file = token
   and+ no_activity = no_activity
+  and+ repositories = repos
+  and+ template = template_term
   and+ () = Common.setup () in
   let token =
     (* If [no_activity] is specfied then the token will not be used, don't try
@@ -118,7 +175,7 @@ let term =
     | false -> Conf.default
     | true -> get_or_error @@ Conf.load okra_file
   in
-  run okra_conf cal (Conf.projects okra_conf) token no_activity
+  run cal okra_conf token no_activity repositories template
 
 let cmd =
   let info =
