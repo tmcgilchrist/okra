@@ -18,7 +18,8 @@
 
 (rule
  (deps
-  (:file1 eng1.md) (:file2 eng2.md))
+  (:file1 eng1.md)
+  (:file2 eng2.md))
  (action
   (with-stdout-to
    aggr.md.pp
