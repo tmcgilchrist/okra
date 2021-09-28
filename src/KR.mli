@@ -16,38 +16,35 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *)
 
-type kr = {
+type t = private {
   counter : int;
   project : string;
   objective : string;
-  kr_title : string;
-  kr_id : string;
-  time_entries : string list;
+  title : string;
+  id : string option;
+  time_entries : (string * float) list list;
   time_per_engineer : (string, float) Hashtbl.t;
   work : Item.t list list;
 }
-(** FIXME: abstract the type *)
 
-type t
+val v :
+  project:string ->
+  objective:string ->
+  title:string ->
+  id:string option ->
+  time_entries:(string * float) list list ->
+  Item.t list list ->
+  t
 
-val v : kr list -> t
+val dump : t Fmt.t
+val merge : t -> t -> t
+val compare : t -> t -> int
 
-val pp :
-  ?include_krs:string list ->
-  ?show_time:bool ->
-  ?show_time_calc:bool ->
-  ?show_engineers:bool ->
-  t Printer.t
-(** [pp] pretty-print weekly team reports.
+type config = {
+  show_engineers : bool;
+  show_time : bool;
+  show_time_calc : bool;
+  include_krs : string list;
+}
 
-    [include_krs] only includes this list of KR IDs. Note that this will ignore
-    empty KR IDs or KRs marked as "NEW KR" unless specified in the list. If the
-    list is empty, all KRs are returned.
-
-    When [show_time_calc] is set, an extra line will be added to the output each
-    time the same entry is included in the report with a sum at the end. This is
-    useful for showing the intermediate steps when aggreating multiple reports
-    that contain the same KR.
-
-    [show_time] shows the time entries [show_engineers] shows the list of
-    engineers *)
+val items : config -> t -> Item.t list

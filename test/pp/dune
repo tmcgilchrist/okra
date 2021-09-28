@@ -1,7 +1,7 @@
 (executable
  (name test)
  (modules test)
- (libraries okra))
+ (libraries okra logs.fmt))
 
 (rule
  (deps
@@ -13,5 +13,21 @@
 
 (rule
  (alias runtest)
+ (package okra)
  (action
   (diff eng1.md eng1.md.pp)))
+
+(rule
+ (deps
+  (:file1 eng1.md)
+  (:file2 eng2.md))
+ (action
+  (with-stdout-to
+   aggr.md.pp
+   (run ./test.exe %{file1} %{file2}))))
+
+(rule
+ (alias runtest)
+ (package okra)
+ (action
+  (diff aggr.md aggr.md.pp)))

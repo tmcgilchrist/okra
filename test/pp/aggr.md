@@ -3,14 +3,16 @@
 ## Project A
 
 - The first KR (KR1)
-  - @engA (2 days)
+  - @engA (4 days)
   - Work
+  - some Work
 
 ## Project B
 
 - Another KR (KR123)
-  - @engineer1 (1 day), @engineer2 (0.5 days)
+  - @engineer1 (4 days), @engineer2 (0.5 days)
   - A work item
+  - A super work item
 
 - Yo (YO1)
   - @bar (1 day), @foo (2 days), @zorro (0.5 days)

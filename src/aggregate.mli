@@ -15,22 +15,5 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *)
 
-exception No_time_found of string
-exception Multiple_time_entries of string
-exception Invalid_time of string
-exception No_work_found of string
-exception No_KR_ID_found of string
-exception No_title_found of string
-
-type elt
-type t = (string, elt list list) Hashtbl.t
-type markdown = (string * string) list Omd.block list
-
-val of_markdown :
-  ?ignore_sections:string list -> ?include_sections:string list -> markdown -> t
-(** Process markdown data from omd. Optionally [ignore_sections] can be used to
-    ignore specific sections, or [include_sections] can be used to only process
-    specific sections. *)
-
-val reports : t -> Reports.t
-val by_engineer : ?include_krs:string list -> t -> (string, float) Hashtbl.t
+val by_engineer :
+  ?include_krs:string list -> Report.t -> (string, float) Hashtbl.t

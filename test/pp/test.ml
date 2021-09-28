@@ -33,22 +33,26 @@ let default_conf =
     include_krs = [];
   }
 
-let run ?(conf = default_conf) file =
-  let ic = open_in file in
-  let str = really_input_string ic (in_channel_length ic) in
+let run ?(conf = default_conf) files =
+  let str =
+    List.map
+      (fun file ->
+        let ic = open_in file in
+        really_input_string ic (in_channel_length ic))
+      files
+  in
+  let str = String.concat "\n" str in
   let md = Omd.of_string str in
   let okrs =
-    Okra.Aggregate.of_markdown ~ignore_sections:conf.ignore_sections
+    Okra.Report.of_markdown ~ignore_sections:conf.ignore_sections
       ~include_sections:conf.include_sections md
   in
-  let okrs = Okra.Aggregate.reports okrs in
-  let pp =
-    Okra.Reports.pp ~show_time:conf.show_time
-      ~show_time_calc:conf.show_time_calc ~show_engineers:conf.show_engineers
-      ~include_krs:conf.include_krs
-  in
-  Okra.Printer.to_stdout pp okrs
+  Okra.Report.print ~show_time:conf.show_time
+    ~show_time_calc:conf.show_time_calc ~show_engineers:conf.show_engineers
+    ~include_krs:conf.include_krs okrs
 
 let () =
-  if Array.length Sys.argv <> 2 then Fmt.epr "usage: ./test.exe file"
-  else run Sys.argv.(1)
+  if Array.length Sys.argv < 2 then Fmt.epr "usage: ./test.exe file"
+  else
+    let files = List.tl (Array.to_list Sys.argv) in
+    run files

@@ -94,16 +94,12 @@ let team_term =
 let run conf =
   let md = Omd.of_channel stdin in
   let okrs =
-    Okra.Aggregate.of_markdown ~ignore_sections:conf.ignore_sections
+    Okra.Report.of_markdown ~ignore_sections:conf.ignore_sections
       ~include_sections:conf.include_sections md
   in
-  let okrs = Okra.Aggregate.reports okrs in
-  let pp =
-    Okra.Reports.pp ~show_time:conf.show_time
-      ~show_time_calc:conf.show_time_calc ~show_engineers:conf.show_engineers
-      ~include_krs:conf.include_krs
-  in
-  Okra.Printer.to_stdout pp okrs
+  Okra.Report.print ~show_time:conf.show_time
+    ~show_time_calc:conf.show_time_calc ~show_engineers:conf.show_engineers
+    ~include_krs:conf.include_krs okrs
 
 let conf_term =
   let open Let_syntax_cmdliner in

@@ -1,6 +1,6 @@
 (*
- * Copyright (c) 2021 Magnus Skjegstad <magnus@skjegstad.com>
- * Copyright (c) 2021 Patrick Ferris <pf341@patricoferris.com>
+ * Copyright (c) 2021 Magnus Skjegstad
+ * Copyright (c) 2021 Thomas Gazagnaire <thomas@gazagnaire.org>
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,26 +15,21 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *)
 
-type lint_result =
-  | No_error
-  | Format_error of (int * string) list
-  | No_time_found of string
-  | Invalid_time of string
-  | Multiple_time_entries of string
-  | No_work_found of string
-  | No_KR_ID_found of string
-  | No_project_found of string
+exception No_time_found of string
+exception Multiple_time_entries of string
+exception Invalid_time of string
+exception No_work_found of string
+exception No_KR_ID_found of string
+exception No_project_found of string
 
-val lint_string_list :
-  ?include_sections:string list ->
+type markdown = (string * string) list Omd.block list
+(** The type for markdown files. *)
+
+val of_markdown :
   ?ignore_sections:string list ->
-  string list ->
-  lint_result
-
-val lint :
   ?include_sections:string list ->
-  ?ignore_sections:string list ->
-  in_channel ->
-  lint_result
-
-val string_of_result : lint_result -> string
+  markdown ->
+  KR.t list
+(** Process markdown data from omd. Optionally [ignore_sections] can be used to
+    ignore specific sections, or [include_sections] can be used to only process
+    specific sections. *)
