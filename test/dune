@@ -1,5 +1,6 @@
 (test
  (name test)
+ (package okra)
  (deps
   (source_tree lint)
   (source_tree aggregate)

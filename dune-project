@@ -27,6 +27,7 @@
  (depends
   (ocaml (>= 4.10))
   (alcotest :with-test)
+  logs
   fmt
   get-activity
   calendar

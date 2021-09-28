@@ -13,6 +13,7 @@
 
 (rule
  (alias runtest)
+ (package okra)
  (action
   (diff eng1.md eng1.md.pp)))
 
@@ -27,5 +28,6 @@
 
 (rule
  (alias runtest)
+ (package okra)
  (action
   (diff aggr.md aggr.md.pp)))
