@@ -22,6 +22,7 @@ let week { week; _ } = week
 let year { year; _ } = year
 let day = 60. *. 60. *. 24.
 let make ~week ~year = { week; year }
+let this_month () = Cal.now () |> Cal.month |> Cal.Date.int_of_month
 
 let this_week () =
   let now = Cal.now () in
@@ -49,6 +50,13 @@ let range_of_week =
   fun t ->
     let monday = monday_of_week t.week t.year in
     (monday, Cal.Date.add monday six_days)
+
+let github_month m y =
+  let first = Cal.Date.lmake ~year:y ~month:m ~day:1 () in
+  let days = Cal.Date.days_in_month first in
+  let last = Cal.Date.add first @@ Cal.Date.Period.day days in
+  ( Cal.Date.to_unixfloat first |> Get_activity.Period.to_8601,
+    Cal.Date.to_unixfloat last |> Get_activity.Period.to_8601 )
 
 let github_week t =
   let monday, sunday = range_of_week t in
