@@ -1,7 +1,6 @@
 (*
  * Copyright (c) 2021 Magnus Skjegstad <magnus@skjegstad.com>
  * Copyright (c) 2021 Thomas Gazagnaire <thomas@gazagnaire.org>
- * Copyright (c) 2021 Patrick Ferris <pf341@patricoferris.com>
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -18,21 +17,27 @@
 
 open Cmdliner
 
-let root_term = Term.ret (Term.const (`Help (`Pager, None)))
-
-let root_cmd =
-  let info =
-    Term.info "okra" ~doc:"a tool to parse and process OKR reports"
-      ~man:
-        [
-          `S Manpage.s_description;
-          `P
-            "This tool can be used to aggregate and process OKR reports in a \
-             specific format. See project README for details.";
-        ]
+let include_sections =
+  let i =
+    Arg.info [ "include-sections" ]
+      ~doc:
+        "If non-empty, only aggregate entries under these sections - \
+         everything else is ignored."
   in
-  (root_term, info)
+  Arg.(value (opt (list string) [] i))
 
-let () =
-  Term.(
-    exit @@ eval_choice root_cmd [ Cat.cmd; Lint.cmd; Generate.cmd; Stats.cmd ])
+let ignore_sections =
+  let i =
+    Arg.info [ "ignore-sections" ]
+      ~doc:
+        "If non-empty, ignore everyhing under these sections (titles) from the \
+         report"
+  in
+  Arg.(value (opt (list string) [ "OKR updates" ] i))
+
+let include_krs =
+  let i =
+    Arg.info [ "include-krs" ]
+      ~doc:"If non-empty, only include this list of KR IDs in the output."
+  in
+  Arg.(value (opt (list string) [] i))

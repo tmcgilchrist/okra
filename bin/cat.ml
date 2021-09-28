@@ -48,31 +48,6 @@ let show_engineers_term =
   in
   Arg.value (Arg.opt Arg.bool true info)
 
-let include_sections_term =
-  let info =
-    Arg.info [ "include-sections" ]
-      ~doc:
-        "If non-empty, only aggregate entries under these sections - \
-         everything else is ignored."
-  in
-  Arg.value (Arg.opt (Arg.list Arg.string) [] info)
-
-let ignore_sections_term =
-  let info =
-    Arg.info [ "ignore-sections" ]
-      ~doc:
-        "If non-empty, ignore everyhing under these sections (titles) from the \
-         report"
-  in
-  Arg.value (Arg.opt (Arg.list Arg.string) [ "OKR updates" ] info)
-
-let include_krs_term =
-  let info =
-    Arg.info [ "include-krs" ]
-      ~doc:"If non-empty, only include this list of KR IDs in the output."
-  in
-  Arg.value (Arg.opt (Arg.list Arg.string) [] info)
-
 let engineer_term =
   let info =
     Arg.info [ "engineer"; "e" ]
@@ -106,9 +81,9 @@ let conf_term =
   let+ show_time = show_time_term
   and+ show_time_calc = show_time_calc_term
   and+ show_engineers = show_engineers_term
-  and+ include_krs = include_krs_term
-  and+ ignore_sections = ignore_sections_term
-  and+ include_sections = include_sections_term in
+  and+ include_krs = Common.include_krs
+  and+ ignore_sections = Common.ignore_sections
+  and+ include_sections = Common.include_sections in
   {
     show_time;
     show_time_calc;

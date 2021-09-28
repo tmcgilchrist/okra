@@ -57,7 +57,27 @@ let iter_objective f t = iter_krs f t.krs
 let iter_project f t =
   Hashtbl.iter (fun _ os -> iter_objective f os) t.objectives
 
-let iter f t = Hashtbl.iter (fun _ ps -> iter_project f ps) t.projects
+let skip _ _ = ()
+
+let iter ?(project = skip) ?(objective = skip) f t =
+  Hashtbl.iter
+    (fun _ (p : project) ->
+      project p.name p;
+      Hashtbl.iter
+        (fun _ (o : objective) ->
+          objective o.name o;
+          iter_krs f o.krs)
+        p.objectives)
+    t.projects
+
+let project t s = find_no_case t.projects s
+let objective t s = find_no_case t.objectives s
+
+let krs t =
+  let l = ref [] in
+  iter_krs (fun x -> l := x :: !l) t.krs;
+  List.rev !l
+
 let dump ppf t = Fmt.iter iter KR.dump ppf t
 
 let compare_objectives (x : objective) (y : objective) =
@@ -126,13 +146,41 @@ let add (t : t) (e : KR.t) =
   update t.all_krs;
   update o.krs
 
-let v entries =
+let of_krs entries =
   let t = { projects = Hashtbl.create 13; all_krs = empty_krs () } in
   List.iter (add t) entries;
   t
 
+let of_projects projects =
+  let ids = ref [] in
+  let titles = ref [] in
+  List.iter
+    (fun p ->
+      iter_project
+        (fun x ->
+          titles := (x.title, x) :: !titles;
+          match x.id with Some id -> ids := (id, x) :: !ids | None -> ())
+        p)
+    projects;
+  let ids = List.to_seq !ids |> Hashtbl.of_seq in
+  let titles = List.to_seq !titles |> Hashtbl.of_seq in
+  let projects =
+    projects |> List.to_seq |> Seq.map (fun p -> (p.name, p)) |> Hashtbl.of_seq
+  in
+  { projects; all_krs = { ids; titles } }
+
+let of_objectives ~project objectives =
+  let objectives =
+    objectives
+    |> List.to_seq
+    |> Seq.map (fun (o : objective) -> (o.name, o))
+    |> Hashtbl.of_seq
+  in
+  let p : project = { name = project; objectives } in
+  of_projects [ p ]
+
 let of_markdown ?ignore_sections ?include_sections m =
-  v (Parser.of_markdown ?ignore_sections ?include_sections m)
+  of_krs (Parser.of_markdown ?ignore_sections ?include_sections m)
 
 let make_objective conf o =
   let krs = Hashtbl.to_seq o.krs.ids |> Seq.map snd |> List.of_seq in
