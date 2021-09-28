@@ -105,50 +105,34 @@ let run conf =
   in
   Okra.Printer.to_stdout pp okrs
 
+let conf_term =
+  let open Let_syntax_cmdliner in
+  let+ show_time = show_time_term
+  and+ show_time_calc = show_time_calc_term
+  and+ show_engineers = show_engineers_term
+  and+ include_krs = include_krs_term
+  and+ ignore_sections = ignore_sections_term
+  and+ include_sections = include_sections_term in
+  {
+    show_time;
+    show_time_calc;
+    show_engineers;
+    ignore_sections;
+    include_sections;
+    include_krs;
+  }
+
 let term =
-  let cat show_time show_time_calc show_engineers include_krs ignore_sections
-      include_sections team engineer =
-    let conf =
-      if engineer then
-        {
-          show_time;
-          show_time_calc;
-          show_engineers;
-          include_krs;
-          ignore_sections = [];
-          include_sections = [ "Last week" ];
-        }
-      else if team then
-        {
-          show_time;
-          show_time_calc;
-          show_engineers;
-          include_krs;
-          ignore_sections = [ "OKR Updates" ];
-          include_sections = [];
-        }
-      else
-        {
-          show_time;
-          show_time_calc;
-          show_engineers;
-          include_krs;
-          ignore_sections;
-          include_sections;
-        }
-    in
-    run conf
+  let open Let_syntax_cmdliner in
+  let+ conf = conf_term and+ team = team_term and+ engineer = engineer_term in
+  let conf =
+    if engineer then
+      { conf with ignore_sections = []; include_sections = [ "Last week" ] }
+    else if team then
+      { conf with ignore_sections = [ "OKR Updates" ]; include_sections = [] }
+    else conf
   in
-  Term.(
-    const cat
-    $ show_time_term
-    $ show_time_calc_term
-    $ show_engineers_term
-    $ include_krs_term
-    $ ignore_sections_term
-    $ include_sections_term
-    $ team_term
-    $ engineer_term)
+  run conf
 
 let cmd =
   let info =

@@ -35,12 +35,11 @@ let year_term =
        [ "y"; "year" ]
 
 let calendar_term : Calendar.t Term.t =
-  let make week year =
-    let week = Option.value ~default:(Cal.week (Cal.now ())) week in
-    let year = Option.value ~default:(Cal.year (Cal.now ())) year in
-    Calendar.make ~week ~year
-  in
-  Term.(const make $ week_term $ year_term)
+  let open Let_syntax_cmdliner in
+  let+ week = week_term and+ year = year_term in
+  let week = Option.value ~default:(Cal.week (Cal.now ())) week in
+  let year = Option.value ~default:(Cal.year (Cal.now ())) year in
+  Calendar.make ~week ~year
 
 let no_activity =
   Arg.value
@@ -99,22 +98,23 @@ let run cal projects token no_activity =
   Fmt.pr "%s\n\n%a" header Activity.pp activity
 
 let term =
-  let make_with_file cal okra_file token_file no_activity =
-    let token =
-      (* If [no_activity] is specfied then the token will not be used, don't try
-         to load the file in that case *)
-      if no_activity then ""
-      else get_or_error @@ Get_activity.Token.load token_file
-    in
-    let okra_conf =
-      match get_or_error @@ Bos.OS.File.exists (Fpath.v okra_file) with
-      | false -> Conf.default
-      | true -> get_or_error @@ Conf.load okra_file
-    in
-    run cal (Conf.projects okra_conf) token no_activity
+  let open Let_syntax_cmdliner in
+  let+ cal = calendar_term
+  and+ okra_file = Conf.cmdliner
+  and+ token_file = token
+  and+ no_activity = no_activity in
+  let token =
+    (* If [no_activity] is specfied then the token will not be used, don't try
+       to load the file in that case *)
+    if no_activity then ""
+    else get_or_error @@ Get_activity.Token.load token_file
   in
-  Term.(
-    const make_with_file $ calendar_term $ Conf.cmdliner $ token $ no_activity)
+  let okra_conf =
+    match get_or_error @@ Bos.OS.File.exists (Fpath.v okra_file) with
+    | false -> Conf.default
+    | true -> get_or_error @@ Conf.load okra_file
+  in
+  run cal (Conf.projects okra_conf) token no_activity
 
 let cmd =
   let info =

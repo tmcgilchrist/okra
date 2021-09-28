@@ -94,24 +94,23 @@ let run conf =
     Printf.fprintf stderr "Caught unknown error while linting:\n\n";
     raise e
 
+let conf_term =
+  let open Let_syntax_cmdliner in
+  let+ include_sections = include_sections_term
+  and+ ignore_sections = ignore_sections_term
+  and+ files = files_term in
+  { include_sections; ignore_sections; files }
+
 let term =
-  let lint include_sections ignore_sections engineer team files =
-    let conf =
-      if engineer then
-        { include_sections = [ "Last week" ]; ignore_sections = []; files }
-      else if team then
-        { include_sections; ignore_sections = [ "OKR updates" ]; files }
-      else { include_sections; ignore_sections; files }
-    in
-    run conf
+  let open Let_syntax_cmdliner in
+  let+ conf = conf_term and+ engineer = engineer_term and+ team = team_term in
+  let conf =
+    if engineer then
+      { conf with include_sections = [ "Last week" ]; ignore_sections = [] }
+    else if team then { conf with ignore_sections = [ "OKR updates" ] }
+    else conf
   in
-  Term.(
-    const lint
-    $ include_sections_term
-    $ ignore_sections_term
-    $ engineer_term
-    $ team_term
-    $ files_term)
+  run conf
 
 let cmd =
   let info =
