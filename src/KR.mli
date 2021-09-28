@@ -48,3 +48,4 @@ type config = {
 }
 
 val items : config -> t -> Item.t list
+val string_of_days : float -> string

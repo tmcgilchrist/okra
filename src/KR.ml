@@ -151,7 +151,7 @@ let compare a b =
   | None, _ | _, None -> compare_no_case a.title b.title
   | Some a, Some b -> compare_no_case a b
 
-let make_days d =
+let string_of_days d =
   let d = floor (d *. 2.0) /. 2. in
   if d = 1. then "1 day"
   else if classify_float (fst (modf d)) = FP_zero then
@@ -159,7 +159,7 @@ let make_days d =
   else Printf.sprintf "%.1f days" d
 
 let make_engineer ~time (e, d) =
-  if time then Printf.sprintf "@%s (%s)" e (make_days d)
+  if time then Printf.sprintf "@%s (%s)" e (string_of_days d)
   else Printf.sprintf "@%s" e
 
 let make_engineers ~time entries =
@@ -187,7 +187,7 @@ type config = {
 let id = function None -> "New KR" | Some id -> id
 
 let make_time_entries t =
-  let aux (e, d) = Fmt.strf "@%s (%s)" e (make_days d) in
+  let aux (e, d) = Fmt.strf "@%s (%s)" e (string_of_days d) in
   Item.[ Paragraph (Text (String.concat ", " (List.map aux t))) ]
 
 let items conf kr =

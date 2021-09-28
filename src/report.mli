@@ -17,9 +17,16 @@
  *)
 
 type t
+type project
+type objective
 
+val project : t -> string -> project option
+val objective : project -> string -> objective option
+val krs : objective -> KR.t list
 val dump : t Fmt.t
-val v : KR.t list -> t
+val of_krs : KR.t list -> t
+val of_projects : project list -> t
+val of_objectives : project:string -> objective list -> t
 
 val of_markdown :
   ?ignore_sections:string list ->
@@ -27,7 +34,13 @@ val of_markdown :
   Parser.markdown ->
   t
 
-val iter : (KR.t -> unit) -> t -> unit
+val iter :
+  ?project:(string -> project -> unit) ->
+  ?objective:(string -> objective -> unit) ->
+  (KR.t -> unit) ->
+  t ->
+  unit
+
 val add : t -> KR.t -> unit
 
 val pp :

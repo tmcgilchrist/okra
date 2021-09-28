@@ -101,7 +101,7 @@ let check_document ~include_sections ~ignore_sections s =
   try
     let md = Omd.of_string s in
     let okrs = Parser.of_markdown ~include_sections ~ignore_sections md in
-    let _report = Report.v okrs in
+    let _report = Report.of_krs okrs in
     No_error
   with
   | Parser.No_time_found s -> No_time_found s

@@ -1,7 +1,6 @@
 (*
  * Copyright (c) 2021 Magnus Skjegstad <magnus@skjegstad.com>
  * Copyright (c) 2021 Thomas Gazagnaire <thomas@gazagnaire.org>
- * Copyright (c) 2021 Patrick Ferris <pf341@patricoferris.com>
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -18,21 +17,6 @@
 
 open Cmdliner
 
-let root_term = Term.ret (Term.const (`Help (`Pager, None)))
-
-let root_cmd =
-  let info =
-    Term.info "okra" ~doc:"a tool to parse and process OKR reports"
-      ~man:
-        [
-          `S Manpage.s_description;
-          `P
-            "This tool can be used to aggregate and process OKR reports in a \
-             specific format. See project README for details.";
-        ]
-  in
-  (root_term, info)
-
-let () =
-  Term.(
-    exit @@ eval_choice root_cmd [ Cat.cmd; Lint.cmd; Generate.cmd; Stats.cmd ])
+val include_sections : string list Term.t
+val ignore_sections : string list Term.t
+val include_krs : string list Term.t
