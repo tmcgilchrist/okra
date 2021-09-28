@@ -75,7 +75,10 @@ let template : template Arg.conv = Arg.conv (parse_template, pp_template)
 let template_term =
   Arg.value
   @@ Arg.opt template Engineer
-  @@ Arg.info ~doc:"The template to use when generating this document"
+  @@ Arg.info
+       ~doc:
+         "The template to use when generating this document, for now there is \
+          only engineer and monthly"
        ~docv:"TEMPLATE" [ "template" ]
 
 let no_activity =
@@ -143,13 +146,10 @@ let run_monthly cal repos token =
   let from, to_ = Calendar.range_of_month cal in
   let format_date f = CalendarLib.Printer.Date.fprint "%0Y/%0m/%0d" f in
   let period = Calendar.github_month cal in
-  let stuff =
-    Lwt_main.run (Monthly_fetch.get ~period ~token repos) |> List.map snd
-  in
+  let projects = Lwt_main.run (Monthly_fetch.get ~period ~token repos) in
   Fmt.(
     pf stdout "# Reports (%a - %a)\n\n%a" format_date from format_date to_
-      (list Monthly.pp_data))
-    stuff
+      Monthly.pp projects)
 
 let run cal okra_conf token no_activity repos = function
   | Engineer -> run_engineer okra_conf cal (Conf.projects okra_conf) token no_activity

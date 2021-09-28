@@ -22,6 +22,12 @@ let test_week monday sunday week year () =
   Alcotest.(check string) "same monday" monday gen_monday;
   Alcotest.(check string) "same sunday" sunday gen_sunday
 
+let test_month first last month year () =
+  let month = Calendar.make_month ~month ~year in
+  let gen_first, gen_last = Calendar.github_month month in
+  Alcotest.(check string) "same first" first gen_first;
+  Alcotest.(check string) "same last" last gen_last
+
 let tests =
   [
     ( "week_1_2020",
@@ -36,4 +42,10 @@ let tests =
     ( "week_35_2021",
       `Quick,
       test_week "2021-08-30T00:00:00Z" "2021-09-05T23:59:59Z" 35 2021 );
+    ( "month_1_2021",
+      `Quick,
+      test_month "2021-01-01T00:00:00Z" "2021-02-01T00:00:00Z" 1 2021 );
+    ( "month_12_1998",
+      `Quick,
+      test_month "1998-12-01T00:00:00Z" "1999-01-01T00:00:00Z" 12 1998 );
   ]

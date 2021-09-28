@@ -183,7 +183,7 @@ let pp_data ppf (data : data) =
   let pp_prs ppf prs =
     let opened, merged = PR.split_by_status prs in
     Fmt.pf ppf
-      "### Opened (and not merged in same time frame)\n\n%a### Merged\n\n%a"
+      "### Opened (and not merged in same time frame)\n\n%a\n\n### Merged\n\n%a"
       Fmt.(list PR.pp)
       opened
       Fmt.(list PR.pp)
@@ -197,6 +197,9 @@ let pp_data ppf (data : data) =
 module Project_map = Map.Make (String)
 
 type t = data Project_map.t
+
+let pp ppf t =
+  Project_map.bindings t |> List.map snd |> Fmt.(pf ppf "%a" (list pp_data))
 
 let parse_data (from, to_) repo json =
   let project = json / "data" / repo in
@@ -277,11 +280,8 @@ module Make (C : Cohttp_lwt.S.Client) = struct
           else Lwt.return (merge_data (data :: acc))
     in
     let map = Project_map.empty in
-    let+ lst =
-      Lwt_list.fold_left_s
-        (fun m (_, name) ->
-          parse [] period name json >|= fun v -> add_list name v m)
-        map repos
-    in
-    Project_map.bindings lst
+    Lwt_list.fold_left_s
+      (fun m (_, name) ->
+        parse [] period name json >|= fun v -> add_list name v m)
+      map repos
 end
