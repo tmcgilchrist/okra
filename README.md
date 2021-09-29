@@ -181,7 +181,7 @@ General formatting requirements:
 - Only use '-' for bullet points
 - Use space for indentation (2 preferred)
 
-### Engineer weekly
+### Engineer Report
 
 Engineer reports should be in the following format. Only a section called `Last week` is included by default - the rest is free form as long as it's valid markdown:
 
@@ -201,6 +201,25 @@ Engineer reports should be in the following format. Only a section called `Last 
 ```
 
 The `okra generate --week=xx` command can be used to generate a stub for this report based on your Github activity and a template. To verify formatting, use `okra lint --engineer`.
+
+There are multiple ways to specify the time-frame you are interested in with the following priority order:
+
+ - Only running `okra generate` will use the current `week` and `year`.
+ - Running `okra generate --week=X` will use the `week` with the current `year`.
+ - You can specify a range of weeks using the `weeks` argument, so `okra generate --weeks=33-39` will get all of your activity from the start of week 33 to the **end** of week 39.
+ - Finally, you can also specify `--month=X` to generate a report from the first to the last day of a particular month (with January being `1`). 
+
+These all apply to generating a repository report too which is next.
+
+### Repository Report
+
+A repository report gets the PRs and issues that were "active" for a given time period for a particular set of repositories. This uses the same `generate` command as the engineer report, but if you supply `--repositories=X` this will produce a repository report. `X` should be a comma-separated list of `owner/repo` Github repositories, for example:
+
+```
+okra generate --repositories=mirage/irmin,mirage/mirage --month=9
+```
+
+This will generate a single report with an Irmin and Mirage section for September (and the current year). Note, the Github API isn't as useful for repositories so the further back in time you go, the more requests have to be made to the API and the long the report will take to produce.
 
 ### Team activity report
 

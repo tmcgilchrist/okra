@@ -50,6 +50,11 @@ let of_week =
     let monday = monday_of_week week year in
     { from = monday; to_ = Cal.Date.add monday six_days }
 
+let of_week_range ?year (first, last) =
+  let { from; to_ = _ } = of_week ?year first in
+  let { from = _; to_ } = of_week ?year last in
+  { from; to_ }
+
 let of_month ?year month =
   let year = Option.value ~default:(now () |> Cal.Date.year) year in
   let from = Cal.Date.lmake ~year ~month ~day:1 () in

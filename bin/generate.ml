@@ -26,7 +26,13 @@ let week_term =
   Arg.value
   @@ Arg.opt Arg.(some int) None
   @@ Arg.info ~doc:"The week of the year defaulting to the current week"
-       ~docv:"WEEK" [ "w"; "week" ]
+       ~docv:"WEEK" [ "week" ]
+
+let weeks_term =
+  Arg.value
+  @@ Arg.opt Arg.(some (pair ~sep:'-' int int)) None
+  @@ Arg.info ~doc:"A range specified by a start and end week (inclusive)"
+       ~docv:"WEEK" [ "weeks" ]
 
 let month_term =
   Arg.value
@@ -44,15 +50,15 @@ let year_term =
 
 let calendar_term : Calendar.t Term.t =
   let open Let_syntax_cmdliner in
-  let+ week = week_term and+ _month = month_term and+ year = year_term in
-  let week = Option.value ~default:(Cal.week (Cal.now ())) week in
-  (* let month =
-       Option.value
-         ~default:(Cal.month (Cal.now ()) |> Cal.Date.int_of_month)
-         month
-     in *)
-  let year = Option.value ~default:(Cal.year (Cal.now ())) year in
-  Calendar.of_week ~year week
+  let+ week = week_term
+  and+ weeks = weeks_term
+  and+ month = month_term
+  and+ year = year_term in
+  match (week, weeks, month, year) with
+  | None, None, None, year -> Calendar.of_week ?year (Cal.now () |> Cal.week)
+  | Some week, _, _, year -> Calendar.of_week ?year week
+  | None, Some range, _, year -> Calendar.of_week_range ?year range
+  | None, None, Some month, year -> Calendar.of_month ?year month
 
 (* The kind of report we are generating
      - engineer: a report for an individual engineer
