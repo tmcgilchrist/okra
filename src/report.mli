@@ -20,9 +20,26 @@ type t
 type project
 type objective
 
-val project : t -> string -> project option
-val objective : project -> string -> objective option
-val krs : objective -> KR.t list
+module Project : sig
+  type report := t
+  type t = project
+
+  val name : t -> string
+  val objectives : t -> objective list
+  val krs : t -> KR.t list
+  val find : report -> string -> t option
+end
+
+module Objective : sig
+  type report := t
+  type t = objective
+
+  val name : t -> string
+  val krs : t -> KR.t list
+  val find : project -> string -> t option
+  val find_all : report -> string -> (project * t) list
+end
+
 val dump : t Fmt.t
 val of_krs : KR.t list -> t
 val of_projects : project list -> t
@@ -41,6 +58,7 @@ val iter :
   t ->
   unit
 
+val find : t -> ?title:string -> ?id:string -> unit -> KR.t list
 val add : t -> KR.t -> unit
 
 val pp :

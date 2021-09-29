@@ -251,8 +251,8 @@ let block_okr = function
 
 let strip_obj_lead s =
   match Str.string_match obj_re (String.trim s) 0 with
-  | false -> s
-  | true -> Str.matched_group 1 s
+  | false -> String.trim s
+  | true -> String.trim (Str.matched_group 1 s)
 
 type state = {
   mutable current_o : string;
