@@ -102,7 +102,8 @@ let term =
   let+ cal = calendar_term
   and+ okra_file = Conf.cmdliner
   and+ token_file = token
-  and+ no_activity = no_activity in
+  and+ no_activity = no_activity
+  and+ () = Common.setup () in
   let token =
     (* If [no_activity] is specfied then the token will not be used, don't try
        to load the file in that case *)

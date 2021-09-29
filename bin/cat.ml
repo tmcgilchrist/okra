@@ -83,7 +83,8 @@ let conf_term =
   and+ show_engineers = show_engineers_term
   and+ include_krs = Common.include_krs
   and+ ignore_sections = Common.ignore_sections
-  and+ include_sections = Common.include_sections in
+  and+ include_sections = Common.include_sections
+  and+ () = Common.setup () in
   {
     show_time;
     show_time_calc;

@@ -14,6 +14,8 @@
  (depends
   (alcotest :with-test)
   (mdx :with-test)
+  logs
+  fmt
   okra
   cmdliner
   bos

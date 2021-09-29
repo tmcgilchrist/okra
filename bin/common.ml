@@ -41,3 +41,11 @@ let include_krs =
       ~doc:"If non-empty, only include this list of KR IDs in the output."
   in
   Arg.(value (opt (list string) [] i))
+
+let setup () =
+  let open Let_syntax_cmdliner in
+  let+ style_renderer = Fmt_cli.style_renderer ()
+  and+ level = Logs_cli.level () in
+  Logs.set_level level;
+  Logs.set_reporter (Logs_fmt.reporter ());
+  Fmt_tty.setup_std_outputs ?style_renderer ()
