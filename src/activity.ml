@@ -22,7 +22,7 @@ type t = { projects : project list; activity : Get_activity.Contributions.t }
 
 let pp_last_week username ppf projects =
   let pp_items ppf t =
-    let t = if List.length t = 0 then [ "Work Item 1" ] else t in
+    let t = if t = [] then [ "Work Item 1" ] else t in
     Fmt.(pf ppf "%a" (list (fun ppf s -> Fmt.pf ppf "  - %s" s))) t
   in
   let pp_project ppf { title; items } =
