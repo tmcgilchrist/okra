@@ -53,29 +53,59 @@ let iter_krs f t =
   Hashtbl.iter (fun _ kr -> if is_new_kr kr then f kr) t.titles
 
 let iter_objective f t = iter_krs f t.krs
-
-let iter_project f t =
-  Hashtbl.iter (fun _ os -> iter_objective f os) t.objectives
-
 let skip _ _ = ()
 
-let iter ?(project = skip) ?(objective = skip) f t =
+let iter_project ?(objective = skip) f t =
+  Hashtbl.iter
+    (fun _ (o : objective) ->
+      objective o.name o;
+      iter_objective f o)
+    t.objectives
+
+let iter ?(project = skip) ?objective f t =
   Hashtbl.iter
     (fun _ (p : project) ->
       project p.name p;
-      Hashtbl.iter
-        (fun _ (o : objective) ->
-          objective o.name o;
-          iter_krs f o.krs)
-        p.objectives)
+      iter_project ?objective f p)
     t.projects
-
-let project t s = find_no_case t.projects s
-let objective t s = find_no_case t.objectives s
 
 let krs t =
   let l = ref [] in
   iter_krs (fun x -> l := x :: !l) t.krs;
+  List.rev !l
+
+module Project = struct
+  type t = project
+
+  let name (t : project) = t.name
+  let objectives t = Hashtbl.to_seq t.objectives |> Seq.map snd |> List.of_seq
+  let find t s = find_no_case t.projects s
+
+  let krs t =
+    let l = ref [] in
+    iter_project (fun x -> l := x :: !l) t;
+    List.rev !l
+end
+
+module Objective = struct
+  type t = objective
+
+  let name (t : objective) = t.name
+  let krs = krs
+  let find t s = find_no_case t.objectives s
+
+  let find_all t s =
+    Hashtbl.fold
+      (fun _ p acc ->
+        match find p s with None -> acc | Some x -> (p, x) :: acc)
+      t.projects []
+end
+
+let find t ?title ?id () =
+  let l = ref [] in
+  iter_krs
+    (fun kr -> if Some kr.KR.title = title || kr.KR.id = id then l := kr :: !l)
+    t.all_krs;
   List.rev !l
 
 let dump ppf t = Fmt.iter iter KR.dump ppf t
