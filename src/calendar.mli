@@ -14,8 +14,11 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *)
 
+type date = CalendarLib.Date.t
+(** A single date *)
+
 type t
-(** A specific week, month and year *)
+(** A specific range within the year *)
 
 val week : t -> int
 (** [week t] gets the week from [t] *)
@@ -26,28 +29,16 @@ val month : t -> int
 val year : t -> int
 (** [year t] gets the year from [t] *)
 
-val make_week : week:int -> year:int -> t
-(** [make_week ~week ~year] constructs a new [t] *)
+val of_week : ?year:int -> int -> t
+(** [of_week ?year week] generates a [t] for ISO8601 week staring on the Monday
+    and ending on the Sunday *)
 
-val make_month : month:int -> year:int -> t
-val make : week:int -> month:int -> year:int -> t
+val of_month : ?year:int -> int -> t
+(** [of_month ?year month] generates a [t] for the [month] staring on the first
+    day of the month and ending on the last *)
 
-val this_week : unit -> t
-(** [this_week ()] gets the current week and year *)
+val range : t -> date * date
+(** [range t] gives the underlying start and end dates for [t] *)
 
-val this_month : unit -> t
-(** [this_month ()] gets the current month as a integer *)
-
-val range_of_week : t -> CalendarLib.Date.t * CalendarLib.Date.t
-(** [range_of_week t] returns the start and end dates of the week *)
-
-val range_of_month : t -> CalendarLib.Date.t * CalendarLib.Date.t
-(** [range_of_month t] returns the first and last dates of the month *)
-
-val github_week : t -> string * string
-(** [github_week t] converts [t] into floats as strings ready to be passed to
-    the Github API *)
-
-val github_month : t -> string * string
-(** [github_month m y] converts the month [m] and year [y] into floats as
-    strings ready to be passed to the Github API *)
+val to_iso8601 : t -> string * string
+(** [to_iso8601 t] converts [t] to the ISO8601 format *)

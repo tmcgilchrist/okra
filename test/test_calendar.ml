@@ -17,14 +17,14 @@
 open Okra
 
 let test_week monday sunday week year () =
-  let week = Calendar.make_week ~week ~year in
-  let gen_monday, gen_sunday = Calendar.github_week week in
+  let week = Calendar.of_week ~year week in
+  let gen_monday, gen_sunday = Calendar.to_iso8601 week in
   Alcotest.(check string) "same monday" monday gen_monday;
   Alcotest.(check string) "same sunday" sunday gen_sunday
 
 let test_month first last month year () =
-  let month = Calendar.make_month ~month ~year in
-  let gen_first, gen_last = Calendar.github_month month in
+  let month = Calendar.of_month ~year month in
+  let gen_first, gen_last = Calendar.to_iso8601 month in
   Alcotest.(check string) "same first" first gen_first;
   Alcotest.(check string) "same last" last gen_last
 
@@ -44,8 +44,8 @@ let tests =
       test_week "2021-08-30T00:00:00Z" "2021-09-05T23:59:59Z" 35 2021 );
     ( "month_1_2021",
       `Quick,
-      test_month "2021-01-01T00:00:00Z" "2021-02-01T00:00:00Z" 1 2021 );
+      test_month "2021-01-01T00:00:00Z" "2021-01-31T23:59:59Z" 1 2021 );
     ( "month_12_1998",
       `Quick,
-      test_month "1998-12-01T00:00:00Z" "1999-01-01T00:00:00Z" 12 1998 );
+      test_month "1998-12-01T00:00:00Z" "1998-12-31T23:59:59Z" 12 1998 );
   ]

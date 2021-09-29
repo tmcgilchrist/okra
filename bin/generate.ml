@@ -44,15 +44,15 @@ let year_term =
 
 let calendar_term : Calendar.t Term.t =
   let open Let_syntax_cmdliner in
-  let+ week = week_term and+ month = month_term and+ year = year_term in
+  let+ week = week_term and+ _month = month_term and+ year = year_term in
   let week = Option.value ~default:(Cal.week (Cal.now ())) week in
-  let month =
-    Option.value
-      ~default:(Cal.month (Cal.now ()) |> Cal.Date.int_of_month)
-      month
-  in
+  (* let month =
+       Option.value
+         ~default:(Cal.month (Cal.now ()) |> Cal.Date.int_of_month)
+         month
+     in *)
   let year = Option.value ~default:(Cal.year (Cal.now ())) year in
-  Calendar.make ~week ~month ~year
+  Calendar.of_week ~year week
 
 (* The kind of report we are generating
      - engineer: a report for an individual engineer
@@ -102,7 +102,7 @@ let token =
 module Fetch = Get_activity.Contributions.Fetch (Cohttp_lwt_unix.Client)
 
 let run_engineer conf cal projects token no_activity =
-  let period = Calendar.github_week cal in
+  let period = Calendar.to_iso8601 cal in
   let week = Calendar.week cal in
   let activity =
     if no_activity then
@@ -112,7 +112,7 @@ let run_engineer conf cal projects token no_activity =
       Lwt_main.run (Fetch.exec ~period ~token)
       |> Get_activity.Contributions.of_json ~from:(fst period)
   in
-  let from, to_ = Calendar.range_of_week cal in
+  let from, to_ = Calendar.range cal in
   let format_date f = CalendarLib.Printer.Date.fprint "%0Y/%0m/%0d" f in
   let header =
     Fmt.str "%s week %i: %a -- %a" activity.username week format_date from
@@ -133,9 +133,9 @@ let get_or_error = function
 module Repo_fetch = Okra.Repo_report.Make (Cohttp_lwt_unix.Client)
 
 let run_monthly cal repos token =
-  let from, to_ = Calendar.range_of_month cal in
+  let from, to_ = Calendar.range cal in
   let format_date f = CalendarLib.Printer.Date.fprint "%0Y/%0m/%0d" f in
-  let period = Calendar.github_month cal in
+  let period = Calendar.to_iso8601 cal in
   let projects = Lwt_main.run (Repo_fetch.get ~period ~token repos) in
   Fmt.(
     pf stdout "# Reports (%a - %a)\n\n%a" format_date from format_date to_

@@ -16,26 +16,15 @@
 
 module Cal = CalendarLib.Calendar
 
-type t = { week : int; month : int; year : int }
+type date = Cal.Date.t
+type t = { from : date; to_ : date }
 
-let week { week; _ } = week
-let month { month; _ } = month
-let year { year; _ } = year
+let week t = Cal.Date.week t.from (* ISO compliant? *)
+
+let month t = Cal.Date.month t.from |> Cal.Date.int_of_month
+let year t = Cal.Date.year t.from
 let day = 60. *. 60. *. 24.
-
-let now () =
-  let now = Cal.now () in
-  {
-    week = Cal.week now;
-    month = Cal.month now |> Cal.Date.int_of_month;
-    year = Cal.year now;
-  }
-
-let this_month = now
-let make_week ~week ~year = { week; month = (now ()).month; year }
-let this_week = now
-let make_month ~month ~year = { week = (now ()).week; month; year }
-let make ~week ~month ~year = { week; month; year }
+let now () = Cal.now () |> Cal.to_date
 
 (* ISO8601 compliant: https://en.wikipedia.org/wiki/ISO_week_date#Calculating_an_ordinal_or_month_date_from_a_week_date *)
 let monday_of_week week year =
@@ -54,28 +43,23 @@ let monday_of_week week year =
       Cal.Date.from_day_of_year year doy
   | d -> Cal.Date.from_day_of_year year d
 
-let range_of_week =
+let of_week =
   let six_days = Cal.Date.Period.make 0 0 6 in
-  fun t ->
-    let monday = monday_of_week t.week t.year in
-    (monday, Cal.Date.add monday six_days)
+  fun ?year week ->
+    let year = Option.value ~default:(now () |> Cal.Date.year) year in
+    let monday = monday_of_week week year in
+    { from = monday; to_ = Cal.Date.add monday six_days }
 
-let range_of_month { week = _; month; year } =
-  let first = Cal.Date.lmake ~year ~month ~day:1 () in
-  let days = Cal.Date.days_in_month first in
-  let last = Cal.Date.add first @@ Cal.Date.Period.day days in
-  (first, last)
+let of_month ?year month =
+  let year = Option.value ~default:(now () |> Cal.Date.year) year in
+  let from = Cal.Date.lmake ~year ~month ~day:1 () in
+  let days = Cal.Date.days_in_month from in
+  let to_ = Cal.Date.add from @@ Cal.Date.Period.day (days - 1) in
+  { from; to_ }
 
-let github_month t =
-  let first, last = range_of_month t in
-  ( Cal.Date.to_unixfloat first |> Get_activity.Period.to_8601,
-    Cal.Date.to_unixfloat last |> Get_activity.Period.to_8601 )
+let range { from; to_ } = (from, to_)
 
-let github_week t =
-  let monday, sunday = range_of_week t in
-  let sunday =
-    (* Some people might work on the sunday... *)
-    Cal.Date.to_unixfloat sunday +. (day -. 1.) |> Cal.from_unixfloat
-  in
-  ( Cal.Date.to_unixfloat monday |> Get_activity.Period.to_8601,
-    Cal.to_unixfloat sunday |> Get_activity.Period.to_8601 )
+let to_iso8601 t =
+  (* We store the dates, not the times as well so we add the extra day minus one second *)
+  ( Cal.Date.to_unixfloat t.from |> Get_activity.Period.to_8601,
+    Cal.Date.to_unixfloat t.to_ +. day -. 1. |> Get_activity.Period.to_8601 )
