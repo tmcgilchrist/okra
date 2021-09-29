@@ -240,6 +240,9 @@ projects:
 locations:
   - "/path/to/admin/dir1"
   - "/path/to/admin/dir2"
+footer: |
+  # Meetings
+  - A recurring meeting
 ```
 
 You can also provide default work items for your projects which are particularly useful for recurring tasks (e.g. meetings). For example: 
@@ -252,4 +255,4 @@ projects:
       - "Documenting the tool"
 ```
 
-There are [mdx tests](test/bin/README.md) which show the output from such a configuration file.
+There are [mdx tests](test/bin/README.md) which show the output from such a configuration file and explain in detail what the different parts do.

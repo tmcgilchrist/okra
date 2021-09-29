@@ -77,7 +77,7 @@ let get_or_error = function
 
 module Fetch = Get_activity.Contributions.Fetch (Cohttp_lwt_unix.Client)
 
-let run cal projects token no_activity =
+let run conf cal projects token no_activity =
   let period = Calendar.github_week cal in
   let week = Calendar.week cal in
   let activity =
@@ -94,8 +94,11 @@ let run cal projects token no_activity =
     Fmt.str "%s week %i: %a -- %a" activity.username week format_date from
       format_date to_
   in
+  let pp_footer ppf conf = Fmt.(pf ppf "\n\n%a" string conf) in
   let activity = Activity.make ~projects activity in
-  Fmt.pr "%s\n\n%a" header Activity.pp activity
+  Fmt.(
+    pr "%s\n\n%a%a" header Activity.pp activity (option pp_footer)
+      (Conf.footer conf))
 
 let term =
   let open Let_syntax_cmdliner in
@@ -114,7 +117,7 @@ let term =
     | false -> Conf.default
     | true -> get_or_error @@ Conf.load okra_file
   in
-  run cal (Conf.projects okra_conf) token no_activity
+  run okra_conf cal (Conf.projects okra_conf) token no_activity
 
 let cmd =
   let info =
