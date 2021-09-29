@@ -24,8 +24,9 @@ let repo_report =
       {
         repo = "mirage/irmin";
         description =
-          "Irmin is a distributed database that follows the same design \
-           principles as Git";
+          Some
+            "Irmin is a distributed database that follows the same design \
+             principles as Git";
         issues =
           [
             Issue.

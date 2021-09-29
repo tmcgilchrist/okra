@@ -165,7 +165,7 @@ end
 
 type data = {
   repo : string;
-  description : string;
+  description : string option;
   issues : Issue.t list;
   prs : PR.t list;
 }
@@ -202,7 +202,8 @@ let pp_data ppf (data : data) =
          merged)
   in
   Fmt.pf ppf "# %s\n%s\n\n## Pull Requests\n\n%a\n\n## Issues\n\n%a" data.repo
-    data.description pp_prs data.prs
+    (Option.value ~default:"No description" data.description)
+    pp_prs data.prs
     Fmt.(list Issue.pp)
     (List.sort
        (fun v1 v2 -> String.compare v1.Issue.created_at v2.created_at)
@@ -216,8 +217,8 @@ let pp ppf t =
   Project_map.bindings t |> List.map snd |> Fmt.(pf ppf "%a" (list pp_data))
 
 let parse_data (from, to_) repo json =
-  let project = json / "data" / repo in
-  let description = project / "description" |> U.to_string in
+  let project = json / "data" / underscore repo in
+  let description = project / "description" |> U.to_string_option in
   let issues =
     project / "issues" / "edges" |> U.to_list |> List.map Issue.parse
   in

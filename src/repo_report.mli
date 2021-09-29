@@ -47,7 +47,7 @@ end
 
 type data = {
   repo : string;
-  description : string;
+  description : string option;
   issues : Issue.t list;
   prs : PR.t list;
 }
