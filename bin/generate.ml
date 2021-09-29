@@ -54,32 +54,22 @@ let calendar_term : Calendar.t Term.t =
   let year = Option.value ~default:(Cal.year (Cal.now ())) year in
   Calendar.make ~week ~month ~year
 
-let repos =
+(* The kind of report we are generating
+     - engineer: a report for an individual engineer
+     - reposiories: 1 or more repository contributions *)
+
+type kind = Engineer | Repositories of string list
+
+let repositories =
   Arg.value
-  @@ Arg.pos_all Arg.string []
-  @@ Arg.info ~doc:"Repositories to generate reports for" []
+  @@ Arg.opt Arg.(list string) []
+  @@ Arg.info ~doc:"A list of repositories to generate reports for"
+       ~docv:"REPOSITORIES" [ "repositories" ]
 
-type template = Engineer | Monthly
-
-let pp_template ppf = function
-  | Engineer -> Fmt.pf ppf "engineer"
-  | Monthly -> Fmt.pf ppf "monthly"
-
-let parse_template = function
-  | "engineer" -> Ok Engineer
-  | "monthly" -> Ok Monthly
-  | _ -> Error (`Msg "Expected either engineer or monthly")
-
-let template : template Arg.conv = Arg.conv (parse_template, pp_template)
-
-let template_term =
-  Arg.value
-  @@ Arg.opt template Engineer
-  @@ Arg.info
-       ~doc:
-         "The template to use when generating this document, for now there is \
-          only engineer and monthly"
-       ~docv:"TEMPLATE" [ "template" ]
+let kind_term : kind Term.t =
+  let open Let_syntax_cmdliner in
+  let+ repositories = repositories in
+  if repositories = [] then Engineer else Repositories repositories
 
 let no_activity =
   Arg.value
@@ -140,20 +130,20 @@ let get_or_error = function
       Fmt.epr "%s" m;
       exit 1
 
-module Monthly_fetch = Okra.Monthly.Make (Cohttp_lwt_unix.Client)
+module Repo_fetch = Okra.Repo_report.Make (Cohttp_lwt_unix.Client)
 
 let run_monthly cal repos token =
   let from, to_ = Calendar.range_of_month cal in
   let format_date f = CalendarLib.Printer.Date.fprint "%0Y/%0m/%0d" f in
   let period = Calendar.github_month cal in
-  let projects = Lwt_main.run (Monthly_fetch.get ~period ~token repos) in
+  let projects = Lwt_main.run (Repo_fetch.get ~period ~token repos) in
   Fmt.(
     pf stdout "# Reports (%a - %a)\n\n%a" format_date from format_date to_
-      Monthly.pp projects)
+      Repo_report.pp projects)
 
-let run cal okra_conf token no_activity repos = function
+let run cal okra_conf token no_activity = function
   | Engineer -> run_engineer okra_conf cal (Conf.projects okra_conf) token no_activity
-  | Monthly -> run_monthly cal repos token
+  | Repositories repos -> run_monthly cal repos token
 
 let term =
   let open Let_syntax_cmdliner in
@@ -161,8 +151,7 @@ let term =
   and+ okra_file = Conf.cmdliner
   and+ token_file = token
   and+ no_activity = no_activity
-  and+ repositories = repos
-  and+ template = template_term
+  and+ kind = kind_term
   and+ () = Common.setup () in
   let token =
     (* If [no_activity] is specfied then the token will not be used, don't try
@@ -175,7 +164,7 @@ let term =
     | false -> Conf.default
     | true -> get_or_error @@ Conf.load okra_file
   in
-  run cal okra_conf token no_activity repositories template
+  run cal okra_conf token no_activity kind
 
 let cmd =
   let info =

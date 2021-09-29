@@ -1,5 +1,3 @@
-type project = { title : string; description : string; repos : string list }
-
 let owner_name s =
   match Astring.String.cut ~sep:"/" s with
   | Some t -> t

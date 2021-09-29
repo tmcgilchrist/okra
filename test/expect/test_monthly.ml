@@ -16,11 +16,11 @@
 
 open Okra
 
-let monthly =
-  let open Monthly in
+let repo_report =
+  let open Repo_report in
   let map : data Project_map.t = Project_map.empty in
   let data : data =
-    Monthly.
+    Repo_report.
       {
         repo = "mirage/irmin";
         description =
@@ -73,4 +73,4 @@ let monthly =
   in
   Project_map.add "mirage/irmin" data map
 
-let () = Monthly.pp Fmt.stdout monthly
+let () = Repo_report.pp Fmt.stdout repo_report
