@@ -2,6 +2,7 @@ module Issue : sig
   type t = {
     author : string option;
     title : string;
+    cursor : string;
     url : string;
     body : string;
     closed : bool;

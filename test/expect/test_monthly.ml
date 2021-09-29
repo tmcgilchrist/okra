@@ -32,6 +32,7 @@ let repo_report =
               {
                 author = Some "Dromedary";
                 title = "Small bug";
+                cursor = "wkjgkdjlsghwkl";
                 url = "https://github.com/mirage/irmin";
                 body = "A small bug";
                 closed = false;
