@@ -190,6 +190,28 @@ let make_time_entries t =
   let aux (e, d) = Fmt.strf "@%s (%s)" e (string_of_days d) in
   Item.[ Paragraph (Text (String.concat ", " (List.map aux t))) ]
 
+let update_from_master_db t db =
+  let update (orig_kr : t) (db_kr : Masterdb.elt_t option) =
+    match db_kr with
+    | None -> orig_kr
+    | Some db_kr ->
+        {
+          orig_kr with
+          id = Some db_kr.id;
+          title = db_kr.title;
+          objective = db_kr.objective;
+          project = db_kr.project;
+        }
+  in
+
+  match t.id with
+  | None ->
+      let db_kr = Masterdb.find_title_opt db t.title in
+      update t db_kr
+  | Some id ->
+      let db_kr = Masterdb.find_kr_opt db id in
+      update t db_kr
+
 let items conf kr =
   let open Item in
   if

@@ -33,5 +33,6 @@
   fmt
   get-activity
   calendar
+  csv
   (omd (>= 2.0))))
 (using mdx 0.1)

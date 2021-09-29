@@ -22,6 +22,7 @@ type t = {
   ignore_sections : string list;
   include_sections : string list;
   include_krs : string list;
+  okr_db : string option;
 }
 
 open Cmdliner
@@ -66,11 +67,25 @@ let team_term =
   in
   Arg.value (Arg.flag info)
 
+let okr_db_term =
+  let info =
+    Arg.info [ "okr-db" ]
+      ~doc:
+        "Replace KR titles, objectives and projects with information from a \
+         CSV. Requires header with columns id,title,objective,project."
+  in
+  Arg.value (Arg.opt (Arg.some Arg.file) None info)
+
 let run conf =
+  let okr_db =
+    match conf.okr_db with
+    | None -> None
+    | Some f -> Some (Okra.Masterdb.load_csv f)
+  in
   let md = Omd.of_channel stdin in
   let okrs =
     Okra.Report.of_markdown ~ignore_sections:conf.ignore_sections
-      ~include_sections:conf.include_sections md
+      ~include_sections:conf.include_sections ?okr_db md
   in
   Okra.Report.print ~show_time:conf.show_time
     ~show_time_calc:conf.show_time_calc ~show_engineers:conf.show_engineers
@@ -84,6 +99,7 @@ let conf_term =
   and+ include_krs = Common.include_krs
   and+ ignore_sections = Common.ignore_sections
   and+ include_sections = Common.include_sections
+  and+ okr_db = okr_db_term
   and+ () = Common.setup () in
   {
     show_time;
@@ -92,6 +108,7 @@ let conf_term =
     ignore_sections;
     include_sections;
     include_krs;
+    okr_db;
   }
 
 let term =

@@ -41,13 +41,14 @@ module Objective : sig
 end
 
 val dump : t Fmt.t
-val of_krs : KR.t list -> t
+val of_krs : ?okr_db:Masterdb.t -> KR.t list -> t
 val of_projects : project list -> t
 val of_objectives : project:string -> objective list -> t
 
 val of_markdown :
   ?ignore_sections:string list ->
   ?include_sections:string list ->
+  ?okr_db:Masterdb.t ->
   Parser.markdown ->
   t
 
@@ -59,7 +60,7 @@ val iter :
   unit
 
 val find : t -> ?title:string -> ?id:string -> unit -> KR.t list
-val add : t -> KR.t -> unit
+val add : ?okr_db:Masterdb.t -> t -> KR.t -> unit
 
 val pp :
   ?include_krs:string list ->
