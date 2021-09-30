@@ -26,6 +26,9 @@ val projects : t -> Okra.Activity.project list
 val locations : t -> string list
 (** A list of locations to use when aggregating reports *)
 
+val footer : t -> string option
+(** An optional footer to append to the end of your engineer reports *)
+
 val load : string -> (t, [ `Msg of string ]) result
 (** [load file] attempts to load a configuration from [file] *)
 

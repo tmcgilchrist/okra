@@ -12,6 +12,7 @@ What follows is some brief examples of how to use `okra` to improve the OKR repo
    * [Generating a report](#generating-a-report)
    * [Configuring the tool for your projects](#configuring-the-tool-for-your-projects)
    * [Adding recurring items to your configuration file](#adding-recurring-items-to-your-configuration-file)
+   * [Adding a footer to your report](#adding-a-footer-to-your-report)
    * [Linting your weekly report](#linting-your-weekly-report)
 
 ## Engineers
@@ -128,6 +129,50 @@ $ okra generate --week=37 --year=2021 --no-activity --conf=conf.projects.yaml
 
 
 ```
+
+### Adding a footer to your report
+
+Sometimes you might have some recurring comments to make outside of last week's activity (perhaps meetings and the like). You can add a `footer` section to your configuration file which simply appends the string to the end of your report. 
+
+<!-- $MDX dir=files -->
+```sh
+$ cat conf.footer.yaml
+projects:
+  - "Make Okra, the OKR management tool (OKR1)"
+  - "Make a web interface for Okra (OKR2)"
+footer: |
+  # Meetings
+  - A meeting with x, y and z
+  - Another thing as well
+$ okra generate --week=37 --year=2021 --no-activity --conf=conf.footer.yaml
+<USERNAME> week 37: 2021/09/13 -- 2021/09/19
+
+# Projects
+
+- Make Okra, the OKR management tool (OKR1)
+- Make a web interface for Okra (OKR2)
+
+# Last Week
+
+- Make Okra, the OKR management tool (OKR1)
+  - @<USERNAME> (<X> days)
+  - Work Item 1
+
+- Make a web interface for Okra (OKR2)
+  - @<USERNAME> (<X> days)
+  - Work Item 1
+
+# Activity (move these items to last week)
+
+
+
+
+# Meetings
+- A meeting with x, y and z
+- Another thing as well
+```
+
+The vast space between `Activity` and `Meetings` is just an artefact of `--no-activity`. Note the `|` which tells yaml to include the newlines and any trailing spaces.
 
 ### Linting your weekly report
 
