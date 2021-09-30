@@ -195,6 +195,26 @@ let update_from_master_db t db =
     match db_kr with
     | None -> orig_kr
     | Some db_kr ->
+        if orig_kr.id = None then
+          Log.warn (fun l ->
+              l "KR ID updated from unspecified to %S :\n- %S\n- %S" db_kr.id
+                orig_kr.title db_kr.title);
+        if orig_kr.title <> db_kr.title then
+          Log.warn (fun l ->
+              l "Title for KR %S does not match title in database:\n- %S\n- %S"
+                db_kr.id orig_kr.title db_kr.title);
+        if orig_kr.objective <> db_kr.objective then
+          Log.warn (fun l ->
+              l
+                "Objective for KR %S does not match objective in database:\n\
+                 - %S\n\
+                 - %S" db_kr.id orig_kr.objective db_kr.objective);
+        if orig_kr.project <> db_kr.project then
+          Log.warn (fun l ->
+              l
+                "Project for KR %S does not match project in database:\n\
+                 - %S\n\
+                 - %S" db_kr.id orig_kr.project db_kr.project);
         {
           orig_kr with
           id = Some db_kr.id;
