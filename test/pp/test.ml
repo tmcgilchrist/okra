@@ -1,5 +1,6 @@
 (*
  * Copyright (c) 2021 Thomas Gazagnaire <thomas@gazagnaire.org>
+ * Copyright (c) 2021 Magnus Skjegstad <magnus@skjegstad.com>
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -21,6 +22,7 @@ type t = {
   ignore_sections : string list;
   include_sections : string list;
   include_krs : string list;
+  okr_db : Okra.Masterdb.t option;
 }
 
 let default_conf =
@@ -31,6 +33,7 @@ let default_conf =
     ignore_sections = [];
     include_sections = [];
     include_krs = [];
+    okr_db = None;
   }
 
 let run ?(conf = default_conf) files =
@@ -45,14 +48,22 @@ let run ?(conf = default_conf) files =
   let md = Omd.of_string str in
   let okrs =
     Okra.Report.of_markdown ~ignore_sections:conf.ignore_sections
-      ~include_sections:conf.include_sections md
+      ~include_sections:conf.include_sections ?okr_db:conf.okr_db md
   in
   Okra.Report.print ~show_time:conf.show_time
     ~show_time_calc:conf.show_time_calc ~show_engineers:conf.show_engineers
     ~include_krs:conf.include_krs okrs
 
 let () =
-  if Array.length Sys.argv < 2 then Fmt.epr "usage: ./test.exe file"
+  let files =
+    List.tl (Array.to_list Sys.argv) |> List.filter (fun f -> f <> "--use-db")
+  in
+  if files = [] then Fmt.epr "usage: ./test.exe [--use-db] file"
   else
-    let files = List.tl (Array.to_list Sys.argv) in
-    run files
+    let conf =
+      if Sys.argv |> Array.exists (fun f -> f = "--use-db") then
+        let okr_db = Okra.Masterdb.load_csv "db.csv" in
+        { default_conf with okr_db = Some okr_db }
+      else default_conf
+    in
+    run ~conf files

@@ -1,5 +1,5 @@
 (*
- * Copyright (c) 2021 Magnus Skjegstad
+ * Copyright (c) 2021 Magnus Skjegstad <magnus@skjegstad.com>
  * Copyright (c) 2021 Thomas Gazagnaire <thomas@gazagnaire.org>
  *
  * Permission to use, copy, modify, and distribute this software for any

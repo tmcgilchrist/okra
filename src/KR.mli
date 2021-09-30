@@ -39,6 +39,7 @@ val v :
 val dump : t Fmt.t
 val merge : t -> t -> t
 val compare : t -> t -> int
+val update_from_master_db : t -> Masterdb.t -> t
 
 type config = {
   show_engineers : bool;

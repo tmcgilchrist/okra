@@ -5,6 +5,21 @@
 
 (rule
  (deps
+  (:file1 use_db.md)
+  (:file2 db.csv))
+ (action
+  (with-stdout-to
+   use_db.md.pp
+   (run ./test.exe --use-db %{file1}))))
+
+(rule
+ (alias runtest)
+ (package okra)
+ (action
+  (diff use_db_replaced.md use_db.md.pp)))
+
+(rule
+ (deps
   (:file eng1.md))
  (action
   (with-stdout-to

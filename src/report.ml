@@ -131,8 +131,15 @@ let remove (t : t) (e : KR.t) =
   in
   remove t.all_krs
 
-let add (t : t) (e : KR.t) =
+let add ?okr_db (t : t) (e : KR.t) =
   Log.debug (fun l -> l "Report.add %a %a" dump t KR.dump e);
+
+  (* replace e fields with master db lookup if possible *)
+  let e =
+    match okr_db with
+    | None -> e (* no db *)
+    | Some db -> KR.update_from_master_db e db
+  in
   let existing_kr =
     match e.id with
     | None -> find_no_case t.all_krs.titles e.title
@@ -176,9 +183,9 @@ let add (t : t) (e : KR.t) =
   update t.all_krs;
   update o.krs
 
-let of_krs entries =
+let of_krs ?okr_db entries =
   let t = { projects = Hashtbl.create 13; all_krs = empty_krs () } in
-  List.iter (add t) entries;
+  List.iter (add ?okr_db t) entries;
   t
 
 let of_projects projects =
@@ -209,8 +216,8 @@ let of_objectives ~project objectives =
   let p : project = { name = project; objectives } in
   of_projects [ p ]
 
-let of_markdown ?ignore_sections ?include_sections m =
-  of_krs (Parser.of_markdown ?ignore_sections ?include_sections m)
+let of_markdown ?ignore_sections ?include_sections ?okr_db m =
+  of_krs ?okr_db (Parser.of_markdown ?ignore_sections ?include_sections m)
 
 let make_objective conf o =
   let krs = Hashtbl.to_seq o.krs.ids |> Seq.map snd |> List.of_seq in
