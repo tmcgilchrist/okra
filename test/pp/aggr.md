@@ -1,5 +1,9 @@
 # Title
 
+- One KR without objective (New KR)
+  - @engC (1 day)
+  - Work
+
 ## Project A
 
 - The first KR (KR1)

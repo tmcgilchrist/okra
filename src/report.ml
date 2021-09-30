@@ -223,14 +223,14 @@ let make_objective conf o =
   let krs = List.sort KR.compare krs @ List.sort KR.compare new_krs in
   match List.concat_map (KR.items conf) krs with
   | [] -> []
-  | krs -> Item.Title (2, o.name) :: krs
+  | krs -> if o.name = "" then krs else Item.Title (2, o.name) :: krs
 
 let make_project conf p =
   let os = List.of_seq (Hashtbl.to_seq p.objectives |> Seq.map snd) in
   let os = List.sort compare_objectives os in
   match List.concat_map (make_objective conf) os with
   | [] -> []
-  | os -> Item.Title (1, p.name) :: os
+  | os -> if p.name = "" then os else Item.Title (1, p.name) :: os
 
 let pp ?(include_krs = []) ?(show_time = true) ?(show_time_calc = true)
     ?(show_engineers = true) ppf t =

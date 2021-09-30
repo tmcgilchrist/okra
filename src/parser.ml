@@ -290,7 +290,9 @@ let process_block state acc = function
       let () =
         match n with
         | 2 -> state.current_o <- title
-        | 1 -> state.current_proj <- title
+        | 1 ->
+            state.current_o <- "";
+            state.current_proj <- title
         | _ -> (* TODO: do now discard intermediate subsections *) ()
       in
       acc
