@@ -31,6 +31,10 @@ let sort_by_days l =
   let aux (_, x) (_, y) = compare y x in
   List.sort aux l
 
+let green = Fmt.(styled `Green string)
+let cyan = Fmt.(styled `Cyan string)
+let pp_days ppf d = Fmt.(styled `Bold string) ppf (KR.string_of_days d)
+
 let print kind t =
   match kind with
   | Projects ->
@@ -38,9 +42,7 @@ let print kind t =
         Aggregate.by_project t |> Hashtbl.to_seq |> List.of_seq |> sort_by_days
       in
       List.iter
-        (fun (p_name, d) ->
-          let d = KR.string_of_days d in
-          Fmt.pr "# %s: %s\n" p_name d)
+        (fun (p_name, d) -> Fmt.pr "# %s: %a\n" p_name pp_days d)
         projects
   | Objectives ->
       let objectives =
@@ -51,13 +53,14 @@ let print kind t =
       in
       List.iter
         (fun (o_name, d) ->
-          let d = KR.string_of_days d in
           let ps = Report.Objective.find_all t o_name in
           let o =
             String.concat "|"
               (List.map (fun (p, _) -> Report.Project.name p) ps)
           in
-          Fmt.pr "## [%s] %s %s\n" o o_name d)
+          Fmt.pr "## [%a] %s: %a\n"
+            Fmt.(styled `Green string)
+            o o_name pp_days d)
         objectives
   | KRs ->
       let krs =
@@ -65,16 +68,15 @@ let print kind t =
       in
       List.iter
         (fun ((title, id), d) ->
-          let d = KR.string_of_days d in
           let id = match id with None -> "New KR" | Some s -> s in
           let ps = Report.find t ~title ~id () in
-          let p =
-            String.concat "|"
-              (List.map
-                 (fun kr -> Fmt.strf "%s: %s" kr.KR.project kr.KR.objective)
-                 ps)
+          let pp ppf () =
+            Fmt.list ~sep:(Fmt.unit "|")
+              (fun ppf kr ->
+                Fmt.pf ppf "%a: %a" green kr.KR.project cyan kr.KR.objective)
+              ppf ps
           in
-          Fmt.pr "- [%s] %s (%s): %s\n" p title id d)
+          Fmt.pr "- [%a] %s (%s): %a\n" pp () title id pp_days d)
         krs
 
 let run conf =
@@ -100,7 +102,9 @@ let conf_term =
   let+ include_krs = Common.include_krs
   and+ ignore_sections = Common.ignore_sections
   and+ include_sections = Common.include_sections
+  and+ () = Common.setup ()
   and+ kind = kind in
+
   { ignore_sections; include_sections; include_krs; kind }
 
 let term =

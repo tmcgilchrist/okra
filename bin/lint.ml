@@ -98,7 +98,8 @@ let conf_term =
   let open Let_syntax_cmdliner in
   let+ include_sections = include_sections_term
   and+ ignore_sections = ignore_sections_term
-  and+ files = files_term in
+  and+ files = files_term
+  and+ () = Common.setup () in
   { include_sections; ignore_sections; files }
 
 let term =
