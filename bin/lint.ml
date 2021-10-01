@@ -22,8 +22,6 @@ type t = {
 
 open Cmdliner
 
-let files_term = Arg.(value & pos_all non_dir_file [] & info [] ~docv:"FILE")
-
 let include_sections_term =
   let info =
     Arg.info [ "include-sections" ]
@@ -98,7 +96,7 @@ let conf_term =
   let open Let_syntax_cmdliner in
   let+ include_sections = include_sections_term
   and+ ignore_sections = ignore_sections_term
-  and+ files = files_term
+  and+ files = Common.files
   and+ () = Common.setup () in
   { include_sections; ignore_sections; files }
 

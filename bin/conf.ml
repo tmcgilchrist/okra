@@ -21,9 +21,17 @@ type t = {
   projects : Activity.project list;
   locations : string list;
   footer : string option;
+  okr_db : string option;
 }
 
-let default = { projects = [ default_project ]; locations = []; footer = None }
+let default =
+  {
+    projects = [ default_project ];
+    locations = [];
+    footer = None;
+    okr_db = None;
+  }
+
 let conf_err s = Error (`Msg (Fmt.str "Okra Conf Error: %s" s))
 
 let projects_of_yaml t =
@@ -70,11 +78,13 @@ let of_yaml yaml =
   find "projects" yaml >>= projects_of_yaml >>= fun projects ->
   find "locations" yaml >>= map_option to_string_exn >>= fun locations ->
   find "footer" yaml >>| Option.map to_string_exn >>= fun footer ->
-  Ok { projects; locations; footer }
+  find "okr-db" yaml >>| Option.map to_string_exn >>= fun okr_db ->
+  Ok { projects; locations; footer; okr_db }
 
 let projects { projects; _ } = projects
 let locations { locations; _ } = locations
 let footer { footer; _ } = footer
+let okr_db t = t.okr_db
 
 let load file =
   let open Rresult in

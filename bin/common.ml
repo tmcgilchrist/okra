@@ -24,7 +24,7 @@ let include_sections =
         "If non-empty, only aggregate entries under these sections - \
          everything else is ignored."
   in
-  Arg.(value (opt (list string) [] i))
+  Arg.(value & opt (list string) [] i)
 
 let ignore_sections =
   let i =
@@ -33,7 +33,7 @@ let ignore_sections =
         "If non-empty, ignore everyhing under these sections (titles) from the \
          report"
   in
-  Arg.(value (opt (list string) [ "OKR updates" ] i))
+  Arg.(value & opt (list string) [ "OKR updates" ] i)
 
 let include_krs =
   let i =
@@ -42,6 +42,13 @@ let include_krs =
   in
   Arg.(value (opt (list string) [] i))
 
+let files = Arg.(value & pos_all non_dir_file [] & info [] ~docv:"FILE")
+
+let output =
+  Arg.(value & opt (some string) None & info [ "o"; "output" ] ~docv:"FILE")
+
+let in_place = Arg.(value & flag & info [ "i"; "in-place" ])
+
 let setup () =
   let open Let_syntax_cmdliner in
   let+ style_renderer = Fmt_cli.style_renderer ()
@@ -49,3 +56,17 @@ let setup () =
   Logs.set_level level;
   Logs.set_reporter (Logs_fmt.reporter ());
   Fmt_tty.setup_std_outputs ?style_renderer ()
+
+let get_or_error = function
+  | Ok v -> v
+  | Error (`Msg m) ->
+      Fmt.epr "%s" m;
+      exit 1
+
+let conf =
+  let load okra_file =
+    match get_or_error @@ Bos.OS.File.exists (Fpath.v okra_file) with
+    | false -> Conf.default
+    | true -> get_or_error @@ Conf.load okra_file
+  in
+  Term.(pure load $ Conf.cmdliner)

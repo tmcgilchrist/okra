@@ -87,6 +87,8 @@ let to_string pp_v v =
   pp_v ppf v;
   flush ppf
 
-let to_stdout pp_v v =
+let to_channel oc pp_v v =
   let s = to_string pp_v v in
-  output_string stdout s
+  output_string oc s
+
+let to_stdout pp_v v = to_channel stdout pp_v v

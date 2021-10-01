@@ -29,6 +29,9 @@ val locations : t -> string list
 val footer : t -> string option
 (** An optional footer to append to the end of your engineer reports *)
 
+val okr_db : t -> string option
+(** [okr_db] is the location of the OKR database. *)
+
 val load : string -> (t, [ `Msg of string ]) result
 (** [load file] attempts to load a configuration from [file] *)
 

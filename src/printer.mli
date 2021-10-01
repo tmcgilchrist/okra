@@ -30,4 +30,5 @@ val ( ++ ) : 'a t -> 'a t -> 'a t
 (** Outputs *)
 
 val to_string : 'a t -> 'a -> string
+val to_channel : out_channel -> 'a t -> 'a -> unit
 val to_stdout : 'a t -> 'a -> unit

@@ -22,6 +22,9 @@ type t = {
   ignore_sections : string list;
   include_sections : string list;
   include_krs : string list;
+  files : string list;
+  in_place : bool;
+  output : string option;
   okr_db : string option;
 }
 
@@ -76,31 +79,63 @@ let okr_db_term =
   in
   Arg.value (Arg.opt (Arg.some Arg.file) None info)
 
+let read_file f =
+  let ic = open_in f in
+  let s = really_input_string ic (in_channel_length ic) in
+  close_in ic;
+  s
+
 let run conf =
   let okr_db =
     match conf.okr_db with
     | None -> None
     | Some f -> Some (Okra.Masterdb.load_csv f)
   in
-  let md = Omd.of_channel stdin in
+  let md =
+    match conf.files with
+    | [] -> Omd.of_channel stdin
+    | fs ->
+        let s = String.concat "\n" (List.map read_file fs) in
+        Omd.of_string s
+  in
+  let oc =
+    match conf.output with
+    | Some f -> open_out f
+    | None -> (
+        if not conf.in_place then stdout
+        else
+          match conf.files with
+          | [] -> Fmt.invalid_arg "[-i] needs at list an input file."
+          | [ f ] -> open_out f
+          | _ -> Fmt.invalid_arg "[-i] needs at most a file.")
+  in
   let okrs =
     Okra.Report.of_markdown ~ignore_sections:conf.ignore_sections
       ~include_sections:conf.include_sections ?okr_db md
   in
-  Okra.Report.print ~show_time:conf.show_time
-    ~show_time_calc:conf.show_time_calc ~show_engineers:conf.show_engineers
-    ~include_krs:conf.include_krs okrs
+  let pp =
+    Okra.Report.pp ~show_time:conf.show_time ~show_time_calc:conf.show_time_calc
+      ~show_engineers:conf.show_engineers ~include_krs:conf.include_krs
+  in
+  Okra.Printer.to_channel oc pp okrs
 
 let conf_term =
   let open Let_syntax_cmdliner in
   let+ show_time = show_time_term
   and+ show_time_calc = show_time_calc_term
   and+ show_engineers = show_engineers_term
+  and+ okr_db = okr_db_term
   and+ include_krs = Common.include_krs
   and+ ignore_sections = Common.ignore_sections
   and+ include_sections = Common.include_sections
-  and+ okr_db = okr_db_term
+  and+ files = Common.files
+  and+ output = Common.output
+  and+ in_place = Common.in_place
+  and+ conf = Common.conf
   and+ () = Common.setup () in
+  let okr_db =
+    match (okr_db, Conf.okr_db conf) with Some x, _ -> Some x | None, x -> x
+  in
   {
     show_time;
     show_time_calc;
@@ -109,6 +144,9 @@ let conf_term =
     include_sections;
     include_krs;
     okr_db;
+    files;
+    output;
+    in_place;
   }
 
 let term =

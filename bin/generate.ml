@@ -155,21 +155,16 @@ let run cal okra_conf token no_activity = function
 let term =
   let open Let_syntax_cmdliner in
   let+ cal = calendar_term
-  and+ okra_file = Conf.cmdliner
   and+ token_file = token
   and+ no_activity = no_activity
   and+ kind = kind_term
+  and+ okra_conf = Common.conf
   and+ () = Common.setup () in
   let token =
     (* If [no_activity] is specfied then the token will not be used, don't try
        to load the file in that case *)
     if no_activity then ""
     else get_or_error @@ Get_activity.Token.load token_file
-  in
-  let okra_conf =
-    match get_or_error @@ Bos.OS.File.exists (Fpath.v okra_file) with
-    | false -> Conf.default
-    | true -> get_or_error @@ Conf.load okra_file
   in
   run cal okra_conf token no_activity kind
 
