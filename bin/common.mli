@@ -20,4 +20,8 @@ open Cmdliner
 val include_sections : string list Term.t
 val ignore_sections : string list Term.t
 val include_krs : string list Term.t
+val files : string list Term.t
+val output : string option Term.t
+val in_place : bool Term.t
 val setup : unit -> unit Term.t
+val conf : Conf.t Term.t
