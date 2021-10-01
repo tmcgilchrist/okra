@@ -148,7 +148,8 @@ let run_monthly cal repos token =
       Repo_report.pp projects)
 
 let run cal okra_conf token no_activity = function
-  | Engineer -> run_engineer okra_conf cal (Conf.projects okra_conf) token no_activity
+  | Engineer ->
+      run_engineer okra_conf cal (Conf.projects okra_conf) token no_activity
   | Repositories repos -> run_monthly cal repos token
 
 let term =

@@ -33,4 +33,6 @@ let root_cmd =
   in
   (root_term, info)
 
-let () = Term.(exit @@ eval_choice root_cmd [ Cat.cmd; Lint.cmd; Stats.cmd; Generate.cmd ])
+let () =
+  Term.(
+    exit @@ eval_choice root_cmd [ Cat.cmd; Lint.cmd; Stats.cmd; Generate.cmd ])
