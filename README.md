@@ -12,7 +12,7 @@ Each command is described in more detail below.
 With opam (remove existing okra-related pins first):
 
 ```
-$ opam pin -y https://github.com/MagnusS/okra.git
+$ opam pin -y https://github.com/MagnusS/okra.git#release
 ```
 
 This should install two packages; `okra` and `okra-bin`.
