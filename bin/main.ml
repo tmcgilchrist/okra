@@ -35,4 +35,4 @@ let root_cmd =
 
 let () =
   Term.(
-    exit @@ eval_choice root_cmd [ Cat.cmd; Lint.cmd; Generate.cmd; Stats.cmd ])
+    exit @@ eval_choice root_cmd [ Cat.cmd; Lint.cmd; Stats.cmd; Generate.cmd ])

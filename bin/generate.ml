@@ -26,7 +26,21 @@ let week_term =
   Arg.value
   @@ Arg.opt Arg.(some int) None
   @@ Arg.info ~doc:"The week of the year defaulting to the current week"
-       ~docv:"WEEK" [ "w"; "week" ]
+       ~docv:"WEEK" [ "week" ]
+
+let weeks_term =
+  Arg.value
+  @@ Arg.opt Arg.(some (pair ~sep:'-' int int)) None
+  @@ Arg.info ~doc:"A range specified by a start and end week (inclusive)"
+       ~docv:"WEEK" [ "weeks" ]
+
+let month_term =
+  Arg.value
+  @@ Arg.opt Arg.(some int) None
+  @@ Arg.info
+       ~doc:
+         "The month of the year defaulting to the current month (January = 1)"
+       ~docv:"MONTH" [ "m"; "month" ]
 
 let year_term =
   Arg.value
@@ -36,10 +50,32 @@ let year_term =
 
 let calendar_term : Calendar.t Term.t =
   let open Let_syntax_cmdliner in
-  let+ week = week_term and+ year = year_term in
-  let week = Option.value ~default:(Cal.week (Cal.now ())) week in
-  let year = Option.value ~default:(Cal.year (Cal.now ())) year in
-  Calendar.make ~week ~year
+  let+ week = week_term
+  and+ weeks = weeks_term
+  and+ month = month_term
+  and+ year = year_term in
+  match (week, weeks, month, year) with
+  | None, None, None, year -> Calendar.of_week ?year (Cal.now () |> Cal.week)
+  | Some week, _, _, year -> Calendar.of_week ?year week
+  | None, Some range, _, year -> Calendar.of_week_range ?year range
+  | None, None, Some month, year -> Calendar.of_month ?year month
+
+(* The kind of report we are generating
+     - engineer: a report for an individual engineer
+     - reposiories: 1 or more repository contributions *)
+
+type kind = Engineer | Repositories of string list
+
+let repositories =
+  Arg.value
+  @@ Arg.opt Arg.(list string) []
+  @@ Arg.info ~doc:"A list of repositories to generate reports for"
+       ~docv:"REPOSITORIES" [ "repositories" ]
+
+let kind_term : kind Term.t =
+  let open Let_syntax_cmdliner in
+  let+ repositories = repositories in
+  if repositories = [] then Engineer else Repositories repositories
 
 let no_activity =
   Arg.value
@@ -69,16 +105,10 @@ let token =
           ~/.github/github-activity-token"
        ~docv:"TOKEN" [ "t"; "token" ]
 
-let get_or_error = function
-  | Ok v -> v
-  | Error (`Msg m) ->
-      Fmt.epr "%s" m;
-      exit 1
-
 module Fetch = Get_activity.Contributions.Fetch (Cohttp_lwt_unix.Client)
 
-let run conf cal projects token no_activity =
-  let period = Calendar.github_week cal in
+let run_engineer conf cal projects token no_activity =
+  let period = Calendar.to_iso8601 cal in
   let week = Calendar.week cal in
   let activity =
     if no_activity then
@@ -88,7 +118,7 @@ let run conf cal projects token no_activity =
       Lwt_main.run (Fetch.exec ~period ~token)
       |> Get_activity.Contributions.of_json ~from:(fst period)
   in
-  let from, to_ = Calendar.range_of_week cal in
+  let from, to_ = Calendar.range cal in
   let format_date f = CalendarLib.Printer.Date.fprint "%0Y/%0m/%0d" f in
   let header =
     Fmt.str "%s week %i: %a -- %a" activity.username week format_date from
@@ -100,12 +130,35 @@ let run conf cal projects token no_activity =
     pr "%s\n\n%a%a" header Activity.pp activity (option pp_footer)
       (Conf.footer conf))
 
+let get_or_error = function
+  | Ok v -> v
+  | Error (`Msg m) ->
+      Fmt.epr "%s" m;
+      exit 1
+
+module Repo_fetch = Okra.Repo_report.Make (Cohttp_lwt_unix.Client)
+
+let run_monthly cal repos token =
+  let from, to_ = Calendar.range cal in
+  let format_date f = CalendarLib.Printer.Date.fprint "%0Y/%0m/%0d" f in
+  let period = Calendar.to_iso8601 cal in
+  let projects = Lwt_main.run (Repo_fetch.get ~period ~token repos) in
+  Fmt.(
+    pf stdout "# Reports (%a - %a)\n\n%a" format_date from format_date to_
+      Repo_report.pp projects)
+
+let run cal okra_conf token no_activity = function
+  | Engineer ->
+      run_engineer okra_conf cal (Conf.projects okra_conf) token no_activity
+  | Repositories repos -> run_monthly cal repos token
+
 let term =
   let open Let_syntax_cmdliner in
   let+ cal = calendar_term
   and+ okra_file = Conf.cmdliner
   and+ token_file = token
   and+ no_activity = no_activity
+  and+ kind = kind_term
   and+ () = Common.setup () in
   let token =
     (* If [no_activity] is specfied then the token will not be used, don't try
@@ -118,7 +171,7 @@ let term =
     | false -> Conf.default
     | true -> get_or_error @@ Conf.load okra_file
   in
-  run okra_conf cal (Conf.projects okra_conf) token no_activity
+  run cal okra_conf token no_activity kind
 
 let cmd =
   let info =

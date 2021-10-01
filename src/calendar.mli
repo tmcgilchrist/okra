@@ -14,24 +14,36 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *)
 
+type date = CalendarLib.Date.t
+(** A single date *)
+
 type t
-(** A specific week and year *)
+(** A specific range within the year *)
 
 val week : t -> int
+(** [week t] gets the week from [t] *)
+
+val month : t -> int
 (** [week t] gets the week from [t] *)
 
 val year : t -> int
 (** [year t] gets the year from [t] *)
 
-val make : week:int -> year:int -> t
-(** [make ~week ~year] constructs a new [t] *)
+val of_week : ?year:int -> int -> t
+(** [of_week ?year week] generates a [t] for ISO8601 week staring on the Monday
+    and ending on the Sunday *)
 
-val this_week : unit -> t
-(** [this_week ()] gets the current week and year *)
+val of_week_range : ?year:int -> int * int -> t
+(** [of_week_range ?year (first, last)] return the range between the two weeks
+    [first] and [last] inclusive of the final week (for a given optional
+    [year]). *)
 
-val range_of_week : t -> CalendarLib.Date.t * CalendarLib.Date.t
-(** [range_of_week t] returns the start and end dates of the week *)
+val of_month : ?year:int -> int -> t
+(** [of_month ?year month] generates a [t] for the [month] staring on the first
+    day of the month and ending on the last *)
 
-val github_week : t -> string * string
-(** [github_week t] converts [t] into floats as strings ready to be passed to
-    the Github API *)
+val range : t -> date * date
+(** [range t] gives the underlying start and end dates for [t] *)
+
+val to_iso8601 : t -> string * string
+(** [to_iso8601 t] converts [t] to the ISO8601 format *)
