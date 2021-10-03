@@ -1,5 +1,6 @@
 (*
- * Copyright (c) 2021 Patrick Ferris <pf341@patricoferris.com>
+ * Copyright (c) 2021 Magnus Skjegstad <magnus@skjegstad.com>
+ * Copyright (c) 2021 Thomas Gazagnaire <thomas@gazagnaire.org>
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -14,16 +15,4 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *)
 
-let () =
-  Logs.set_level (Some Logs.Debug);
-  Logs.set_reporter (Logs_fmt.reporter ())
-
-let () =
-  Alcotest.run "Okra"
-    [
-      ("Calendar", Test_calendar.tests);
-      ("Lint", Test_lint.tests);
-      ("Reports", Test_reports.tests);
-      ("Aggregate", Test_aggregate.tests);
-      ("Filter", Test_filter.tests);
-    ]
+val tests : unit Alcotest.test_case list

@@ -20,7 +20,7 @@ type kind = Projects | Objectives | KRs
 type t = {
   ignore_sections : string list;
   include_sections : string list;
-  include_krs : string list;
+  filter : Okra.Report.filter;
   kind : kind;
 }
 
@@ -85,6 +85,7 @@ let run conf =
     Okra.Report.of_markdown ~ignore_sections:conf.ignore_sections
       ~include_sections:conf.include_sections md
   in
+  let okrs = Okra.Report.filter conf.filter okrs in
   print conf.kind okrs
 
 open Cmdliner
@@ -99,13 +100,12 @@ let kind =
 
 let conf_term =
   let open Let_syntax_cmdliner in
-  let+ include_krs = Common.include_krs
+  let+ kind = kind
   and+ ignore_sections = Common.ignore_sections
   and+ include_sections = Common.include_sections
-  and+ () = Common.setup ()
-  and+ kind = kind in
-
-  { ignore_sections; include_sections; include_krs; kind }
+  and+ filter = Common.filter
+  and+ () = Common.setup () in
+  { ignore_sections; include_sections; filter; kind }
 
 let term =
   let open Let_syntax_cmdliner in
