@@ -74,6 +74,16 @@ let krs t =
   iter_krs (fun x -> l := x :: !l) t.krs;
   List.rev !l
 
+let all_krs t =
+  let l = ref [] in
+  iter_krs (fun x -> l := x :: !l) t.all_krs;
+  List.rev !l
+
+let new_krs t =
+  let l = ref [] in
+  iter_krs (fun x -> if is_new_kr x then l := x :: !l) t.all_krs;
+  List.rev !l
+
 module Project = struct
   type t = project
 
@@ -183,8 +193,10 @@ let add ?okr_db (t : t) (e : KR.t) =
   update t.all_krs;
   update o.krs
 
+let empty () = { projects = Hashtbl.create 13; all_krs = empty_krs () }
+
 let of_krs ?okr_db entries =
-  let t = { projects = Hashtbl.create 13; all_krs = empty_krs () } in
+  let t = empty () in
   List.iter (add ?okr_db t) entries;
   t
 
@@ -219,7 +231,7 @@ let of_objectives ~project objectives =
 let of_markdown ?ignore_sections ?include_sections ?okr_db m =
   of_krs ?okr_db (Parser.of_markdown ?ignore_sections ?include_sections m)
 
-let make_objective conf o =
+let make_objective ?show_time ?show_time_calc ?show_engineers o =
   let krs = Hashtbl.to_seq o.krs.ids |> Seq.map snd |> List.of_seq in
   let new_krs =
     Hashtbl.to_seq o.krs.titles
@@ -228,33 +240,194 @@ let make_objective conf o =
     |> List.of_seq
   in
   let krs = List.sort KR.compare krs @ List.sort KR.compare new_krs in
-  match List.concat_map (KR.items conf) krs with
+  match
+    List.concat_map (KR.items ?show_time ?show_time_calc ?show_engineers) krs
+  with
   | [] -> []
   | krs -> if o.name = "" then krs else Item.Title (2, o.name) :: krs
 
-let make_project conf p =
+let make_project ?show_time ?show_time_calc ?show_engineers p =
   let os = List.of_seq (Hashtbl.to_seq p.objectives |> Seq.map snd) in
   let os = List.sort compare_objectives os in
-  match List.concat_map (make_objective conf) os with
+  match
+    List.concat_map
+      (make_objective ?show_time ?show_time_calc ?show_engineers)
+      os
+  with
   | [] -> []
   | os -> if p.name = "" then os else Item.Title (1, p.name) :: os
 
-let pp ?(include_krs = []) ?(show_time = true) ?(show_time_calc = true)
-    ?(show_engineers = true) ppf t =
-  let conf =
-    {
-      KR.show_time;
-      show_time_calc;
-      show_engineers;
-      include_krs = List.map String.uppercase_ascii include_krs;
-    }
-  in
+let pp ?show_time ?show_time_calc ?show_engineers ppf t =
   let ps = List.of_seq (Hashtbl.to_seq t.projects |> Seq.map snd) in
   let ps = List.sort compare_projects ps in
-  let doc = List.concat_map (make_project conf) ps in
+  let doc =
+    List.concat_map (make_project ?show_time ?show_time_calc ?show_engineers) ps
+  in
   Printer.list ~sep:Printer.(newline ++ newline) Item.pp ppf doc;
   Printer.newline ppf ()
 
-let print ?include_krs ?show_time ?show_time_calc ?show_engineers t =
-  let pp = pp ?include_krs ?show_time ?show_time_calc ?show_engineers in
+let print ?show_time ?show_time_calc ?show_engineers t =
+  let pp = pp ?show_time ?show_time_calc ?show_engineers in
   Printer.to_stdout pp t
+
+module StringSet = Set.Make (String)
+
+module Filter = struct
+  type kr = [ `New_KR | `ID of string ]
+
+  type t = {
+    include_projects : StringSet.t;
+    exclude_projects : StringSet.t;
+    include_objectives : StringSet.t;
+    exclude_objectives : StringSet.t;
+    include_krs : StringSet.t;
+    exclude_krs : StringSet.t;
+    include_engineers : StringSet.t;
+    exclude_engineers : StringSet.t;
+  }
+
+  let string_set l =
+    List.fold_left
+      (fun acc e -> StringSet.add (String.uppercase_ascii e) acc)
+      StringSet.empty l
+
+  let string_of_kr = function
+    | `New_KR -> "NEW KR"
+    | `ID s -> String.uppercase_ascii s
+
+  let kr_of_string s =
+    match String.uppercase_ascii s with "NEW KR" -> `New_KR | _ -> `ID s
+
+  let kr_set l =
+    List.fold_left
+      (fun acc e -> StringSet.add (string_of_kr e) acc)
+      StringSet.empty l
+
+  let is_empty f =
+    StringSet.is_empty f.include_projects
+    && StringSet.is_empty f.exclude_projects
+    && StringSet.is_empty f.include_objectives
+    && StringSet.is_empty f.exclude_objectives
+    && StringSet.is_empty f.include_krs
+    && StringSet.is_empty f.exclude_krs
+    && StringSet.is_empty f.include_engineers
+    && StringSet.is_empty f.exclude_engineers
+
+  let v ?(include_projects = []) ?(exclude_projects = [])
+      ?(include_objectives = []) ?(exclude_objectives = []) ?(include_krs = [])
+      ?(exclude_krs = []) ?(include_engineers = []) ?(exclude_engineers = []) ()
+      =
+    let include_projects = string_set include_projects in
+    let exclude_projects = string_set exclude_projects in
+    let include_objectives = string_set include_objectives in
+    let exclude_objectives = string_set exclude_objectives in
+    let include_krs = kr_set include_krs in
+    let exclude_krs = kr_set exclude_krs in
+    let include_engineers = string_set include_engineers in
+    let exclude_engineers = string_set exclude_engineers in
+    {
+      include_projects;
+      exclude_projects;
+      include_objectives;
+      exclude_objectives;
+      include_krs;
+      exclude_krs;
+      include_engineers;
+      exclude_engineers;
+    }
+
+  let empty = v ()
+end
+
+type filter = Filter.t
+
+let filter f (t : t) =
+  if Filter.is_empty f then t
+  else
+    let new_t = empty () in
+    iter
+      (fun (kr : KR.t) ->
+        let p = String.uppercase_ascii kr.project in
+        let o = String.uppercase_ascii kr.objective in
+        let id =
+          let e = match kr.id with None -> `New_KR | Some s -> `ID s in
+          Filter.string_of_kr e
+        in
+        let es =
+          Hashtbl.to_seq kr.time_per_engineer
+          |> Seq.map fst
+          |> List.of_seq
+          |> Filter.string_set
+        in
+        let skip () = () in
+        let add () =
+          if
+            StringSet.is_empty f.include_engineers
+            && StringSet.is_empty f.exclude_engineers
+          then add new_t kr
+          else
+            let time_entries =
+              List.fold_left
+                (fun acc line ->
+                  let l =
+                    List.fold_left
+                      (fun l (e, d) ->
+                        let e' = String.uppercase_ascii e in
+                        if StringSet.mem e' f.include_engineers then (e, d) :: l
+                        else if StringSet.mem e' f.exclude_engineers then l
+                        else if StringSet.is_empty f.include_engineers then
+                          (e, d) :: l
+                        else l)
+                      [] line
+                  in
+                  if l = [] then acc else List.rev l :: acc)
+                [] kr.time_entries
+              |> List.rev
+            in
+            if time_entries = [] then ()
+            else if time_entries = kr.time_entries then add new_t kr
+            else
+              let work =
+                Item.
+                  [
+                    Paragraph
+                      (Concat
+                         [
+                           Text
+                             "WARNING: the following items might cover more \
+                              work than what the time entries indicate.";
+                         ]);
+                  ]
+                :: kr.work
+              in
+              let kr =
+                KR.v ~project:kr.project ~objective:kr.objective ~title:kr.title
+                  ~time_entries ~id:kr.id work
+              in
+              add new_t kr
+        in
+        let check x (incl, excl) =
+          match StringSet.(is_empty incl, is_empty excl) with
+          | true, true -> true
+          | false, true -> StringSet.mem x incl
+          | true, false -> not (StringSet.mem x excl)
+          | false, false -> StringSet.(mem x incl && not (mem x excl))
+        in
+        let check_set s (incl, excl) =
+          match StringSet.(is_empty incl, is_empty excl) with
+          | true, true -> true
+          | false, true -> not StringSet.(is_empty (inter s incl))
+          | true, false -> StringSet.(is_empty (inter s excl))
+          | false, false ->
+              StringSet.(
+                (not (is_empty (inter s incl))) && is_empty (inter s excl))
+        in
+        if
+          check p (f.include_projects, f.exclude_projects)
+          && check o (f.include_objectives, f.exclude_objectives)
+          && check id (f.include_krs, f.exclude_krs)
+          && check_set es (f.include_engineers, f.exclude_engineers)
+        then add ()
+        else skip ())
+      t;
+    new_t

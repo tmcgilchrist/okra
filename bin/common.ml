@@ -35,10 +35,68 @@ let ignore_sections =
   in
   Arg.(value & opt (list string) [ "OKR updates" ] i)
 
+let include_projects =
+  let i =
+    Arg.info [ "include-projects" ]
+      ~doc:"If non-empty, only include this list of projects in the output."
+      ~docv:"PROJECT"
+  in
+  Arg.(value (opt (list string) [] i))
+
+let exclude_projects =
+  let i =
+    Arg.info [ "exclude-projects" ]
+      ~doc:"If non-empty, exclude projects in this list from the output."
+      ~docv:"PROJECT"
+  in
+
+  Arg.(value (opt (list string) [] i))
+
+let exclude_objectives =
+  let i =
+    Arg.info [ "include-objectives" ]
+      ~doc:"If non-empty, only include this list of objectives in the output."
+      ~docv:"OBJECTIVE"
+  in
+  Arg.(value (opt (list string) [] i))
+
+let include_objectives =
+  let i =
+    Arg.info [ "exclude-objectives" ]
+      ~doc:"If non-empty, exclude objectives in this list from the output."
+      ~docv:"OBJECTIVE"
+  in
+  Arg.(value (opt (list string) [] i))
+
 let include_krs =
   let i =
     Arg.info [ "include-krs" ]
       ~doc:"If non-empty, only include this list of KR IDs in the output."
+      ~docv:"ID"
+  in
+  Arg.(value (opt (list string) [] i))
+
+let exclude_krs =
+  let i =
+    Arg.info [ "exclude-krs" ]
+      ~doc:"If non-empty, exclude KR IDs in this list from the output."
+      ~docv:"ID"
+  in
+  Arg.(value (opt (list string) [] i))
+
+let include_engineers =
+  let i =
+    Arg.info [ "include-engineers" ]
+      ~doc:"If non-empty, only include this list of engineers in the output."
+      ~docv:"NAME"
+  in
+  Arg.(value (opt (list string) [] i))
+
+let exclude_engineers =
+  let i =
+    Arg.info [ "exclude-engineers" ]
+      ~doc:"If non-empty, exclude engineers in this list from the output."
+      ~docv:"NAME"
   in
   Arg.(value (opt (list string) [] i))
 
@@ -48,6 +106,26 @@ let output =
   Arg.(value & opt (some string) None & info [ "o"; "output" ] ~docv:"FILE")
 
 let in_place = Arg.(value & flag & info [ "i"; "in-place" ])
+
+let filter =
+  let f include_projects exclude_projects include_objectives exclude_objectives
+      include_krs exclude_krs include_engineers exclude_engineers =
+    let include_krs = List.map Okra.Report.Filter.kr_of_string include_krs in
+    let exclude_krs = List.map Okra.Report.Filter.kr_of_string exclude_krs in
+    Okra.Report.Filter.v ~include_projects ~exclude_projects ~include_objectives
+      ~exclude_objectives ~include_krs ~exclude_krs ~include_engineers
+      ~exclude_engineers ()
+  in
+  Term.(
+    pure f
+    $ include_projects
+    $ exclude_projects
+    $ include_objectives
+    $ exclude_objectives
+    $ include_krs
+    $ exclude_krs
+    $ include_engineers
+    $ exclude_engineers)
 
 let setup () =
   let open Let_syntax_cmdliner in

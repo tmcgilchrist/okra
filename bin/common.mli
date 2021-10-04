@@ -19,7 +19,7 @@ open Cmdliner
 
 val include_sections : string list Term.t
 val ignore_sections : string list Term.t
-val include_krs : string list Term.t
+val filter : Okra.Report.filter Term.t
 val files : string list Term.t
 val output : string option Term.t
 val in_place : bool Term.t

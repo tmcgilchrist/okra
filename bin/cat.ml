@@ -21,7 +21,7 @@ type t = {
   show_engineers : bool;
   ignore_sections : string list;
   include_sections : string list;
-  include_krs : string list;
+  filter : Okra.Report.filter;
   files : string list;
   in_place : bool;
   output : string option;
@@ -113,9 +113,10 @@ let run conf =
     Okra.Report.of_markdown ~ignore_sections:conf.ignore_sections
       ~include_sections:conf.include_sections ?okr_db md
   in
+  let okrs = Okra.Report.filter conf.filter okrs in
   let pp =
     Okra.Report.pp ~show_time:conf.show_time ~show_time_calc:conf.show_time_calc
-      ~show_engineers:conf.show_engineers ~include_krs:conf.include_krs
+      ~show_engineers:conf.show_engineers
   in
   Okra.Printer.to_channel oc pp okrs
 
@@ -125,7 +126,7 @@ let conf_term =
   and+ show_time_calc = show_time_calc_term
   and+ show_engineers = show_engineers_term
   and+ okr_db = okr_db_term
-  and+ include_krs = Common.include_krs
+  and+ filter = Common.filter
   and+ ignore_sections = Common.ignore_sections
   and+ include_sections = Common.include_sections
   and+ files = Common.files
@@ -142,7 +143,7 @@ let conf_term =
     show_engineers;
     ignore_sections;
     include_sections;
-    include_krs;
+    filter;
     okr_db;
     files;
     output;

@@ -177,13 +177,6 @@ let make_engineers ~time entries =
       in
       [ Paragraph (Concat lst) ]
 
-type config = {
-  show_engineers : bool;
-  show_time : bool;
-  show_time_calc : bool;
-  include_krs : string list;
-}
-
 let id = function None -> "New KR" | Some id -> id
 
 let make_time_entries t =
@@ -232,35 +225,28 @@ let update_from_master_db t db =
       let db_kr = Masterdb.find_kr_opt db id in
       update t db_kr
 
-let items conf kr =
+let items ?(show_time = true) ?(show_time_calc = true) ?(show_engineers = true)
+    kr =
   let open Item in
-  if
-    conf.include_krs <> []
-    &&
-    match kr.id with
-    | None -> true
-    | Some id -> not (List.mem (String.uppercase_ascii id) conf.include_krs)
-  then []
-  else
-    let items =
-      if not conf.show_engineers then []
-      else if conf.show_time then
-        if conf.show_time_calc then
-          (* show time calc + engineers *)
+  let items =
+    if not show_engineers then []
+    else if show_time then
+      if show_time_calc then
+        (* show time calc + engineers *)
+        [
+          List (Bullet '+', List.map make_time_entries kr.time_entries);
+          List (Bullet '=', [ make_engineers ~time:true kr.time_per_engineer ]);
+        ]
+      else make_engineers ~time:true kr.time_per_engineer
+    else make_engineers ~time:false kr.time_per_engineer
+  in
+  [
+    List
+      ( Bullet '-',
+        [
           [
-            List (Bullet '+', List.map make_time_entries kr.time_entries);
-            List (Bullet '=', [ make_engineers ~time:true kr.time_per_engineer ]);
-          ]
-        else make_engineers ~time:true kr.time_per_engineer
-      else make_engineers ~time:false kr.time_per_engineer
-    in
-    [
-      List
-        ( Bullet '-',
-          [
-            [
-              Paragraph (Text (Printf.sprintf "%s (%s)" kr.title (id kr.id)));
-              List (Bullet '-', items :: kr.work);
-            ];
-          ] );
-    ]
+            Paragraph (Text (Printf.sprintf "%s (%s)" kr.title (id kr.id)));
+            List (Bullet '-', items :: kr.work);
+          ];
+        ] );
+  ]

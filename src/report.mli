@@ -61,18 +61,12 @@ val iter :
 
 val find : t -> ?title:string -> ?id:string -> unit -> KR.t list
 val add : ?okr_db:Masterdb.t -> t -> KR.t -> unit
+val all_krs : t -> KR.t list
+val new_krs : t -> KR.t list
 
 val pp :
-  ?include_krs:string list ->
-  ?show_time:bool ->
-  ?show_time_calc:bool ->
-  ?show_engineers:bool ->
-  t Printer.t
+  ?show_time:bool -> ?show_time_calc:bool -> ?show_engineers:bool -> t Printer.t
 (** [pp] pretty-print weekly team reports.
-
-    [include_krs] only includes this list of KR IDs. Note that this will ignore
-    empty KR IDs or KRs marked as "NEW KR" unless specified in the list. If the
-    list is empty, all KRs are returned.
 
     When [show_time_calc] is set, an extra line will be added to the output each
     time the same entry is included in the report with a sum at the end. This is
@@ -83,9 +77,53 @@ val pp :
     engineers *)
 
 val print :
-  ?include_krs:string list ->
-  ?show_time:bool ->
-  ?show_time_calc:bool ->
-  ?show_engineers:bool ->
-  t ->
-  unit
+  ?show_time:bool -> ?show_time_calc:bool -> ?show_engineers:bool -> t -> unit
+
+(** {2 Filtering} *)
+
+module Filter : sig
+  type t
+
+  val empty : t
+
+  type kr = [ `New_KR | `ID of string ]
+
+  val kr_of_string : string -> kr
+  (** [kr_of_string s] is [`New_KR] iff [s="New KR"], and [`ID s] otherwise. *)
+
+  val string_of_kr : kr -> string
+
+  val v :
+    ?include_projects:string list ->
+    ?exclude_projects:string list ->
+    ?include_objectives:string list ->
+    ?exclude_objectives:string list ->
+    ?include_krs:kr list ->
+    ?exclude_krs:kr list ->
+    ?include_engineers:string list ->
+    ?exclude_engineers:string list ->
+    unit ->
+    t
+  (** Build a filter.
+
+      Keep the KR [k] in the report iff the conjonction of the following is
+      true:
+
+      - [include_project] is not empty AND [k.project] is in [include_projects]
+        OR [exclude_project] is not empty AND [k.project] is not in
+        [exclude_project];
+      - [include_objective] is not empty AND [k.objective] is in
+        [include_objectives] OR [exclude_objectives] is not empty AND
+        [k.objective] is not in [exclude_projects];
+      - [include_krs] is not empty AND [k.krs] is [Some id] AND [id] is in
+        [include_krs] OR [exclude_krs] is not empty AND [k.krs] is [Some id] AND
+        [id] is not in [exclude_projects];
+      - [include_engineers] is not empty AND the intersection of
+        [k.time_per_engineer] and [include_engineers] is not empty OR
+        [exclude_krs] is not empty AND [k.time_per_engineer] and
+        [exclude_engineers] is empty. *)
+end
+
+type filter = Filter.t
+
+val filter : filter -> t -> t

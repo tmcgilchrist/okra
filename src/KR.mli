@@ -41,12 +41,13 @@ val merge : t -> t -> t
 val compare : t -> t -> int
 val update_from_master_db : t -> Masterdb.t -> t
 
-type config = {
-  show_engineers : bool;
-  show_time : bool;
-  show_time_calc : bool;
-  include_krs : string list;
-}
+(** {2 Pretty-print} *)
 
-val items : config -> t -> Item.t list
 val string_of_days : float -> string
+
+val items :
+  ?show_time:bool ->
+  ?show_time_calc:bool ->
+  ?show_engineers:bool ->
+  t ->
+  Item.t list
