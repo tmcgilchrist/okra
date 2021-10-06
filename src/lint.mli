@@ -25,12 +25,6 @@ type lint_result =
   | No_KR_ID_found of string
   | No_project_found of string
 
-val lint_string_list :
-  ?include_sections:string list ->
-  ?ignore_sections:string list ->
-  string list ->
-  lint_result
-
 val lint :
   ?include_sections:string list ->
   ?ignore_sections:string list ->

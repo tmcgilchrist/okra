@@ -111,21 +111,6 @@ let check_document ~include_sections ~ignore_sections s =
   | Parser.No_KR_ID_found s -> No_KR_ID_found s
   | Parser.No_project_found s -> No_project_found s
 
-let lint_string_list ?(include_sections = []) ?(ignore_sections = []) s =
-  let format_errors = ref [] in
-  let rec check_and_read buf pos = function
-    | [] -> Buffer.contents buf
-    | line :: lines ->
-        format_errors := check_line line pos @ !format_errors;
-        Buffer.add_string buf line;
-        Buffer.add_string buf "\n";
-        check_and_read buf (pos + 1) lines
-  in
-  let s = check_and_read (Buffer.create 1024) 1 s in
-  if !format_errors <> [] then
-    Format_error (List.sort (fun (x, _) (y, _) -> compare x y) !format_errors)
-  else check_document ~include_sections ~ignore_sections s
-
 let lint ?(include_sections = []) ?(ignore_sections = []) ic =
   let format_errors = ref [] in
   let rec check_and_read buf ic pos =
