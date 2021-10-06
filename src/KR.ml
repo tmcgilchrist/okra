@@ -180,7 +180,7 @@ let make_engineers ~time entries =
 let id = function None -> "New KR" | Some id -> id
 
 let make_time_entries t =
-  let aux (e, d) = Fmt.strf "@%s (%s)" e (string_of_days d) in
+  let aux (e, d) = Fmt.str "@%s (%s)" e (string_of_days d) in
   Item.[ Paragraph (Text (String.concat ", " (List.map aux t))) ]
 
 let update_from_master_db t db =

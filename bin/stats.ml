@@ -71,7 +71,7 @@ let print kind t =
           let id = match id with None -> "New KR" | Some s -> s in
           let ps = Report.find t ~title ~id () in
           let pp ppf () =
-            Fmt.list ~sep:(Fmt.unit "|")
+            Fmt.list ~sep:(Fmt.any "|")
               (fun ppf kr ->
                 Fmt.pf ppf "%a: %a" green kr.KR.project cyan kr.KR.objective)
               ppf ps
