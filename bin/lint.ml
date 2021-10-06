@@ -61,29 +61,31 @@ let with_in_file path f =
   Fun.protect ~finally:(fun () -> Stdlib.close_in_noerr ic) (fun () -> f ic)
 
 let run conf =
-  let has_errors name ic =
+  let collect_errors name ic =
     match
       Okra.Lint.lint ~include_sections:conf.include_sections
         ~ignore_sections:conf.ignore_sections ic
     with
-    | Ok () -> false
-    | Error e ->
-        Printf.fprintf stderr "Error(s) in %s:\n\n%s" name
-          (Okra.Lint.string_of_error e);
-        true
+    | Ok () -> []
+    | Error e -> [ (name, e) ]
+  in
+  let report_error name e =
+    Printf.fprintf stderr "Error(s) in %s:\n\n%s" name
+      (Okra.Lint.string_of_error e)
   in
   try
-    let has_errors =
+    let errors =
       if conf.files <> [] then
-        List.fold_left
-          (fun acc path ->
+        List.concat_map
+          (fun path ->
             with_in_file path (fun ic ->
                 let name = Printf.sprintf "file %s" path in
-                has_errors name ic || acc))
-          false conf.files
-      else has_errors "input stream" stdin
+                collect_errors name ic))
+          conf.files
+      else collect_errors "input stream" stdin
     in
-    if has_errors then exit 1
+    List.iter (fun (name, error) -> report_error name error) errors;
+    if errors <> [] then exit 1
   with e ->
     Printf.fprintf stderr "Caught unknown error while linting:\n\n";
     raise e
