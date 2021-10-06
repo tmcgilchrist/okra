@@ -62,15 +62,15 @@ let with_in_file path f =
 
 let run conf =
   let check_channel name ic =
-    let res =
+    match
       Okra.Lint.lint ~include_sections:conf.include_sections
         ~ignore_sections:conf.ignore_sections ic
-    in
-    if res <> Okra.Lint.No_error then (
-      Printf.fprintf stderr "Error(s) in %s:\n\n%s" name
-        (Okra.Lint.string_of_result res);
-      exit 1)
-    else ()
+    with
+    | Ok () -> ()
+    | Error e ->
+        Printf.fprintf stderr "Error(s) in %s:\n\n%s" name
+          (Okra.Lint.string_of_error e);
+        exit 1
   in
   try
     if conf.files <> [] then

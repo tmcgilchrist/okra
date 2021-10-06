@@ -15,8 +15,7 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *)
 
-type lint_result =
-  | No_error
+type lint_error =
   | Format_error of (int * string) list
   | No_time_found of string
   | Invalid_time of string
@@ -25,10 +24,12 @@ type lint_result =
   | No_KR_ID_found of string
   | No_project_found of string
 
+type lint_result = (unit, lint_error) result
+
 val lint :
   ?include_sections:string list ->
   ?ignore_sections:string list ->
   in_channel ->
   lint_result
 
-val string_of_result : lint_result -> string
+val string_of_error : lint_error -> string
