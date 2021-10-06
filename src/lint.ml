@@ -132,3 +132,38 @@ let lint ?(include_sections = []) ?(ignore_sections = []) ic =
       (Format_error
          (List.sort (fun (x, _) (y, _) -> compare x y) !format_errors))
   else check_document ~include_sections ~ignore_sections s
+
+let short_messages_of_error file_name =
+  let short_message line_number msg =
+    [ Printf.sprintf "%s:%d:%s" file_name line_number msg ]
+  in
+  let short_messagef line_number fmt =
+    Printf.ksprintf (short_message line_number) fmt
+  in
+  function
+  | Format_error errs ->
+      List.concat_map
+        (fun (line_number, message) -> short_message line_number message)
+        errs
+  | No_time_found kr ->
+      let line_number = 1 in
+      short_messagef line_number "No time found in %S" kr
+  | Invalid_time kr ->
+      let line_number = 1 in
+      short_messagef line_number "Invalid time in %S" kr
+  | Multiple_time_entries kr ->
+      let line_number = 1 in
+      short_messagef line_number "Multiple time entries for %S" kr
+  | No_work_found kr ->
+      let line_number = 1 in
+      short_messagef line_number "No work found for %S" kr
+  | No_KR_ID_found kr ->
+      let line_number = 1 in
+      short_messagef line_number "No KR ID found for %S" kr
+  | No_project_found kr ->
+      let line_number = 1 in
+      short_messagef line_number "No project found for %S" kr
+  | Not_all_includes l ->
+      let line_number = 1 in
+      short_messagef line_number "Missing includes section: %s"
+        (String.concat ", " l)

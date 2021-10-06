@@ -34,3 +34,4 @@ val lint :
   lint_result
 
 val string_of_error : lint_error -> string
+val short_messages_of_error : string -> lint_error -> string list
