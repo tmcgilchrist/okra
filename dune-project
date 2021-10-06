@@ -3,6 +3,8 @@
 
 (generate_opam_files true)
 
+(cram enable)
+
 (license ISC)
 (authors "Magnus Skjegstad")
 (maintainers "magnus@skjegstad.com")
