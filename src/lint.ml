@@ -84,7 +84,8 @@ let string_of_error res =
          ID yet, use \"New KR\".\n"
         s
   | No_project_found s ->
-      Fmt.pf ppf "In KR %S:\n  No project found (starting with '#')" s);
+      Fmt.pf ppf "In KR %S:\n  No project found (starting with '#')\n" s);
+  Format.pp_print_flush ppf ();
   Buffer.contents buf
 
 (* Check a single line for formatting errors returning
