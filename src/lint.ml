@@ -45,10 +45,7 @@ let fail_fmt_patterns =
       "Space found before title marker #. Start titles in first column." );
   ]
 
-let string_of_error res =
-  let buf = Buffer.create 16 in
-  let ppf = Fmt.with_buffer buf in
-  (match res with
+let pp_error ppf = function
   | Format_error x ->
       List.iter (fun (pos, msg) -> Fmt.pf ppf "Line %d: %s\n" pos msg) x;
       Fmt.pf ppf "%d formatting errors found. Parsing aborted.\n"
@@ -84,9 +81,9 @@ let string_of_error res =
          ID yet, use \"New KR\".\n"
         s
   | No_project_found s ->
-      Fmt.pf ppf "In KR %S:\n  No project found (starting with '#')\n" s);
-  Format.pp_print_flush ppf ();
-  Buffer.contents buf
+      Fmt.pf ppf "In KR %S:\n  No project found (starting with '#')\n" s
+
+let string_of_error = Fmt.to_to_string pp_error
 
 (* Check a single line for formatting errors returning
    a list of error messages with the position *)
