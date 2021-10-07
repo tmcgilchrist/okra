@@ -22,7 +22,6 @@ let () =
   Alcotest.run "Okra"
     [
       ("Calendar", Test_calendar.tests);
-      ("Lint", Test_lint.tests);
       ("Reports", Test_reports.tests);
       ("Aggregate", Test_aggregate.tests);
       ("Filter", Test_filter.tests);
