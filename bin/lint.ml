@@ -56,38 +56,36 @@ let team_term =
   in
   Arg.value (Arg.flag info)
 
+let with_in_file path f =
+  let ic = Stdlib.open_in path in
+  Fun.protect ~finally:(fun () -> Stdlib.close_in_noerr ic) (fun () -> f ic)
+
 let run conf =
+  let collect_errors name ic =
+    match
+      Okra.Lint.lint ~include_sections:conf.include_sections
+        ~ignore_sections:conf.ignore_sections ic
+    with
+    | Ok () -> []
+    | Error e -> [ (name, e) ]
+  in
+  let report_error name e =
+    Printf.fprintf stderr "Error(s) in %s:\n\n%s" name
+      (Okra.Lint.string_of_error e)
+  in
   try
-    if conf.files <> [] then
-      List.iter
-        (fun f ->
-          let ic = open_in f in
-          try
-            let res =
-              Okra.Lint.lint ~include_sections:conf.include_sections
-                ~ignore_sections:conf.ignore_sections ic
-            in
-            if res <> Okra.Lint.No_error then (
-              Printf.fprintf stderr "Error(s) in file %s:\n\n%s" f
-                (Okra.Lint.string_of_result res);
-              close_in ic;
-              exit 1)
-            else ();
-            close_in ic
-          with e ->
-            close_in_noerr ic;
-            raise e)
-        conf.files
-    else
-      let res =
-        Okra.Lint.lint ~include_sections:conf.include_sections
-          ~ignore_sections:conf.ignore_sections stdin
-      in
-      if res <> Okra.Lint.No_error then (
-        Printf.fprintf stderr "Error(s) in input stream:\n\n%s"
-          (Okra.Lint.string_of_result res);
-        exit 1)
-      else ()
+    let errors =
+      if conf.files <> [] then
+        List.concat_map
+          (fun path ->
+            with_in_file path (fun ic ->
+                let name = Printf.sprintf "file %s" path in
+                collect_errors name ic))
+          conf.files
+      else collect_errors "input stream" stdin
+    in
+    List.iter (fun (name, error) -> report_error name error) errors;
+    if errors <> [] then exit 1
   with e ->
     Printf.fprintf stderr "Caught unknown error while linting:\n\n";
     raise e

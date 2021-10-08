@@ -23,6 +23,8 @@ No KR ID found:
   > EOF
   Error(s) in input stream:
   
+  In KR "This is a KR":
+    No project found (starting with '#')
   [1]
 
 No work items found:

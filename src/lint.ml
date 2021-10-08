@@ -15,8 +15,7 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *)
 
-type lint_result =
-  | No_error
+type lint_error =
   | Format_error of (int * string) list
   | No_time_found of string
   | Invalid_time of string
@@ -24,6 +23,8 @@ type lint_result =
   | No_work_found of string
   | No_KR_ID_found of string
   | No_project_found of string
+
+type lint_result = (unit, lint_error) result
 
 let fail_fmt_patterns =
   [
@@ -44,11 +45,7 @@ let fail_fmt_patterns =
       "Space found before title marker #. Start titles in first column." );
   ]
 
-let string_of_result res =
-  let buf = Buffer.create 16 in
-  let ppf = Fmt.with_buffer buf in
-  (match res with
-  | No_error -> Buffer.add_string buf "No error\n"
+let pp_error ppf = function
   | Format_error x ->
       List.iter (fun (pos, msg) -> Fmt.pf ppf "Line %d: %s\n" pos msg) x;
       Fmt.pf ppf "%d formatting errors found. Parsing aborted.\n"
@@ -84,8 +81,9 @@ let string_of_result res =
          ID yet, use \"New KR\".\n"
         s
   | No_project_found s ->
-      Fmt.pf ppf "In KR %S:\n  No project found (starting with '#')" s);
-  Buffer.contents buf
+      Fmt.pf ppf "In KR %S:\n  No project found (starting with '#')\n" s
+
+let string_of_error = Fmt.to_to_string pp_error
 
 (* Check a single line for formatting errors returning
    a list of error messages with the position *)
@@ -102,29 +100,14 @@ let check_document ~include_sections ~ignore_sections s =
     let md = Omd.of_string s in
     let okrs = Parser.of_markdown ~include_sections ~ignore_sections md in
     let _report = Report.of_krs okrs in
-    No_error
+    Ok ()
   with
-  | Parser.No_time_found s -> No_time_found s
-  | Parser.Invalid_time s -> Invalid_time s
-  | Parser.Multiple_time_entries s -> Multiple_time_entries s
-  | Parser.No_work_found s -> No_work_found s
-  | Parser.No_KR_ID_found s -> No_KR_ID_found s
-  | Parser.No_project_found s -> No_project_found s
-
-let lint_string_list ?(include_sections = []) ?(ignore_sections = []) s =
-  let format_errors = ref [] in
-  let rec check_and_read buf pos = function
-    | [] -> Buffer.contents buf
-    | line :: lines ->
-        format_errors := check_line line pos @ !format_errors;
-        Buffer.add_string buf line;
-        Buffer.add_string buf "\n";
-        check_and_read buf (pos + 1) lines
-  in
-  let s = check_and_read (Buffer.create 1024) 1 s in
-  if !format_errors <> [] then
-    Format_error (List.sort (fun (x, _) (y, _) -> compare x y) !format_errors)
-  else check_document ~include_sections ~ignore_sections s
+  | Parser.No_time_found s -> Error (No_time_found s)
+  | Parser.Invalid_time s -> Error (Invalid_time s)
+  | Parser.Multiple_time_entries s -> Error (Multiple_time_entries s)
+  | Parser.No_work_found s -> Error (No_work_found s)
+  | Parser.No_KR_ID_found s -> Error (No_KR_ID_found s)
+  | Parser.No_project_found s -> Error (No_project_found s)
 
 let lint ?(include_sections = []) ?(ignore_sections = []) ic =
   let format_errors = ref [] in
@@ -141,5 +124,7 @@ let lint ?(include_sections = []) ?(ignore_sections = []) ic =
   in
   let s = check_and_read (Buffer.create 1024) ic 1 in
   if !format_errors <> [] then
-    Format_error (List.sort (fun (x, _) (y, _) -> compare x y) !format_errors)
+    Error
+      (Format_error
+         (List.sort (fun (x, _) (y, _) -> compare x y) !format_errors))
   else check_document ~include_sections ~ignore_sections s
