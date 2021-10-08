@@ -113,7 +113,6 @@ let find_kr t id =
 let has_kr t id = Hashtbl.mem t (id |> String.uppercase_ascii)
 
 let find_title_opt t title =
-  Printf.printf "matching %s\n" title;
   let title_no_case = title |> String.uppercase_ascii |> String.trim in
   let okrs = Hashtbl.to_seq_values t |> List.of_seq in
   List.find_opt

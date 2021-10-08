@@ -54,7 +54,6 @@ In that case, metadata is preserved.
   >   - @a (1 day)
   >   - Did all the things
   > EOF
-  matching Something else
   # Actual project
   
   ## Actual objective
