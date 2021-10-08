@@ -33,3 +33,40 @@ When `--okr-db` is passed, metadata is fixed.
   - Actual title (KR1)
     - @a (1 day)
     - Did all the things
+
+Instead of a KR ID, it is possible to put "New KR".
+In that case, metadata is preserved.
+
+  $ okra cat --okr-db=okrs.csv << EOF
+  > # Actual project
+  > 
+  > ## Actual objective
+  > 
+  > - Actual title (KR1)
+  >   - @a (1 day)
+  >   - Did all the things
+  > 
+  > # Another project
+  > 
+  > ## Another objective
+  > 
+  > - Something else (New KR)
+  >   - @a (1 day)
+  >   - Did all the things
+  > EOF
+  matching Something else
+  # Actual project
+  
+  ## Actual objective
+  
+  - Actual title (KR1)
+    - @a (1 day)
+    - Did all the things
+  
+  # Another project
+  
+  ## Another objective
+  
+  - Something else (New KR)
+    - @a (1 day)
+    - Did all the things
