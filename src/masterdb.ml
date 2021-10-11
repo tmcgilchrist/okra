@@ -33,6 +33,7 @@ type status_t =
 
 type elt_t = {
   id : string;
+  printable_id : string;
   title : string;
   objective : string;
   project : string;
@@ -67,9 +68,11 @@ let load_csv ?(separator = ',') f =
       ~f:(fun row ->
         line := !line + 1;
         let find_and_trim col = Csv.Row.find row col |> String.trim in
+        let printable_id = find_and_trim "id" in
         let e =
           {
-            id = find_and_trim "id" |> String.uppercase_ascii;
+            id = String.uppercase_ascii printable_id;
+            printable_id;
             title = find_and_trim "title";
             objective = find_and_trim "objective";
             project = find_and_trim "project";

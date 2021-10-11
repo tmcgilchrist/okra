@@ -33,6 +33,7 @@ type status_t =
 
 type elt_t = private {
   id : string;
+  printable_id : string;
   title : string;
   objective : string;
   project : string;

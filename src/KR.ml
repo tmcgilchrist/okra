@@ -210,7 +210,7 @@ let update_from_master_db t db =
                  - %S" db_kr.id orig_kr.project db_kr.project);
         {
           orig_kr with
-          id = Some db_kr.id;
+          id = Some db_kr.printable_id;
           title = db_kr.title;
           objective = db_kr.objective;
           project = db_kr.project;
