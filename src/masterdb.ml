@@ -56,6 +56,15 @@ let status_of_string s =
   | "WONTFIX" -> Some Wontfix
   | _ -> None
 
+let string_of_status s =
+  match s with
+  | Active -> "Active"
+  | Dropped -> "Dropped"
+  | Complete -> "Complete"
+  | Scheduled -> "Scheduled"
+  | Unscheduled -> "Unscheduled"
+  | Wontfix -> "Wontfix"
+
 let empty_db = Hashtbl.create 13
 
 let load_csv ?(separator = ',') f =
