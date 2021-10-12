@@ -46,6 +46,7 @@ type elt_t = private {
 
 type t = (string, elt_t) Hashtbl.t
 
+val string_of_status : status_t -> string
 val load_csv : ?separator:char -> string -> t
 val find_kr_opt : t -> string -> elt_t option
 val find_kr : t -> string -> elt_t

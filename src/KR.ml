@@ -208,6 +208,19 @@ let update_from_master_db t db =
                 "Project for KR %S does not match project in database:\n\
                  - %S\n\
                  - %S" db_kr.id orig_kr.project db_kr.project);
+        (match db_kr.status with
+        | Some Active | Some Scheduled -> ()
+        | Some s ->
+            Log.warn (fun l ->
+                l "Work logged on KR marked as %S: %S (%S)"
+                  (Masterdb.string_of_status s)
+                  db_kr.title db_kr.id)
+        | None ->
+            Log.warn (fun l ->
+                l
+                  "Work logged on KR with no status set, status should be \
+                   Active: %S (%S)"
+                  db_kr.title db_kr.id));
         {
           orig_kr with
           id = Some db_kr.printable_id;
