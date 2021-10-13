@@ -110,8 +110,17 @@ let run conf =
           | _ -> Fmt.invalid_arg "[-i] needs at most a file.")
   in
   let okrs =
-    Okra.Report.of_markdown ~ignore_sections:conf.ignore_sections
-      ~include_sections:conf.include_sections ?okr_db md
+    try
+      Okra.Report.of_markdown ~ignore_sections:conf.ignore_sections
+        ~include_sections:conf.include_sections ?okr_db md
+    with e ->
+      Logs.err (fun l ->
+          l
+            "An error ocurred while parsing the input file(s). Run `lint` for \
+             more information.\n\n\
+             %s\n"
+            (Printexc.to_string e));
+      exit 1
   in
   let okrs = Okra.Report.filter conf.filter okrs in
   let pp =
