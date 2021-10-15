@@ -200,7 +200,7 @@ $ cat bactrian.bad.md
   - @bactrian (3 days)
   - wrote some html
 $ okra lint --engineer bactrian.bad.md
-Error(s) in file bactrian.bad.md:
+[ERROR(S)]: file bactrian.bad.md
 
 In KR "Make Okra, the OKR management tool":
   No time entry found. Each KR must be followed by '- @... (x days)'
@@ -225,6 +225,7 @@ $ cat bactrian.good.md
   - @bactrian (3 days)
   - wrote some html
 $ okra lint --engineer bactrian.good.md
+[OK]: file bactrian.good.md
 ```
 
 ## Team Leads

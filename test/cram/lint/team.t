@@ -15,6 +15,7 @@ Examples of valid ones:
   >   - @eng1 (1 day)
   >   - My work
   > EOF
+  [OK]: input stream
   $ okra lint --team << EOF
   > # This is a title
   > 
@@ -22,6 +23,7 @@ Examples of valid ones:
   >   - @eng1 (1 day)
   >   - My work
   > EOF
+  [OK]: input stream
   $ okra lint --team << EOF
   > # This is a title
   > 
@@ -32,6 +34,7 @@ Examples of valid ones:
   >   - My work
   >   - More work
   > EOF
+  [OK]: input stream
 
 Errors are not ignored outside the ignored section
 
@@ -47,7 +50,7 @@ Errors are not ignored outside the ignored section
   >   - @eng1 (1 day)
   >  - My work
   > EOF
-  Error(s) in input stream:
+  [ERROR(S)]: input stream
   
   Line 10: Single space used for indentation (' - text'). Remove or replace by 2 or more spaces.
   1 formatting errors found. Parsing aborted.

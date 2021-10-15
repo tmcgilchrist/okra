@@ -21,6 +21,7 @@ This is a valid one:
   > 
   > More unformatted text.
   > EOF
+  [OK]: input stream
 
 Errors in include section are detected even if the rest is ignored.
 
@@ -42,7 +43,7 @@ Errors in include section are detected even if the rest is ignored.
   > 
   > More unformatted text.
   > EOF
-  Error(s) in input stream:
+  [ERROR(S)]: input stream
   
   In KR "This is a KR (KRID)":
     No time entry found. Each KR must be followed by '- @... (x days)'
