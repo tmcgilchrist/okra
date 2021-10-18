@@ -60,19 +60,25 @@ let with_in_file path f =
   let ic = Stdlib.open_in path in
   Fun.protect ~finally:(fun () -> Stdlib.close_in_noerr ic) (fun () -> f ic)
 
+let green = Fmt.(styled `Green string)
+let red = Fmt.(styled `Red string)
+let pp_status style ppf s = Fmt.(pf ppf "[%a]" style s)
+
 let run conf =
   let collect_errors name ic =
     match
       Okra.Lint.lint ~include_sections:conf.include_sections
         ~ignore_sections:conf.ignore_sections ic
     with
-    | Ok () -> []
-    | Error e -> [ (name, e) ]
+    | Ok () -> [ (name, None) ]
+    | Error e -> [ (name, Some e) ]
   in
   let report_error name e =
-    Printf.fprintf stderr "Error(s) in %s:\n\n%s" name
-      (Okra.Lint.string_of_error e)
+    Fmt.(
+      pf stderr "%a: %s\n\n%s" (pp_status red) "ERROR(S)" name
+        (Okra.Lint.string_of_error e))
   in
+  let report_ok name = Fmt.pr "%a: %s\n%!" (pp_status green) "OK" name in
   try
     let errors =
       if conf.files <> [] then
@@ -84,7 +90,16 @@ let run conf =
           conf.files
       else collect_errors "input stream" stdin
     in
-    List.iter (fun (name, error) -> report_error name error) errors;
+    let correct, errors =
+      List.fold_left
+        (fun (correct, errors) (name, err) ->
+          match err with
+          | Some err -> (correct, (name, err) :: errors)
+          | None -> (name :: correct, errors))
+        ([], []) errors
+    in
+    List.iter report_ok (List.rev correct);
+    List.iter (fun (name, error) -> report_error name error) (List.rev errors);
     if errors <> [] then exit 1
   with e ->
     Printf.fprintf stderr "Caught unknown error while linting:\n\n";

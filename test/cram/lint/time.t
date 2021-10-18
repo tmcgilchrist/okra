@@ -10,7 +10,7 @@ Invalid time
   >   - @eng1 (1 day), eng2 (2 days)
   >   - My work
   > EOF
-  Error(s) in input stream:
+  [ERROR(S)]: input stream
   
   In KR "@eng1 (1 day), eng2 (2 days)":
     Invalid time entry found. Format is '- @eng1 (x days), @eng2 (x days)'
@@ -22,7 +22,7 @@ Invalid time
   >   - @eng1 (1 day); @eng2 (2 days)
   >   - My work
   > EOF
-  Error(s) in input stream:
+  [ERROR(S)]: input stream
   
   In KR "@eng1 (1 day); @eng2 (2 days)":
     Invalid time entry found. Format is '- @eng1 (x days), @eng2 (x days)'
@@ -34,7 +34,7 @@ Invalid time
   >   - @eng1 (1 day) @eng2 (2 days)
   >   - My work
   > EOF
-  Error(s) in input stream:
+  [ERROR(S)]: input stream
   
   In KR "@eng1 (1 day) @eng2 (2 days)":
     Invalid time entry found. Format is '- @eng1 (x days), @eng2 (x days)'
@@ -65,3 +65,4 @@ Valid time
   >   - @eng1 (0.1 days), @eng1 (.5 day)
   >   - My work
   > EOF
+  [OK]: input stream

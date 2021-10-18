@@ -7,7 +7,7 @@ Lint can read from a file:
   >   - Do it
   > EOF
   $ okra lint err.md
-  Error(s) in file err.md:
+  [ERROR(S)]: file err.md
   
   In KR "Everything is great":
     No time entry found. Each KR must be followed by '- @... (x days)'
@@ -16,7 +16,7 @@ Lint can read from a file:
 It can also read from stdin:
 
   $ okra lint < err.md
-  Error(s) in input stream:
+  [ERROR(S)]: input stream
   
   In KR "Everything is great":
     No time entry found. Each KR must be followed by '- @... (x days)'
@@ -33,7 +33,9 @@ If everything is fine, nothing is printed and it exits with 0:
   > EOF
 
   $ okra lint ok.md
+  [OK]: file ok.md
   $ okra lint < ok.md
+  [OK]: input stream
 
 When errors are found in several files, they are all printed:
 
@@ -45,11 +47,11 @@ When errors are found in several files, they are all printed:
   >   - Do it
   > EOF
   $ okra lint err.md err2.md
-  Error(s) in file err.md:
+  [ERROR(S)]: file err.md
   
   In KR "Everything is great":
     No time entry found. Each KR must be followed by '- @... (x days)'
-  Error(s) in file err2.md:
+  [ERROR(S)]: file err2.md
   
   In KR "@a":
     Invalid time entry found. Format is '- @eng1 (x days), @eng2 (x days)'
