@@ -30,3 +30,4 @@ setup.log
 
 # Local OPAM switch
 _opam/
+ocaml-gitlab

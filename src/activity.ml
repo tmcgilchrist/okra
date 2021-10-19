@@ -47,21 +47,34 @@ let repo_org ?(with_id = false) ?(no_links = false) f s =
   | repo :: org :: _ -> Fmt.pf f "[%s/%s](%s)" org repo s
   | _ -> Fmt.failwith "Malformed URL %S" s
 
-let pp_ga_item ~no_links f (t : Get_activity.Contributions.item) =
-  match t.kind with
-  | `Issue ->
-      Fmt.pf f "Issue: %s %a" t.title (repo_org ~with_id:true ~no_links) t.url
-  | `PR -> Fmt.pf f "PR: %s %a" t.title (repo_org ~with_id:true ~no_links) t.url
-  | `Review s ->
-      Fmt.pf f "%s %s %a" s t.title (repo_org ~with_id:true ~no_links) t.url
-  | `New_repo ->
-      Fmt.pf f "Created repository %a"
-        (repo_org ~with_id:false ~no_links:false)
-        t.url
+let pp_ga_item ?(gitlab = false) ~no_links () f
+    (t : Get_activity.Contributions.item) =
+  match gitlab with
+  | true -> (
+      match t.kind with
+      | `PR -> Fmt.pf f "PR (Gitlab): %s %s" t.title t.url
+      | `Issue -> Fmt.pf f "Issue (Gitlab): %s %s" t.title t.url
+      | _ -> ())
+  | false -> (
+      match t.kind with
+      | `Issue ->
+          Fmt.pf f "Issue: %s %a" t.title
+            (repo_org ~with_id:true ~no_links)
+            t.url
+      | `PR ->
+          Fmt.pf f "PR: %s %a" t.title (repo_org ~with_id:true ~no_links) t.url
+      | `Review s ->
+          Fmt.pf f "%s %s %a" s t.title (repo_org ~with_id:true ~no_links) t.url
+      | `New_repo ->
+          Fmt.pf f "Created repository %a"
+            (repo_org ~with_id:false ~no_links)
+            t.url)
 
-let pp_activity ~no_links ppf activity =
+let pp_activity ?(gitlab = false) ~no_links () ppf activity =
   let open Get_activity.Contributions in
-  let pp_item ppf item = Fmt.pf ppf "  - %a" (pp_ga_item ~no_links) item in
+  let pp_item ppf item =
+    Fmt.pf ppf "  - %a" (pp_ga_item ~gitlab ~no_links ()) item
+  in
   let bindings = Repo_map.bindings activity in
   let pp_binding ppf (_repo, items) =
     Fmt.pf ppf "%a" Fmt.(list pp_item) items
@@ -70,7 +83,8 @@ let pp_activity ~no_links ppf activity =
 
 let make ~projects activity = { projects; activity }
 
-let pp ?(no_links = false) ppf { projects; activity = { username; activity } } =
+let pp ?(gitlab = false) ?(no_links = false) () ppf
+    { projects; activity = { username; activity } } =
   Fmt.pf ppf
     {|# Projects
 
@@ -85,4 +99,110 @@ let pp ?(no_links = false) ppf { projects; activity = { username; activity } } =
 |}
     Fmt.(list (fun ppf s -> Fmt.pf ppf "- %s" s))
     (List.map title projects) (pp_last_week username) projects
-    (pp_activity ~no_links) activity
+    (pp_activity ~gitlab ~no_links ())
+    activity
+
+(* The equivalent get-activity style information for Gitlab
+   is in the Events API *)
+module Gitlab = struct
+  open Get_activity.Contributions
+
+  let make_pull_request url (v : Gitlab_t.event) =
+    {
+      repo = string_of_int v.event_project_id;
+      kind = `PR;
+      date = v.event_created_at;
+      url;
+      title =
+        Fmt.str "%a %s"
+          Fmt.(option string)
+          (Option.map Gitlab_j.string_of_event_action_name v.event_action_name)
+          (Option.value ~default:"Gitlab PR" v.event_target_title);
+      body = Option.value ~default:"Gitlab PR" v.event_target_title;
+    }
+
+  let make_issue url (v : Gitlab_t.event) =
+    {
+      repo = string_of_int v.event_project_id;
+      kind = `Issue;
+      date = v.event_created_at;
+      url;
+      title = Option.value ~default:"Gitlab Issue" v.event_target_title;
+      body = Option.value ~default:"Gitlab Issue" v.event_target_title;
+    }
+
+  let to_repo_map :
+      Gitlab_t.events * (int * Gitlab_t.project_short) list ->
+      item list Repo_map.t =
+   fun (evs, projects) ->
+    let to_ga_item (ev : Gitlab_t.event) =
+      let project = List.assoc_opt ev.event_project_id projects in
+      match (project, ev.event_target_type) with
+      | Some project, Some `MergeRequest ->
+          let url =
+            Fmt.str "%s/-/merge_requests/%a" project.project_short_web_url
+              Fmt.(option int)
+              ev.event_target_iid
+          in
+          Some (make_pull_request url ev)
+      | Some project, Some `Issue ->
+          let url =
+            Fmt.str "%s/-/issues/%a" project.project_short_web_url
+              Fmt.(option int)
+              ev.event_target_iid
+          in
+          Some (make_issue url ev)
+      | _ -> None
+    in
+    let lst = List.filter_map to_ga_item evs in
+    let repo = Repo_map.empty in
+    List.fold_left
+      (fun map item ->
+        match Repo_map.find_opt "Gitlab" map with
+        | Some items -> Repo_map.add "Gitlab" (item :: items) map
+        | None -> Repo_map.add "Gitlab" [ item ] map)
+      repo lst
+
+  module Fetch
+      (Env : Gitlab_s.Env)
+      (Time : Gitlab_s.Time)
+      (CL : Cohttp_lwt.S.Client) =
+  struct
+    module G = Gitlab_core.Make (Env) (Time) (CL)
+    open G.Monad
+
+    let map_s f l =
+      let open G.Monad in
+      let rec inner acc = function
+        | [] -> List.rev acc |> return
+        | hd :: tl -> f hd >>= fun r -> inner (r :: acc) tl
+      in
+      inner [] l
+
+    let get_project ~token i =
+      let uri = Uri.of_string (Fmt.str "%s/projects/%i" Env.gitlab_uri i) in
+      let+ res =
+        G.API.get ~token ~uri (fun body ->
+            Lwt.return @@ Gitlab_j.project_short_of_string body)
+      in
+      (i, G.Response.value res)
+
+    let make_activity ~token ~before ~after =
+      let open G.Monad in
+      let uri = Uri.of_string (Fmt.str "%s/events" Env.gitlab_uri) in
+      let uri =
+        Uri.add_query_params uri
+          [ ("before", [ before ]); ("after", [ after ]) ]
+      in
+      let* res =
+        G.API.get ~token ~uri (fun body ->
+            Lwt.return (Gitlab_j.events_of_string body))
+      in
+      let events = G.Response.value res in
+      let ids =
+        List.map (fun (v : Gitlab_t.event) -> v.event_project_id) events
+        |> List.sort_uniq Int.compare
+      in
+      map_s (get_project ~token) ids >>= fun ids -> return (events, ids)
+  end
+end

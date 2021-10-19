@@ -47,3 +47,6 @@ val range : t -> date * date
 
 val to_iso8601 : t -> string * string
 (** [to_iso8601 t] converts [t] to the ISO8601 format *)
+
+val to_gitlab : t -> string * string
+(** [to_gitlab t] converts [t] to Gitlab API format (e.g. 2021-12-29) *)

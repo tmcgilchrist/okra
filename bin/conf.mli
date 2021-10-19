@@ -32,6 +32,10 @@ val footer : t -> string option
 val okr_db : t -> string option
 (** [okr_db] is the location of the OKR database. *)
 
+val gitlab_token : t -> string option
+(** [gitlab_token] is the optional Gitlab token, if present your Gitlab activity
+    will also be queried. *)
+
 val load : string -> (t, [ `Msg of string ]) result
 (** [load file] attempts to load a configuration from [file] *)
 

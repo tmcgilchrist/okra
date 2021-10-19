@@ -68,3 +68,11 @@ let to_iso8601 t =
   (* We store the dates, not the times as well so we add the extra day minus one second *)
   ( Cal.Date.to_unixfloat t.from |> Get_activity.Period.to_8601,
     Cal.Date.to_unixfloat t.to_ +. day -. 1. |> Get_activity.Period.to_8601 )
+
+let format_gitlab f = CalendarLib.Printer.Date.fprint "%0Y-%0m-%0d" f
+
+let to_gitlab t =
+  let from, to_ = range t in
+  (* Seems the Gitlab API is not inclusive of the lower bound day ? *)
+  let day_before = Cal.Date.(prev from `Day) in
+  (Fmt.str "%a" format_gitlab day_before, Fmt.str "%a" format_gitlab to_)

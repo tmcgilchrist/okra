@@ -132,12 +132,31 @@ let token =
 module Fetch = Get_activity.Contributions.Fetch (Cohttp_lwt_unix.Client)
 module Repo_fetch = Okra.Repo_report.Make (Cohttp_lwt_unix.Client)
 
+module Time = struct
+  let now = Unix.gettimeofday
+  let sleep = Lwt_unix.sleep
+end
+
+module Env = struct
+  let debug = try Unix.getenv "GITLAB_DEBUG" <> "0" with _ -> false
+
+  let gitlab_uri =
+    try Unix.getenv "GITLAB_URL" with _ -> "https://gitlab.com/api/v4"
+end
+
+module Gitlab = Activity.Gitlab.Fetch (Env) (Time) (Cohttp_lwt_unix.Client)
+
+let fetch ~token ~period =
+  let after, before = Okra.Calendar.to_gitlab period in
+  let token = Gitlab.G.Token.of_string token in
+  Gitlab.make_activity ~token ~before ~after
+
 let run_engineer conf cal projects token no_activity no_links with_repositories
     =
   let open Lwt.Syntax in
   let period = Calendar.to_iso8601 cal in
   let week = Calendar.week cal in
-  let activity, merges =
+  let activity, _ =
     if no_activity then
       ( Get_activity.Contributions.
           { username = "<USERNAME>"; activity = Repo_map.empty },
@@ -170,22 +189,19 @@ let run_engineer conf cal projects token no_activity no_links with_repositories
       in
       Lwt_main.run (contributions ())
   in
+  let gitlab_activity =
+    let open Gitlab.G.Monad in
+    match Conf.gitlab_token conf with
+    | Some token ->
+        let main () =
+          let+ events = fetch ~token ~period:cal in
+          Activity.Gitlab.to_repo_map events
+        in
+        Lwt_main.run @@ Gitlab.G.Monad.run (main ())
+    | None -> Get_activity.Contributions.Repo_map.empty
+  in
   let from, to_ = Calendar.range cal in
   let format_date f = CalendarLib.Printer.Date.fprint "%0Y/%0m/%0d" f in
-  let pp_pr ppf pr =
-    let item =
-      Get_activity.Contributions.
-        {
-          kind = `PR;
-          repo = "";
-          date = pr.Repo_report.PR.created_at;
-          url = pr.url;
-          title = pr.title;
-          body = pr.body;
-        }
-    in
-    Fmt.pf ppf "  - Merged %a" (Activity.pp_ga_item ~no_links) item
-  in
   let header =
     Fmt.str "%s week %i: %a -- %a" activity.username week format_date from
       format_date to_
@@ -193,9 +209,9 @@ let run_engineer conf cal projects token no_activity no_links with_repositories
   let pp_footer ppf conf = Fmt.(pf ppf "\n\n%a" string conf) in
   let activity = Activity.make ~projects activity in
   Fmt.(
-    pr "%s\n\n%a%a%a" header (Activity.pp ~no_links) activity
-      Fmt.(list pp_pr)
-      merges (option pp_footer) (Conf.footer conf))
+    pr "%s\n\n%a%a%a" header (Activity.pp ~no_links ()) activity
+      (Activity.pp_activity ~gitlab:true ~no_links:false ())
+      gitlab_activity (option pp_footer) (Conf.footer conf))
 
 let get_or_error = function
   | Ok v -> v

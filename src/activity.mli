@@ -23,13 +23,50 @@ type project = { title : string; items : string list }
 val make : projects:project list -> Get_activity.Contributions.t -> t
 (** [make_activity ~projects activites] builds a new weekly activity *)
 
-val pp_ga_item : no_links:bool -> Get_activity.Contributions.item Fmt.t
-(** [pp_ga_item ppf item] prints the get-activity item *)
+val pp_ga_item :
+  ?gitlab:bool -> no_links:bool -> unit -> Get_activity.Contributions.item Fmt.t
+(** [pp_ga_item ?gitlab ~no_links () ppf item] prints the get-activity item. See
+    the description of [gitlab] and [no_links] in {!pp}. *)
 
-val pp : ?no_links:bool -> t Fmt.t
+val pp_activity :
+  ?gitlab:bool ->
+  no_links:bool ->
+  unit ->
+  Format.formatter ->
+  Get_activity.Contributions.item list Get_activity.Contributions.Repo_map.t ->
+  unit
+(** [pp_activity ?gitlab ~no_links ()] can be used to print the underlying
+    get-activity items. See the description of [gitlab] and [no_links] in {!pp}. *)
+
+val pp : ?gitlab:bool -> ?no_links:bool -> unit -> t Fmt.t
 (** [pp ppf activity] formats a weekly activity into a template that needs some
     editing to get it into the correct format.
+
+    [gitlab] controls whether the links are Gitlab links are not. The Github
+    links get special formatting and can be formatted differently with
+    [no_links].
 
     [no_links] controls rendering of markdown links to issues, reviews and prs.
     Defaults to [false] and longer url links. [true] for GitHub style shorter
     links eg project/repo#number *)
+
+module Gitlab : sig
+  open Get_activity.Contributions
+
+  val to_repo_map :
+    Gitlab_t.events * (int * Gitlab_t.project_short) list ->
+    item list Repo_map.t
+
+  module Fetch
+      (Env : Gitlab_s.Env)
+      (Time : Gitlab_s.Time)
+      (CL : Cohttp_lwt.S.Client) : sig
+    module G : Gitlab_s.Gitlab
+
+    val make_activity :
+      token:G.Token.t ->
+      before:string ->
+      after:string ->
+      (Gitlab_t.events * (int * Gitlab_t.project_short) list) G.Monad.t
+  end
+end
