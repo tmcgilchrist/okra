@@ -45,6 +45,7 @@ module PR : sig
     created_at : string;
     is_draft : bool;
     merged_at : string option;
+    merged_by : string option;
     reviewers : string list;
   }
 

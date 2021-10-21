@@ -23,6 +23,9 @@ type project = { title : string; items : string list }
 val make : projects:project list -> Get_activity.Contributions.t -> t
 (** [make_activity ~projects activites] builds a new weekly activity *)
 
+val pp_ga_item : no_links:bool -> Get_activity.Contributions.item Fmt.t
+(** [pp_ga_item ppf item] prints the get-activity item *)
+
 val pp : ?no_links:bool -> t Fmt.t
 (** [pp ppf activity] formats a weekly activity into a template that needs some
     editing to get it into the correct format.

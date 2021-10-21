@@ -23,7 +23,12 @@ module U = Yojson.Safe.Util
 
 let ( / ) a b = U.member b a
 let ( // ) a b = try Some (U.member b a) with _ -> None
-let underscore s = String.split_on_char '-' s |> String.concat "_"
+
+let underscore s =
+  String.split_on_char '-' s
+  |> String.concat "_"
+  |> String.split_on_char '.'
+  |> String.concat "_"
 
 module Issue = struct
   type t = {
@@ -86,6 +91,7 @@ module PR = struct
     created_at : string;
     is_draft : bool;
     merged_at : string option;
+    merged_by : string option;
     reviewers : string list;
   }
 
@@ -101,6 +107,7 @@ module PR = struct
     let closed_at = json / "closedAt" |> U.to_string_option in
     let is_draft = json / "isDraft" |> U.to_bool in
     let merged_at = json / "mergedAt" |> U.to_string_option in
+    let merged_by = Option.map U.to_string @@ (json / "mergedBy" // "login") in
     let reviewers =
       json / "reviews" / "nodes"
       |> U.to_list
@@ -118,6 +125,7 @@ module PR = struct
       created_at;
       is_draft;
       merged_at;
+      merged_by;
       reviewers;
     }
 
@@ -167,6 +175,9 @@ module PR = struct
         isDraft
         merged
         mergedAt
+        mergedBy {
+          login
+        }
         reviews (last: 100) {
           nodes {
             author {
