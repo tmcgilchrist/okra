@@ -17,6 +17,8 @@ Engineer reports are aggregated correctly
   > - Work without a KR (No KR)
   >   - @eng1 (0.5 days)
   >   - Little bit of work
+  > 
+  > EOF
 
   $ cat > eng2.md << EOF
   > # Last Week
@@ -32,6 +34,8 @@ Engineer reports are aggregated correctly
   > - Work without a KR (No KR)
   >   - @eng2 (1.0 days)
   >   - Small bit of work
+  > 
+  > EOF
 
   $ cat eng1.md eng2.md | okra cat --engineer
   # Last Week
