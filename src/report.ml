@@ -169,6 +169,7 @@ let add ?okr_db (t : t) (e : KR.t) =
         | None -> (
             match find_no_case t.all_krs.titles e.title with
             | Some kr when is_new_kr kr -> Some kr
+            | Some kr when is_no_kr kr -> Some kr
             | _ -> None))
   in
   let e =
@@ -249,7 +250,17 @@ let make_objective ?show_time ?show_time_calc ?show_engineers o =
     |> Seq.filter is_new_kr
     |> List.of_seq
   in
-  let krs = List.sort KR.compare krs @ List.sort KR.compare new_krs in
+  let no_krs =
+    Hashtbl.to_seq o.krs.titles
+    |> Seq.map snd
+    |> Seq.filter is_no_kr
+    |> List.of_seq
+  in
+  let krs =
+    List.sort KR.compare krs
+    @ List.sort KR.compare new_krs
+    @ List.sort KR.compare no_krs
+  in
   match
     List.concat_map (KR.items ?show_time ?show_time_calc ?show_engineers) krs
   with
