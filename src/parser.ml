@@ -1,6 +1,7 @@
 (*
  * Copyright (c) 2021 Magnus Skjegstad <magnus@skjegstad.com>
  * Copyright (c) 2021 Thomas Gazagnaire <thomas@gazagnaire.org>
+ * Copyright (c) 2021 Patrick Ferris <pf341@patricoferris.com>
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -34,6 +35,9 @@ exception No_project_found of string (* No project found *)
 
 exception Invalid_markdown_in_work_items of string
 (* Subset of markdown not supported in work items *)
+
+exception Not_all_includes_accounted_for of string list
+(* There should be a section for all include sections passed to the parser *)
 
 (* Types for parsing the AST *)
 type t =
@@ -110,6 +114,7 @@ let err_no_work s = raise (No_work_found s)
 let err_no_id s = raise (No_KR_ID_found s)
 let err_time s = raise (Invalid_time s)
 let err_no_time s = raise (No_time_found s)
+let err_missing_includes s = raise (Not_all_includes_accounted_for s)
 
 let rec inline = function
   | Concat (_, xs) -> Item.Concat (List.map inline xs)
@@ -274,10 +279,14 @@ let ignore_section t =
 
 let include_section t =
   match t.include_sections with
-  | [] -> true
-  | l ->
-      List.mem (String.uppercase_ascii t.current_proj) l
-      || List.mem (String.uppercase_ascii t.current_o) l
+  | [] -> Some "all"
+  | l -> (
+      match
+        ( List.find_opt String.(equal @@ uppercase_ascii t.current_proj) l,
+          List.find_opt String.(equal @@ uppercase_ascii t.current_o) l )
+      with
+      | (Some _ as t), _ | None, (Some _ as t) -> t
+      | _ -> None)
 
 let process_block state acc = function
   | Heading (_, n, il) ->
@@ -298,26 +307,39 @@ let process_block state acc = function
       acc
   | List (_, _, _, bls) ->
       List.fold_left
-        (fun acc xs ->
-          if ignore_section state || not (include_section state) then acc
+        (fun ((sections, krs) as acc) xs ->
+          let includes = include_section state in
+          if ignore_section state || Option.is_none includes then acc
           else
             let block = List.concat (List.map block_okr xs) in
             Log.debug (fun l -> l "items: %a" dump block);
             match
               kr ~project:state.current_proj ~objective:state.current_o block
             with
-            | None -> acc
-            | Some x -> x :: acc)
+            (* Safe to Option.get given if-then-else *)
+            | None -> (Option.get includes :: sections, krs)
+            | Some x -> (Option.get includes :: sections, x :: krs))
         acc bls
   | _ ->
       (* FIXME: also keep floating text *)
       acc
 
-let process t ast = List.fold_left (process_block t) [] ast
+let process t ast = List.fold_left (process_block t) ([], []) ast
+
+let check_includes u_includes (includes : string list) =
+  let missing =
+    List.(
+      fold_left
+        (fun acc v -> if mem v includes then acc else v :: acc)
+        [] u_includes)
+  in
+  if missing = [] then () else err_missing_includes missing
 
 let of_markdown ?(ignore_sections = [ "OKR Updates" ]) ?(include_sections = [])
     ast =
   let u_ignore = List.map String.uppercase_ascii ignore_sections in
   let u_include = List.map String.uppercase_ascii include_sections in
   let state = init ~ignore_sections:u_ignore ~include_sections:u_include () in
-  List.rev (process state ast)
+  let includes, krs = process state ast in
+  check_includes u_include (List.sort_uniq String.compare includes);
+  List.rev krs

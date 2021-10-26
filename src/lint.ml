@@ -23,6 +23,7 @@ type lint_error =
   | No_work_found of string
   | No_KR_ID_found of string
   | No_project_found of string
+  | Not_all_includes of string list
 
 type lint_result = (unit, lint_error) result
 
@@ -82,6 +83,8 @@ let pp_error ppf = function
         s
   | No_project_found s ->
       Fmt.pf ppf "In KR %S:\n  No project found (starting with '#')\n" s
+  | Not_all_includes s ->
+      Fmt.pf ppf "Missing includes section: %a\n" Fmt.(list ~sep:comma string) s
 
 let string_of_error = Fmt.to_to_string pp_error
 
@@ -108,6 +111,7 @@ let check_document ~include_sections ~ignore_sections s =
   | Parser.No_work_found s -> Error (No_work_found s)
   | Parser.No_KR_ID_found s -> Error (No_KR_ID_found s)
   | Parser.No_project_found s -> Error (No_project_found s)
+  | Parser.Not_all_includes_accounted_for s -> Error (Not_all_includes s)
 
 let lint ?(include_sections = []) ?(ignore_sections = []) ic =
   let format_errors = ref [] in
