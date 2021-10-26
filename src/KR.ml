@@ -20,12 +20,19 @@ let src = Logs.Src.create "okra.KR"
 
 module Log = (val Logs.src_log src : Logs.LOG)
 
+type kind = [ `New | `No | `Id of string ]
+
+let pp_kind ppf = function
+  | `New -> Fmt.pf ppf "New KR"
+  | `No -> Fmt.pf ppf "No KR"
+  | `Id s -> Fmt.pf ppf "%s" s
+
 type t = {
   counter : int;
   project : string;
   objective : string;
   title : string;
-  id : string option;
+  kind : kind;
   time_entries : (string * float) list list;
   time_per_engineer : (string, float) Hashtbl.t;
   work : Item.t list list;
@@ -38,7 +45,7 @@ let counter =
     incr c;
     i
 
-let v ~project ~objective ~title ~id ~time_entries work =
+let v ~project ~objective ~title ~kind ~time_entries work =
   let counter = counter () in
   (* Sum time per engineer *)
   let time_per_engineer =
@@ -57,7 +64,7 @@ let v ~project ~objective ~title ~id ~time_entries work =
     project;
     objective;
     title;
-    id;
+    kind;
     time_entries;
     time_per_engineer;
     work;
@@ -71,7 +78,7 @@ let dump =
       field "project" (fun t -> t.project) string;
       field "objective" (fun t -> t.objective) string;
       field "title" (fun t -> t.title) string;
-      field "id" (fun t -> t.id) (option string);
+      field "kind" (fun t -> t.kind) pp_kind;
       field "time_entries"
         (fun t -> t.time_entries)
         (list (list (pair string Fmt.float)));
@@ -85,6 +92,12 @@ let compare_no_case x y =
   let x = String.uppercase_ascii x in
   let y = String.uppercase_ascii y in
   String.compare x y
+
+let equal_kind a b =
+  match (a, b) with
+  | `New, `New | `No, `No -> true
+  | `Id id1, `Id id2 -> compare_no_case id1 id2 = 0
+  | _ -> false
 
 let merge x y =
   let counter = x.counter in
@@ -114,13 +127,15 @@ let merge x y =
               l "KR %S appears in two objectives:\n- %S\n- %S" title x y);
         x
   in
-  let id =
-    match (x.id, y.id) with
-    | None, None -> None
-    | Some x, Some y ->
+  let kind =
+    match (x.kind, y.kind) with
+    | `Id x, `Id y ->
         assert (compare_no_case x y = 0);
-        Some x
-    | Some x, _ | _, Some x -> Some x
+        `Id x
+    | `Id x, _ | _, `Id x -> `Id x
+    | `No, `No -> `No
+    | `New, `New -> `New
+    | _ -> failwith "Mismatch between KR kinds"
   in
   let time_entries = x.time_entries @ y.time_entries in
   let time_per_engineer =
@@ -140,16 +155,16 @@ let merge x y =
     project;
     objective;
     title;
-    id;
+    kind;
     time_entries;
     time_per_engineer;
     work;
   }
 
 let compare a b =
-  match (a.id, b.id) with
-  | None, _ | _, None -> compare_no_case a.title b.title
-  | Some a, Some b -> compare_no_case a b
+  match (a.kind, b.kind) with
+  | `Id a, `Id b -> compare_no_case a b
+  | _ -> compare_no_case a.title b.title
 
 let string_of_days d =
   let d = floor (d *. 2.0) /. 2. in
@@ -177,8 +192,6 @@ let make_engineers ~time entries =
       in
       [ Paragraph (Concat lst) ]
 
-let id = function None -> "New KR" | Some id -> id
-
 let make_time_entries t =
   let aux (e, d) = Fmt.str "@%s (%s)" e (string_of_days d) in
   Item.[ Paragraph (Text (String.concat ", " (List.map aux t))) ]
@@ -188,7 +201,7 @@ let update_from_master_db t db =
     match db_kr with
     | None -> orig_kr
     | Some db_kr ->
-        if orig_kr.id = None then
+        if orig_kr.kind = `No || orig_kr.kind = `New then
           Log.warn (fun l ->
               l "KR ID updated from unspecified to %S :\n- %S\n- %S" db_kr.id
                 orig_kr.title db_kr.title);
@@ -223,19 +236,19 @@ let update_from_master_db t db =
                   db_kr.title db_kr.id));
         {
           orig_kr with
-          id = Some db_kr.printable_id;
+          kind = `Id db_kr.printable_id;
           title = db_kr.title;
           objective = db_kr.objective;
           project = db_kr.project;
         }
   in
 
-  match t.id with
-  | None ->
-      let db_kr = Masterdb.find_title_opt db t.title in
-      update t db_kr
-  | Some id ->
+  match t.kind with
+  | `Id id ->
       let db_kr = Masterdb.find_kr_opt db id in
+      update t db_kr
+  | _ ->
+      let db_kr = Masterdb.find_title_opt db t.title in
       update t db_kr
 
 let items ?(show_time = true) ?(show_time_calc = true) ?(show_engineers = true)
@@ -258,7 +271,7 @@ let items ?(show_time = true) ?(show_time_calc = true) ?(show_engineers = true)
       ( Bullet '-',
         [
           [
-            Paragraph (Text (Printf.sprintf "%s (%s)" kr.title (id kr.id)));
+            Paragraph (Text (Fmt.str "%s (%a)" kr.title pp_kind kr.kind));
             List (Bullet '-', items :: kr.work);
           ];
         ] );

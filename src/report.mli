@@ -59,10 +59,11 @@ val iter :
   t ->
   unit
 
-val find : t -> ?title:string -> ?id:string -> unit -> KR.t list
+val find : t -> ?title:string -> ?kind:KR.kind -> unit -> KR.t list
 val add : ?okr_db:Masterdb.t -> t -> KR.t -> unit
 val all_krs : t -> KR.t list
 val new_krs : t -> KR.t list
+val no_krs : t -> KR.t list
 
 val pp :
   ?show_time:bool -> ?show_time_calc:bool -> ?show_engineers:bool -> t Printer.t
@@ -86,10 +87,11 @@ module Filter : sig
 
   val empty : t
 
-  type kr = [ `New_KR | `ID of string ]
+  type kr = [ `No_kr | `New_KR | `ID of string ]
 
   val kr_of_string : string -> kr
-  (** [kr_of_string s] is [`New_KR] iff [s="New KR"], and [`ID s] otherwise. *)
+  (** [kr_of_string s] is [`New_KR] iff [s="New KR"], [`No_kr] iff [s="No KR"],
+      and [`ID s] otherwise. *)
 
   val string_of_kr : kr -> string
 

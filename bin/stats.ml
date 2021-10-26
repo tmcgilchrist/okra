@@ -67,9 +67,11 @@ let print kind t =
         Aggregate.by_kr t |> Hashtbl.to_seq |> List.of_seq |> sort_by_days
       in
       List.iter
-        (fun ((title, id), d) ->
-          let id = match id with None -> "New KR" | Some s -> s in
-          let ps = Report.find t ~title ~id () in
+        (fun ((title, kind), d) ->
+          let id =
+            match kind with `New -> "New KR" | `No -> "No KR" | `Id s -> s
+          in
+          let ps = Report.find t ~title ~kind () in
           let pp ppf () =
             Fmt.list ~sep:(Fmt.any "|")
               (fun ppf kr ->

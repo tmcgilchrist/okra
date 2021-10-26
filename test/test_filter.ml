@@ -32,13 +32,15 @@ let te2 = [ [ (e1, 10.) ] ]
 let te3 = [ [ (e2, 10.) ]; [ (e3, 5.) ] ]
 let id2 = "Id2"
 let id3 = "ID3"
-let kr1 = KR.v ~project:p1 ~objective:o1 ~title:t1 ~id:None ~time_entries:te1 []
+
+let kr1 =
+  KR.v ~project:p1 ~objective:o1 ~title:t1 ~kind:`New ~time_entries:te1 []
 
 let kr2 =
-  KR.v ~project:p2 ~objective:o2 ~title:t2 ~id:(Some id2) ~time_entries:te2 []
+  KR.v ~project:p2 ~objective:o2 ~title:t2 ~kind:(`Id id2) ~time_entries:te2 []
 
 let kr3 =
-  KR.v ~project:p2 ~objective:o2 ~title:t3 ~id:(Some id3) ~time_entries:te3 []
+  KR.v ~project:p2 ~objective:o2 ~title:t3 ~kind:(`Id id3) ~time_entries:te3 []
 
 let report () = Okra.Report.of_krs [ kr1; kr2; kr3 ]
 

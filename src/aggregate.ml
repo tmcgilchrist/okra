@@ -29,9 +29,9 @@ let by_ f ?(include_krs = []) t =
       if
         include_krs = []
         ||
-        match e.id with
-        | None -> false
-        | Some id -> List.mem (String.uppercase_ascii id) uppercase_include_krs
+        match e.kind with
+        | `Id id -> List.mem (String.uppercase_ascii id) uppercase_include_krs
+        | _ -> false
       then f result e
       else ()) (* skip this KR *)
     t;
@@ -46,7 +46,7 @@ let by_kr =
       let time =
         Hashtbl.fold (fun _ w acc -> acc +. w) e.time_per_engineer 0.
       in
-      Hashtbl.add result (e.title, e.id) time)
+      Hashtbl.add result (e.title, e.kind) time)
 
 let by_objective =
   by_ (fun result e ->
