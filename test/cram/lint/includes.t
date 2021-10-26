@@ -26,7 +26,7 @@ Missing include sections are errors, for engineer reports this is "Last Week"
   Missing includes section: LAST WEEK
   [1]
 
-The include_section checker looks for all passes sections
+The include_section checker looks for all passed sections
 
   $ okra lint --include-sections="previous week,last week,next week" << EOF
   > # Projects
