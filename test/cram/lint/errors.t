@@ -13,7 +13,7 @@ No KR ID found:
   [ERROR(S)]: input stream
   
   In KR "This is a KR":
-    No KR ID found. KRs should be in the format "This is a KR (PLAT123)", where PLAT123 is the KR ID. For KRs that don't have an ID yet, use "New KR".
+    No KR ID found. KRs should be in the format "This is a KR (PLAT123)", where PLAT123 is the KR ID. For KRs that don't have an ID yet, use "New KR" and for work without a KR use "No KR".
   [1]
 
   $ okra lint << EOF

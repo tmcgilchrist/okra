@@ -16,12 +16,23 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *)
 
+type id =
+  | New_KR
+  | No_KR
+  | ID of string
+      (** The kinds of KR identifiers that are possible, a new KR, a no KR and a
+          KR with an concrete identifier. *)
+
+val equal_id : id -> id -> bool
+(** [equal_id a b] compares ids [a] and [b] for equality. Matching identifiers
+    is not case sensitive. *)
+
 type t = private {
   counter : int;
   project : string;
   objective : string;
   title : string;
-  id : string option;
+  id : id;
   time_entries : (string * float) list list;
   time_per_engineer : (string, float) Hashtbl.t;
   work : Item.t list list;
@@ -31,7 +42,7 @@ val v :
   project:string ->
   objective:string ->
   title:string ->
-  id:string option ->
+  id:id ->
   time_entries:(string * float) list list ->
   Item.t list list ->
   t

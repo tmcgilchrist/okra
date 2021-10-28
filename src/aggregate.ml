@@ -30,8 +30,8 @@ let by_ f ?(include_krs = []) t =
         include_krs = []
         ||
         match e.id with
-        | None -> false
-        | Some id -> List.mem (String.uppercase_ascii id) uppercase_include_krs
+        | ID id -> List.mem (String.uppercase_ascii id) uppercase_include_krs
+        | _ -> false
       then f result e
       else ()) (* skip this KR *)
     t;

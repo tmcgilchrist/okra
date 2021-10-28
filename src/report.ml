@@ -46,7 +46,8 @@ let find_no_case t k = Hashtbl.find_opt t (String.uppercase_ascii k)
 let add_no_case t k v = Hashtbl.add t (String.uppercase_ascii k) v
 let replace_no_case t k v = Hashtbl.replace t (String.uppercase_ascii k) v
 let remove_no_case t k = Hashtbl.remove t (String.uppercase_ascii k)
-let is_new_kr kr = kr.KR.id = None
+let is_new_kr kr = kr.KR.id = New_KR
+let is_no_kr kr = kr.KR.id = No_KR
 
 let iter_krs f t =
   Hashtbl.iter (fun _ kr -> f kr) t.ids;
@@ -84,6 +85,11 @@ let new_krs t =
   iter_krs (fun x -> if is_new_kr x then l := x :: !l) t.all_krs;
   List.rev !l
 
+let no_krs t =
+  let l = ref [] in
+  iter_krs (fun x -> if is_no_kr x then l := x :: !l) t.all_krs;
+  List.rev !l
+
 module Project = struct
   type t = project
 
@@ -114,7 +120,9 @@ end
 let find t ?title ?id () =
   let l = ref [] in
   iter_krs
-    (fun kr -> if Some kr.KR.title = title || kr.KR.id = id then l := kr :: !l)
+    (fun kr ->
+      if Some kr.KR.title = title || Option.equal KR.equal_id (Some kr.KR.id) id
+      then l := kr :: !l)
     t.all_krs;
   List.rev !l
 
@@ -129,7 +137,7 @@ let remove (t : t) (e : KR.t) =
   Log.debug (fun l -> l "Report.remove %a" KR.dump e);
   let remove t =
     remove_no_case t.titles e.title;
-    match e.id with None -> () | Some id -> remove_no_case t.ids id
+    match e.id with ID id -> remove_no_case t.ids id | _ -> ()
   in
   let () =
     match find_no_case t.projects e.project with
@@ -152,13 +160,14 @@ let add ?okr_db (t : t) (e : KR.t) =
   in
   let existing_kr =
     match e.id with
-    | None -> find_no_case t.all_krs.titles e.title
-    | Some id -> (
+    | No_KR | New_KR -> find_no_case t.all_krs.titles e.title
+    | ID id -> (
         match find_no_case t.all_krs.ids id with
         | Some kr -> Some kr
         | None -> (
             match find_no_case t.all_krs.titles e.title with
             | Some kr when is_new_kr kr -> Some kr
+            | Some kr when is_no_kr kr -> Some kr
             | _ -> None))
   in
   let e =
@@ -172,7 +181,7 @@ let add ?okr_db (t : t) (e : KR.t) =
   in
   let update t =
     replace_no_case t.titles e.title e;
-    match e.id with None -> () | Some id -> replace_no_case t.ids id e
+    match e.id with ID id -> replace_no_case t.ids id e | _ -> ()
   in
   let p =
     match find_no_case t.projects e.project with
@@ -208,7 +217,7 @@ let of_projects projects =
       iter_project
         (fun x ->
           titles := (x.title, x) :: !titles;
-          match x.id with Some id -> ids := (id, x) :: !ids | None -> ())
+          match x.id with ID id -> ids := (id, x) :: !ids | _ -> ())
         p)
     projects;
   let ids = List.to_seq !ids |> Hashtbl.of_seq in
@@ -239,7 +248,17 @@ let make_objective ?show_time ?show_time_calc ?show_engineers o =
     |> Seq.filter is_new_kr
     |> List.of_seq
   in
-  let krs = List.sort KR.compare krs @ List.sort KR.compare new_krs in
+  let no_krs =
+    Hashtbl.to_seq o.krs.titles
+    |> Seq.map snd
+    |> Seq.filter is_no_kr
+    |> List.of_seq
+  in
+  let krs =
+    List.sort KR.compare krs
+    @ List.sort KR.compare new_krs
+    @ List.sort KR.compare no_krs
+  in
   match
     List.concat_map (KR.items ?show_time ?show_time_calc ?show_engineers) krs
   with
@@ -273,8 +292,6 @@ let print ?show_time ?show_time_calc ?show_engineers t =
 module StringSet = Set.Make (String)
 
 module Filter = struct
-  type kr = [ `New_KR | `ID of string ]
-
   type t = {
     include_projects : StringSet.t;
     exclude_projects : StringSet.t;
@@ -292,11 +309,15 @@ module Filter = struct
       StringSet.empty l
 
   let string_of_kr = function
-    | `New_KR -> "NEW KR"
-    | `ID s -> String.uppercase_ascii s
+    | KR.No_KR -> "NO KR"
+    | New_KR -> "NEW KR"
+    | ID s -> String.uppercase_ascii s
 
   let kr_of_string s =
-    match String.uppercase_ascii s with "NEW KR" -> `New_KR | _ -> `ID s
+    match String.uppercase_ascii s with
+    | "NEW KR" -> KR.New_KR
+    | "NO KR" -> No_KR
+    | _ -> ID s
 
   let kr_set l =
     List.fold_left
@@ -349,10 +370,7 @@ let filter f (t : t) =
       (fun (kr : KR.t) ->
         let p = String.uppercase_ascii kr.project in
         let o = String.uppercase_ascii kr.objective in
-        let id =
-          let e = match kr.id with None -> `New_KR | Some s -> `ID s in
-          Filter.string_of_kr e
-        in
+        let id = Filter.string_of_kr kr.KR.id in
         let es =
           Hashtbl.to_seq kr.time_per_engineer
           |> Seq.map fst

@@ -78,7 +78,7 @@ let pp_error ppf = function
         "In KR %S:\n\
         \  No KR ID found. KRs should be in the format \"This is a KR \
          (PLAT123)\", where PLAT123 is the KR ID. For KRs that don't have an \
-         ID yet, use \"New KR\".\n"
+         ID yet, use \"New KR\" and for work without a KR use \"No KR\".\n"
         s
   | No_project_found s ->
       Fmt.pf ppf "In KR %S:\n  No project found (starting with '#')\n" s

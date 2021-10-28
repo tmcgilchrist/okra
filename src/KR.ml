@@ -20,12 +20,19 @@ let src = Logs.Src.create "okra.KR"
 
 module Log = (val Logs.src_log src : Logs.LOG)
 
+type id = New_KR | No_KR | ID of string
+
+let pp_id ppf = function
+  | New_KR -> Fmt.pf ppf "New KR"
+  | No_KR -> Fmt.pf ppf "No KR"
+  | ID s -> Fmt.pf ppf "%s" s
+
 type t = {
   counter : int;
   project : string;
   objective : string;
   title : string;
-  id : string option;
+  id : id;
   time_entries : (string * float) list list;
   time_per_engineer : (string, float) Hashtbl.t;
   work : Item.t list list;
@@ -71,7 +78,7 @@ let dump =
       field "project" (fun t -> t.project) string;
       field "objective" (fun t -> t.objective) string;
       field "title" (fun t -> t.title) string;
-      field "id" (fun t -> t.id) (option string);
+      field "id" (fun t -> t.id) pp_id;
       field "time_entries"
         (fun t -> t.time_entries)
         (list (list (pair string Fmt.float)));
@@ -85,6 +92,12 @@ let compare_no_case x y =
   let x = String.uppercase_ascii x in
   let y = String.uppercase_ascii y in
   String.compare x y
+
+let equal_id a b =
+  match (a, b) with
+  | New_KR, New_KR | No_KR, No_KR -> true
+  | ID id1, ID id2 -> compare_no_case id1 id2 = 0
+  | _ -> false
 
 let merge x y =
   let counter = x.counter in
@@ -116,11 +129,13 @@ let merge x y =
   in
   let id =
     match (x.id, y.id) with
-    | None, None -> None
-    | Some x, Some y ->
+    | ID x, ID y ->
         assert (compare_no_case x y = 0);
-        Some x
-    | Some x, _ | _, Some x -> Some x
+        ID x
+    | ID x, _ | _, ID x -> ID x
+    | No_KR, No_KR -> No_KR
+    | New_KR, New_KR -> New_KR
+    | _ -> failwith "Mismatch between KR kinds"
   in
   let time_entries = x.time_entries @ y.time_entries in
   let time_per_engineer =
@@ -148,8 +163,8 @@ let merge x y =
 
 let compare a b =
   match (a.id, b.id) with
-  | None, _ | _, None -> compare_no_case a.title b.title
-  | Some a, Some b -> compare_no_case a b
+  | ID a, ID b -> compare_no_case a b
+  | _ -> compare_no_case a.title b.title
 
 let string_of_days d =
   let d = floor (d *. 2.0) /. 2. in
@@ -177,8 +192,6 @@ let make_engineers ~time entries =
       in
       [ Paragraph (Concat lst) ]
 
-let id = function None -> "New KR" | Some id -> id
-
 let make_time_entries t =
   let aux (e, d) = Fmt.str "@%s (%s)" e (string_of_days d) in
   Item.[ Paragraph (Text (String.concat ", " (List.map aux t))) ]
@@ -188,7 +201,7 @@ let update_from_master_db t db =
     match db_kr with
     | None -> orig_kr
     | Some db_kr ->
-        if orig_kr.id = None then
+        if orig_kr.id = No_KR || orig_kr.id = New_KR then
           Log.warn (fun l ->
               l "KR ID updated from unspecified to %S :\n- %S\n- %S" db_kr.id
                 orig_kr.title db_kr.title);
@@ -223,7 +236,7 @@ let update_from_master_db t db =
                   db_kr.title db_kr.id));
         {
           orig_kr with
-          id = Some db_kr.printable_id;
+          id = ID db_kr.printable_id;
           title = db_kr.title;
           objective = db_kr.objective;
           project = db_kr.project;
@@ -231,11 +244,11 @@ let update_from_master_db t db =
   in
 
   match t.id with
-  | None ->
-      let db_kr = Masterdb.find_title_opt db t.title in
-      update t db_kr
-  | Some id ->
+  | ID id ->
       let db_kr = Masterdb.find_kr_opt db id in
+      update t db_kr
+  | _ ->
+      let db_kr = Masterdb.find_title_opt db t.title in
       update t db_kr
 
 let items ?(show_time = true) ?(show_time_calc = true) ?(show_engineers = true)
@@ -258,7 +271,7 @@ let items ?(show_time = true) ?(show_time_calc = true) ?(show_engineers = true)
       ( Bullet '-',
         [
           [
-            Paragraph (Text (Printf.sprintf "%s (%s)" kr.title (id kr.id)));
+            Paragraph (Text (Fmt.str "%s (%a)" kr.title pp_id kr.id));
             List (Bullet '-', items :: kr.work);
           ];
         ] );

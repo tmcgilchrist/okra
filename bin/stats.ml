@@ -68,7 +68,9 @@ let print kind t =
       in
       List.iter
         (fun ((title, id), d) ->
-          let id = match id with None -> "New KR" | Some s -> s in
+          let id' =
+            match id with KR.New_KR -> "New KR" | No_KR -> "No KR" | ID s -> s
+          in
           let ps = Report.find t ~title ~id () in
           let pp ppf () =
             Fmt.list ~sep:(Fmt.any "|")
@@ -76,7 +78,7 @@ let print kind t =
                 Fmt.pf ppf "%a: %a" green kr.KR.project cyan kr.KR.objective)
               ppf ps
           in
-          Fmt.pr "- [%a] %s (%s): %a\n" pp () title id pp_days d)
+          Fmt.pr "- [%a] %s (%s): %a\n" pp () title id' pp_days d)
         krs
 
 let run conf =

@@ -32,29 +32,23 @@ let contains_kr p kr_id = contains_kr_cnt p kr_id > 0
 
 let test_newkr_replaced1 () =
   let res = aggregate "./reports/newkr_replaced1.acc" in
-  Alcotest.(check bool) "new KR replaced" true (not (contains_kr res None));
-  Alcotest.(check int)
-    "KR123 exists once" 1
-    (contains_kr_cnt res (Some "KR123"));
-  Alcotest.(check int)
-    "KR124 exists once" 1
-    (contains_kr_cnt res (Some "KR124"));
-  Alcotest.(check int)
-    "KR125 exists once" 1
-    (contains_kr_cnt res (Some "KR125"))
+  Alcotest.(check bool) "new KR replaced" true (not (contains_kr res New_KR));
+  Alcotest.(check int) "KR123 exists once" 1 (contains_kr_cnt res (ID "KR123"));
+  Alcotest.(check int) "KR124 exists once" 1 (contains_kr_cnt res (ID "KR124"));
+  Alcotest.(check int) "KR125 exists once" 1 (contains_kr_cnt res (ID "KR125"))
 
 let test_newkr_exists1 () =
   let res = aggregate "./reports/newkr_exists1.acc" in
-  Alcotest.(check bool) "new KR exists" true (contains_kr res None);
+  Alcotest.(check bool) "new KR exists" true (contains_kr res New_KR);
   let res = Okra.Aggregate.by_engineer res in
   Alcotest.(check (float 0.0)) "eng1 time" 1.0 (Hashtbl.find res "eng1")
 
 let test_kr_agg1 () =
   let res = aggregate "./reports/kr_agg1.acc" in
-  Alcotest.(check bool) "KR123 exists" true (contains_kr res (Some "KR123"));
+  Alcotest.(check bool) "KR123 exists" true (contains_kr res (ID "KR123"));
   Alcotest.(check int)
     "KR123 aggregated into one item" 1
-    (contains_kr_cnt res (Some "KR123"));
+    (contains_kr_cnt res (ID "KR123"));
   let res = Okra.Aggregate.by_engineer res in
   (* also check that time adds up *)
   Alcotest.(check (float 0.0)) "eng1 time" 4.0 (Hashtbl.find res "eng1")
