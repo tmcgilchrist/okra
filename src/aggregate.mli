@@ -19,7 +19,7 @@ val by_engineer :
   ?include_krs:string list -> Report.t -> (string, float) Hashtbl.t
 
 val by_kr :
-  ?include_krs:string list -> Report.t -> (string * KR.kind, float) Hashtbl.t
+  ?include_krs:string list -> Report.t -> (string * KR.id, float) Hashtbl.t
 
 val by_objective :
   ?include_krs:string list -> Report.t -> (string, float) Hashtbl.t

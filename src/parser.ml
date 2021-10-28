@@ -35,11 +35,9 @@ exception No_project_found of string (* No project found *)
 exception Invalid_markdown_in_work_items of string
 (* Subset of markdown not supported in work items *)
 
-type id = New_KR | No_kr | ID of string
-
 (* Types for parsing the AST *)
 type t =
-  | KR_id of id (* ID of KR *)
+  | KR_id of KR.id (* ID of KR *)
   | KR_title of string (* Title without ID, tech lead *)
   | Work of Item.t list (*  Work items *)
   | Time of string
@@ -80,11 +78,11 @@ let parse_okr_title s =
   if is_suffix "(new kr)" s || is_suffix "(new okr)" s then
     let i = String.rindex s '(' in
     let t = String.trim (String.sub s 0 i) in
-    Some (t, New_KR)
+    Some (t, KR.New_KR)
   else if is_suffix "(no kr)" s || is_suffix "(no okr)" s then
     let i = String.rindex s '(' in
     let t = String.trim (String.sub s 0 i) in
-    Some (t, No_kr)
+    Some (t, No_KR)
   else
     match Str.string_match okr_re s 0 with
     | false -> None
@@ -94,7 +92,7 @@ let parse_okr_title s =
         Some (t, ID id)
 
 let dump_id ppf = function
-  | No_kr -> Fmt.string ppf "No KR"
+  | KR.No_KR -> Fmt.string ppf "No KR"
   | New_KR -> Fmt.string ppf "New KR"
   | ID i -> Fmt.string ppf i
 
@@ -210,12 +208,8 @@ let kr ~project ~objective = function
         | l -> l
       in
 
-      let kind =
-        match !id with
-        | Some New_KR -> `New
-        | Some No_kr -> `No
-        | Some (ID x) -> `Id x
-        | None -> err_no_id title
+      let id =
+        try Option.get !id with Invalid_argument _ -> err_no_id title
       in
 
       let time_entries =
@@ -231,7 +225,7 @@ let kr ~project ~objective = function
       let objective = String.trim objective in
 
       (* Construct final entry *)
-      let kr = KR.v ~project ~objective ~title ~kind ~time_entries work in
+      let kr = KR.v ~project ~objective ~title ~id ~time_entries work in
       Some kr
 
 let block_okr = function

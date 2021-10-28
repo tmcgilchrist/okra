@@ -34,13 +34,13 @@ let id2 = "Id2"
 let id3 = "ID3"
 
 let kr1 =
-  KR.v ~project:p1 ~objective:o1 ~title:t1 ~kind:`New ~time_entries:te1 []
+  KR.v ~project:p1 ~objective:o1 ~title:t1 ~id:KR.New_KR ~time_entries:te1 []
 
 let kr2 =
-  KR.v ~project:p2 ~objective:o2 ~title:t2 ~kind:(`Id id2) ~time_entries:te2 []
+  KR.v ~project:p2 ~objective:o2 ~title:t2 ~id:(ID id2) ~time_entries:te2 []
 
 let kr3 =
-  KR.v ~project:p2 ~objective:o2 ~title:t3 ~kind:(`Id id3) ~time_entries:te3 []
+  KR.v ~project:p2 ~objective:o2 ~title:t3 ~id:(ID id3) ~time_entries:te3 []
 
 let report () = Okra.Report.of_krs [ kr1; kr2; kr3 ]
 
@@ -96,24 +96,22 @@ let test_exclude_objectives () =
 
 let test_include_krs () =
   let t = report () in
-  let t1 = filter t ~include_krs:[ `ID id2 ] in
+  let t1 = filter t ~include_krs:[ ID id2 ] in
   Alcotest.(check int) "include KRs 2" 1 (List.length (Report.all_krs t1));
-  let t1' = filter t ~include_krs:[ `ID (String.uppercase_ascii id2) ] in
+  let t1' = filter t ~include_krs:[ ID (String.uppercase_ascii id2) ] in
   Alcotest.(check int) "include KRs 2" 1 (List.length (Report.all_krs t1'));
-  let t2 = filter t ~include_krs:[ `ID id2; `ID id3 ] in
+  let t2 = filter t ~include_krs:[ ID id2; ID id3 ] in
   Alcotest.(check int) "include KRs 2,3" 2 (List.length (Report.all_krs t2));
-  let t3 = filter t ~include_krs:[ `New_KR ] in
+  let t3 = filter t ~include_krs:[ New_KR ] in
   Alcotest.(check int) "include New KRs" 1 (List.length (Report.all_krs t3))
 
 let test_exclude_krs () =
   let t = report () in
-  let t1 = filter t ~exclude_krs:[ `ID id2 ] in
+  let t1 = filter t ~exclude_krs:[ ID id2 ] in
   Alcotest.(check int) "exclude KRs 2" 2 (List.length (Report.all_krs t1));
-  let t1 =
-    filter t ~include_krs:[ `New_KR; `ID id3 ] ~exclude_krs:[ `ID id2 ]
-  in
+  let t1 = filter t ~include_krs:[ New_KR; ID id3 ] ~exclude_krs:[ ID id2 ] in
   Alcotest.(check int) "exclude KRs 2" 2 (List.length (Report.all_krs t1));
-  let t2 = filter t ~exclude_krs:[ `ID id2; `ID id3 ] in
+  let t2 = filter t ~exclude_krs:[ ID id2; ID id3 ] in
   Alcotest.(check int) "exclude KRs 2,3" 1 (List.length (Report.all_krs t2))
 
 let test_include_engineers () =
@@ -137,11 +135,11 @@ let test_exclude_engineers () =
   Alcotest.(check int) "exclude foo,bar" 0 (List.length (Report.all_krs t2));
 
   (* check that counter do not change if the KR filter return total KRs. *)
-  let t1 = filter t ~include_krs:[ `ID id2 ] ~include_engineers:[ e1 ] in
+  let t1 = filter t ~include_krs:[ ID id2 ] ~include_engineers:[ e1 ] in
   let kr = get_kr t1 in
   Alcotest.(check int) "check counter" kr2.KR.counter kr.KR.counter;
 
-  let t2 = filter t ~include_krs:[ `ID id3 ] ~include_engineers:[ e2 ] in
+  let t2 = filter t ~include_krs:[ ID id3 ] ~include_engineers:[ e2 ] in
   let kr = get_kr t2 in
   Alcotest.(check (list (list (pair string (float 0.)))))
     "check time entries" [ [ (e2, 10.) ] ] kr.KR.time_entries
