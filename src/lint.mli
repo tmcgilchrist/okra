@@ -23,6 +23,7 @@ type lint_error =
   | No_work_found of string
   | No_KR_ID_found of string
   | No_project_found of string
+  | Not_all_includes of string list
 
 type lint_result = (unit, lint_error) result
 
