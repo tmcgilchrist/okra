@@ -1,5 +1,6 @@
 (*
  * Copyright (c) 2021 Patrick Ferris <pf341@patricoferris.com>
+ * Copyright (c) 2021 Tim McGilchrist <timmcgil@gmail.com>
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -30,7 +31,7 @@ let pp_last_week username ppf projects =
   in
   Fmt.pf ppf "%a" Fmt.(list ~sep:(cut ++ cut) pp_project) projects
 
-let repo_org ?(with_id = false) f s =
+let repo_org ?(with_id = false) ?(no_links = false) f s =
   let remove_hash s =
     match String.split_on_char '#' s with
     | [ i ] -> i (* Normal PR or Issue ids *)
@@ -40,22 +41,27 @@ let repo_org ?(with_id = false) f s =
   match String.split_on_char '/' s |> List.rev with
   (* URLs with ids have the form (in reverse) <id>/<kind>/<repo>/<org>/... *)
   | i :: _ :: repo :: org :: _ when with_id ->
-      Fmt.pf f "[%s/%s#%s](%s)" org repo (remove_hash i) s
+      if no_links then Fmt.pf f "%s/%s#%s" org repo i
+      else Fmt.pf f "[%s/%s#%s](%s)" org repo (remove_hash i) s
   (* For now the only kind like this are new repository creations *)
   | repo :: org :: _ -> Fmt.pf f "[%s/%s](%s)" org repo s
   | _ -> Fmt.failwith "Malformed URL %S" s
 
-let pp_ga_item f (t : Get_activity.Contributions.item) =
+let pp_ga_item ~no_links f (t : Get_activity.Contributions.item) =
   match t.kind with
-  | `Issue -> Fmt.pf f "Issue: %s %a" t.title (repo_org ~with_id:true) t.url
-  | `PR -> Fmt.pf f "PR: %s %a" t.title (repo_org ~with_id:true) t.url
-  | `Review s -> Fmt.pf f "%s %s %a" s t.title (repo_org ~with_id:true) t.url
+  | `Issue ->
+      Fmt.pf f "Issue: %s %a" t.title (repo_org ~with_id:true ~no_links) t.url
+  | `PR -> Fmt.pf f "PR: %s %a" t.title (repo_org ~with_id:true ~no_links) t.url
+  | `Review s ->
+      Fmt.pf f "%s %s %a" s t.title (repo_org ~with_id:true ~no_links) t.url
   | `New_repo ->
-      Fmt.pf f "Created repository %a" (repo_org ~with_id:false) t.url
+      Fmt.pf f "Created repository %a"
+        (repo_org ~with_id:false ~no_links:false)
+        t.url
 
-let pp_activity ppf activity =
+let pp_activity ~no_links ppf activity =
   let open Get_activity.Contributions in
-  let pp_item ppf item = Fmt.pf ppf "  - %a" pp_ga_item item in
+  let pp_item ppf item = Fmt.pf ppf "  - %a" (pp_ga_item ~no_links) item in
   let bindings = Repo_map.bindings activity in
   let pp_binding ppf (_repo, items) =
     Fmt.pf ppf "%a" Fmt.(list pp_item) items
@@ -64,7 +70,7 @@ let pp_activity ppf activity =
 
 let make ~projects activity = { projects; activity }
 
-let pp ppf { projects; activity = { username; activity } } =
+let pp ?(no_links = false) ppf { projects; activity = { username; activity } } =
   Fmt.pf ppf
     {|# Projects
 
@@ -78,5 +84,5 @@ let pp ppf { projects; activity = { username; activity } } =
 %a
 |}
     Fmt.(list (fun ppf s -> Fmt.pf ppf "- %s" s))
-    (List.map title projects) (pp_last_week username) projects pp_activity
-    activity
+    (List.map title projects) (pp_last_week username) projects
+    (pp_activity ~no_links) activity
