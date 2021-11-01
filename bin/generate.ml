@@ -2,6 +2,7 @@
  * Copyright (c) 2021 Magnus Skjegstad <magnus@skjegstad.com>
  * Copyright (c) 2021 Thomas Gazagnaire <thomas@gazagnaire.org>
  * Copyright (c) 2021 Patrick Ferris <pf341@patricoferris.com>
+ * Copyright (c) 2021 Tim McGilchrist <timmcgil@gmail.com>
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -47,6 +48,12 @@ let year_term =
   @@ Arg.opt Arg.(some int) None
   @@ Arg.info ~doc:"The year defaulting to the current year" ~docv:"YEAR"
        [ "y"; "year" ]
+
+let no_links_term =
+  Arg.value
+  @@ Arg.flag
+  @@ Arg.info ~doc:"Generate shortened GitHub style urls" ~docv:"NO_LINKS"
+       [ "no-links" ]
 
 let calendar_term : Calendar.t Term.t =
   let open Let_syntax_cmdliner in
@@ -107,7 +114,7 @@ let token =
 
 module Fetch = Get_activity.Contributions.Fetch (Cohttp_lwt_unix.Client)
 
-let run_engineer conf cal projects token no_activity =
+let run_engineer conf cal projects token no_activity no_links =
   let period = Calendar.to_iso8601 cal in
   let week = Calendar.week cal in
   let activity =
@@ -127,7 +134,7 @@ let run_engineer conf cal projects token no_activity =
   let pp_footer ppf conf = Fmt.(pf ppf "\n\n%a" string conf) in
   let activity = Activity.make ~projects activity in
   Fmt.(
-    pr "%s\n\n%a%a" header Activity.pp activity (option pp_footer)
+    pr "%s\n\n%a%a" header (Activity.pp ~no_links) activity (option pp_footer)
       (Conf.footer conf))
 
 let get_or_error = function
@@ -147,9 +154,10 @@ let run_monthly cal repos token =
     pf stdout "# Reports (%a - %a)\n\n%a" format_date from format_date to_
       Repo_report.pp projects)
 
-let run cal okra_conf token no_activity = function
+let run cal okra_conf token no_activity no_links = function
   | Engineer ->
       run_engineer okra_conf cal (Conf.projects okra_conf) token no_activity
+        no_links
   | Repositories repos -> run_monthly cal repos token
 
 let term =
@@ -158,6 +166,7 @@ let term =
   and+ token_file = token
   and+ no_activity = no_activity
   and+ kind = kind_term
+  and+ no_links = no_links_term
   and+ okra_conf = Common.conf
   and+ () = Common.setup () in
   let token =
@@ -166,7 +175,7 @@ let term =
     if no_activity then ""
     else get_or_error @@ Get_activity.Token.load token_file
   in
-  run cal okra_conf token no_activity kind
+  run cal okra_conf token no_activity no_links kind
 
 let cmd =
   let info =

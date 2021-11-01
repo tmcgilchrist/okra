@@ -1,5 +1,6 @@
 (*
  * Copyright (c) 2021 Patrick Ferris <pf341@patricoferris.com>
+ * Copyright (c) 2021 Tim McGilchrist <timmcgil@gmail.com>
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -22,6 +23,10 @@ type project = { title : string; items : string list }
 val make : projects:project list -> Get_activity.Contributions.t -> t
 (** [make_activity ~projects activites] builds a new weekly activity *)
 
-val pp : t Fmt.t
+val pp : ?no_links:bool -> t Fmt.t
 (** [pp ppf activity] formats a weekly activity into a template that needs some
-    editing to get it into the correct format. *)
+    editing to get it into the correct format.
+
+    [no_links] controls rendering of markdown links to issues, reviews and prs.
+    Defaults to [false] and longer url links. [true] for GitHub style shorter
+    links eg project/repo#number *)
