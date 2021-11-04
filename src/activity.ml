@@ -41,7 +41,7 @@ let repo_org ?(with_id = false) ?(no_links = false) f s =
   match String.split_on_char '/' s |> List.rev with
   (* URLs with ids have the form (in reverse) <id>/<kind>/<repo>/<org>/... *)
   | i :: _ :: repo :: org :: _ when with_id ->
-      if no_links then Fmt.pf f "%s/%s#%s" org repo i
+      if no_links then Fmt.pf f "(%s/%s#%s)" org repo i
       else Fmt.pf f "[%s/%s#%s](%s)" org repo (remove_hash i) s
   (* For now the only kind like this are new repository creations *)
   | repo :: org :: _ -> Fmt.pf f "[%s/%s](%s)" org repo s
