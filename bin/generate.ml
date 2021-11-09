@@ -71,18 +71,24 @@ let calendar_term : Calendar.t Term.t =
      - engineer: a report for an individual engineer
      - reposiories: 1 or more repository contributions *)
 
-type kind = Engineer | Repositories of string list
+type kind = Engineer | Repository
+
+let kind_term =
+  Arg.value
+  @@ Arg.opt
+       Arg.(enum [ ("engineer", Engineer); ("repository", Repository) ])
+       Engineer
+  @@ Arg.info ~doc:"The kind of report you would like to generate." ~docv:"KIND"
+       [ "k"; "kind" ]
 
 let repositories =
   Arg.value
-  @@ Arg.opt Arg.(list string) []
-  @@ Arg.info ~doc:"A list of repositories to generate reports for"
-       ~docv:"REPOSITORIES" [ "repositories" ]
-
-let kind_term : kind Term.t =
-  let open Let_syntax_cmdliner in
-  let+ repositories = repositories in
-  if repositories = [] then Engineer else Repositories repositories
+  @@ Arg.pos_all Arg.string []
+  @@ Arg.info
+       ~doc:
+         "A list of repositories to generate reports for (only for \
+          kind=repository)"
+       ~docv:"REPOSITORIES" []
 
 let no_activity =
   Arg.value
@@ -102,7 +108,7 @@ let with_repositories_term =
           to get your merges from. This is probably only useful for people who \
           spend time merging PRs but not explicitly reviewing them so the \
           activity won't appear normally (or creating the PR)"
-       [ "with-repositories" ]
+       [ "include-repositories" ]
 
 (* Get activity configuration *)
 let home =
@@ -206,11 +212,12 @@ let run_monthly cal repos token =
     pf stdout "# Reports (%a - %a)\n\n%a" format_date from format_date to_
       Repo_report.pp projects)
 
-let run cal okra_conf token no_activity no_links with_repositories = function
+let run cal okra_conf token no_activity no_links with_repositories repos =
+  function
   | Engineer ->
       run_engineer okra_conf cal (Conf.projects okra_conf) token no_activity
         no_links with_repositories
-  | Repositories repos -> run_monthly cal repos token
+  | Repository -> run_monthly cal repos token
 
 let term =
   let open Let_syntax_cmdliner in
@@ -220,6 +227,7 @@ let term =
   and+ with_repositories = with_repositories_term
   and+ kind = kind_term
   and+ no_links = no_links_term
+  and+ repos = repositories
   and+ okra_conf = Common.conf
   and+ () = Common.setup () in
   let token =
@@ -228,7 +236,7 @@ let term =
     if no_activity then ""
     else get_or_error @@ Get_activity.Token.load token_file
   in
-  run cal okra_conf token no_activity no_links with_repositories kind
+  run cal okra_conf token no_activity no_links with_repositories repos kind
 
 let cmd =
   let info =
@@ -238,10 +246,15 @@ let cmd =
         [
           `S Manpage.s_description;
           `P
-            "Produces a markdown document using your activity on Github. See \
-             the options below for changing things like which week to query \
-             for and where to find your token. To generate a token see the \
-             README at https://github.com/talex5/get-activity.";
+            "The generate command produces markdown reports using activity \
+             from Github. There are two kinds of report that can be generated: \
+             an engineer report and a repository report. The former shows your \
+             individual activity for a given period and the latter shows \
+             activity for a given set of repositories.";
+          `P
+            "See the options below for changing things like which week to \
+             query for and where to find your token. To generate a token see \
+             the README at https://github.com/talex5/get-activity.";
         ]
   in
   (term, info)
