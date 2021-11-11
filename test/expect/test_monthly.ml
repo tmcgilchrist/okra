@@ -55,6 +55,7 @@ let repo_report =
                 created_at = "2021-02-01T00:00:00Z";
                 is_draft = false;
                 merged_at = None;
+                merged_by = None;
                 reviewers = [ "Dromedary" ];
               };
               {
@@ -68,6 +69,7 @@ let repo_report =
                 created_at = "2021-02-01T00:00:01Z";
                 is_draft = false;
                 merged_at = Some "2021-02-01T00:00:02Z";
+                merged_by = Some "Dromedary";
                 reviewers = [ "Dromedary" ];
               };
             ];

@@ -71,18 +71,24 @@ let calendar_term : Calendar.t Term.t =
      - engineer: a report for an individual engineer
      - reposiories: 1 or more repository contributions *)
 
-type kind = Engineer | Repositories of string list
+type kind = Engineer | Repository
+
+let kind_term =
+  Arg.value
+  @@ Arg.opt
+       Arg.(enum [ ("engineer", Engineer); ("repository", Repository) ])
+       Engineer
+  @@ Arg.info ~doc:"The kind of report you would like to generate." ~docv:"KIND"
+       [ "k"; "kind" ]
 
 let repositories =
   Arg.value
-  @@ Arg.opt Arg.(list string) []
-  @@ Arg.info ~doc:"A list of repositories to generate reports for"
-       ~docv:"REPOSITORIES" [ "repositories" ]
-
-let kind_term : kind Term.t =
-  let open Let_syntax_cmdliner in
-  let+ repositories = repositories in
-  if repositories = [] then Engineer else Repositories repositories
+  @@ Arg.pos_all Arg.string []
+  @@ Arg.info
+       ~doc:
+         "A list of repositories to generate reports for (only for \
+          kind=repository)"
+       ~docv:"REPOSITORIES" []
 
 let no_activity =
   Arg.value
@@ -92,6 +98,17 @@ let no_activity =
          "The --no-activity flag will disable any attempt to generate activity \
           reports from Github"
        ~docv:"NO-ACTIVITY" [ "no-activity" ]
+
+let with_repositories_term =
+  Arg.value
+  @@ Arg.opt Arg.(list string) []
+  @@ Arg.info
+       ~doc:
+         "Specify a list of Github repositories (e.g. ocaml/opam-repository) \
+          to get your merges from. This is probably only useful for people who \
+          spend time merging PRs but not explicitly reviewing them so the \
+          activity won't appear normally (or creating the PR)"
+       [ "include-repositories" ]
 
 (* Get activity configuration *)
 let home =
@@ -113,20 +130,62 @@ let token =
        ~docv:"TOKEN" [ "t"; "token" ]
 
 module Fetch = Get_activity.Contributions.Fetch (Cohttp_lwt_unix.Client)
+module Repo_fetch = Okra.Repo_report.Make (Cohttp_lwt_unix.Client)
 
-let run_engineer conf cal projects token no_activity no_links =
+let run_engineer conf cal projects token no_activity no_links with_repositories
+    =
+  let open Lwt.Syntax in
   let period = Calendar.to_iso8601 cal in
   let week = Calendar.week cal in
-  let activity =
+  let activity, merges =
     if no_activity then
-      Get_activity.Contributions.
-        { username = "<USERNAME>"; activity = Repo_map.empty }
+      ( Get_activity.Contributions.
+          { username = "<USERNAME>"; activity = Repo_map.empty },
+        [] )
     else
-      Lwt_main.run (Fetch.exec ~period ~token)
-      |> Get_activity.Contributions.of_json ~from:(fst period)
+      let contributions () =
+        let+ fetch = Fetch.exec ~period ~token
+        and+ report =
+          (* When a user specifies `with_repositories` we also fetch reports
+             from these repositories and filter the PRs made over the same
+             time period that were merged by the user returned by fetching
+             the original get-activity. *)
+          if with_repositories = [] then
+            Lwt.return Repo_report.Project_map.empty
+          else Repo_fetch.get ~period ~token with_repositories
+        in
+        let contribs =
+          Get_activity.Contributions.of_json ~from:(fst period) fetch
+        in
+        let merges =
+          let bindings = Repo_report.Project_map.bindings report in
+          List.map
+            (fun (_, v) ->
+              List.filter
+                (fun pr -> Some contribs.username = pr.Repo_report.PR.merged_by)
+                v.Repo_report.prs)
+            bindings
+        in
+        (contribs, List.concat merges)
+      in
+      Lwt_main.run (contributions ())
   in
   let from, to_ = Calendar.range cal in
   let format_date f = CalendarLib.Printer.Date.fprint "%0Y/%0m/%0d" f in
+  let pp_pr ppf pr =
+    let item =
+      Get_activity.Contributions.
+        {
+          kind = `PR;
+          repo = "";
+          date = pr.Repo_report.PR.created_at;
+          url = pr.url;
+          title = pr.title;
+          body = pr.body;
+        }
+    in
+    Fmt.pf ppf "  - Merged %a" (Activity.pp_ga_item ~no_links) item
+  in
   let header =
     Fmt.str "%s week %i: %a -- %a" activity.username week format_date from
       format_date to_
@@ -134,16 +193,15 @@ let run_engineer conf cal projects token no_activity no_links =
   let pp_footer ppf conf = Fmt.(pf ppf "\n\n%a" string conf) in
   let activity = Activity.make ~projects activity in
   Fmt.(
-    pr "%s\n\n%a%a" header (Activity.pp ~no_links) activity (option pp_footer)
-      (Conf.footer conf))
+    pr "%s\n\n%a%a%a" header (Activity.pp ~no_links) activity
+      Fmt.(list pp_pr)
+      merges (option pp_footer) (Conf.footer conf))
 
 let get_or_error = function
   | Ok v -> v
   | Error (`Msg m) ->
       Fmt.epr "%s" m;
       exit 1
-
-module Repo_fetch = Okra.Repo_report.Make (Cohttp_lwt_unix.Client)
 
 let run_monthly cal repos token =
   let from, to_ = Calendar.range cal in
@@ -154,19 +212,22 @@ let run_monthly cal repos token =
     pf stdout "# Reports (%a - %a)\n\n%a" format_date from format_date to_
       Repo_report.pp projects)
 
-let run cal okra_conf token no_activity no_links = function
+let run cal okra_conf token no_activity no_links with_repositories repos =
+  function
   | Engineer ->
       run_engineer okra_conf cal (Conf.projects okra_conf) token no_activity
-        no_links
-  | Repositories repos -> run_monthly cal repos token
+        no_links with_repositories
+  | Repository -> run_monthly cal repos token
 
 let term =
   let open Let_syntax_cmdliner in
   let+ cal = calendar_term
   and+ token_file = token
   and+ no_activity = no_activity
+  and+ with_repositories = with_repositories_term
   and+ kind = kind_term
   and+ no_links = no_links_term
+  and+ repos = repositories
   and+ okra_conf = Common.conf
   and+ () = Common.setup () in
   let token =
@@ -175,7 +236,7 @@ let term =
     if no_activity then ""
     else get_or_error @@ Get_activity.Token.load token_file
   in
-  run cal okra_conf token no_activity no_links kind
+  run cal okra_conf token no_activity no_links with_repositories repos kind
 
 let cmd =
   let info =
@@ -185,10 +246,15 @@ let cmd =
         [
           `S Manpage.s_description;
           `P
-            "Produces a markdown document using your activity on Github. See \
-             the options below for changing things like which week to query \
-             for and where to find your token. To generate a token see the \
-             README at https://github.com/talex5/get-activity.";
+            "The generate command produces markdown reports using activity \
+             from Github. There are two kinds of report that can be generated: \
+             an engineer report and a repository report. The former shows your \
+             individual activity for a given period and the latter shows \
+             activity for a given set of repositories.";
+          `P
+            "See the options below for changing things like which week to \
+             query for and where to find your token. To generate a token see \
+             the README at https://github.com/talex5/get-activity.";
         ]
   in
   (term, info)
