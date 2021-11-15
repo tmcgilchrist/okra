@@ -57,3 +57,23 @@ Engineer reports are aggregated correctly
     - @eng1 (0.5 days), @eng2 (1 day)
     - Little bit of work
     - Small bit of work
+
+  $ okra cat --engineer eng1.md > agg.md && okra cat -e eng2.md --append-to agg.md
+  # Last Week
+  
+  - A Kr (KR123)
+    - @eng1 (1.5 days), @eng2 (1.5 days)
+    - Some work
+    - Some work
+  
+  - A new KR (New KR)
+    - @eng1 (1 day)
+    - Some work
+  
+  - A new KR, but different title (New KR)
+    - @eng2 (1 day)
+    - Some work
+  
+  - Work without a KR (No KR)
+    - @eng2 (1 day)
+    - Small bit of work

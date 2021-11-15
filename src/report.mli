@@ -46,6 +46,7 @@ val of_projects : project list -> t
 val of_objectives : project:string -> objective list -> t
 
 val of_markdown :
+  ?existing_report:t ->
   ?ignore_sections:string list ->
   ?include_sections:string list ->
   ?okr_db:Masterdb.t ->

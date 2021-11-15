@@ -26,6 +26,7 @@ type t = {
   in_place : bool;
   output : string option;
   okr_db : string option;
+  append_to : string option;
 }
 
 open Cmdliner
@@ -79,6 +80,15 @@ let okr_db_term =
   in
   Arg.value (Arg.opt (Arg.some Arg.file) None info)
 
+let append_to =
+  let info =
+    Arg.info [ "append-to" ]
+      ~doc:
+        "Take the reports passed as positional arguments and merge them into \
+         the already-generated, aggregate report."
+  in
+  Arg.value (Arg.opt (Arg.some Arg.file) None info)
+
 let read_file f =
   let ic = open_in f in
   let s = really_input_string ic (in_channel_length ic) in
@@ -109,9 +119,22 @@ let run conf =
           | [ f ] -> open_out f
           | _ -> Fmt.invalid_arg "[-i] needs at most a file.")
   in
+  let existing_report =
+    match conf.append_to with
+    | None -> None
+    | Some file ->
+        let content = read_file file in
+        let exisiting =
+          (* Assumes the conf flags will work for the aggregate report *)
+          Okra.Report.of_markdown ~ignore_sections:conf.ignore_sections
+            ~include_sections:conf.include_sections (Omd.of_string content)
+        in
+        Some exisiting
+  in
   let okrs =
     try
-      Okra.Report.of_markdown ~ignore_sections:conf.ignore_sections
+      Okra.Report.of_markdown ?existing_report
+        ~ignore_sections:conf.ignore_sections
         ~include_sections:conf.include_sections ?okr_db md
     with e ->
       Logs.err (fun l ->
@@ -135,6 +158,7 @@ let conf_term =
   and+ show_time_calc = show_time_calc_term
   and+ show_engineers = show_engineers_term
   and+ okr_db = okr_db_term
+  and+ append_to = append_to
   and+ filter = Common.filter
   and+ ignore_sections = Common.ignore_sections
   and+ include_sections = Common.include_sections
@@ -157,6 +181,7 @@ let conf_term =
     files;
     output;
     in_place;
+    append_to;
   }
 
 let term =

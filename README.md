@@ -102,6 +102,8 @@ $ cat magnus.md patrick.md | okra cat --engineer
     - Fixing mdx
 ```
 
+It may be the case that you have an existing report (`agg.md`) and a new report comes in that you wish to merge into this report. You can do this with the `--append-to` flag for example `okra cat --engineer patrick.md --append-to=agg.md`.
+
 If `--team` is specified, everything except what is listed under `OKR Updates` is included. This is useful for aggregating reports from multiple teams (or over multiple weeks).
 
 ```
