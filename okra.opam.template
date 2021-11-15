@@ -1,4 +1,4 @@
 pin-depends: [
   ["get-activity.dev" "git+https://github.com/patricoferris/get-activity#e63fe7b6e56aabbcd2693e7d1bf64a793fd18593"]
-  ["gitlab.dev" "git+https://github.com/tmcgilchrist/ocaml-gitlab#f198dcd854e21f36d12a1a54c512d87f4f7996eb"]
+  ["gitlab.dev" "git+https://github.com/tmcgilchrist/ocaml-gitlab#3e0e9b731fe6f68989643dccb378e57c02cfc834"]
 ]
