@@ -125,9 +125,7 @@ let run conf =
     | Some file ->
         let content = read_file file in
         let exisiting =
-          (* Assumes the conf flags will work for the aggregate report *)
-          Okra.Report.of_markdown ~ignore_sections:conf.ignore_sections
-            ~include_sections:conf.include_sections (Omd.of_string content)
+          Okra.Report.of_markdown ?okr_db (Omd.of_string content)
         in
         Some exisiting
   in
