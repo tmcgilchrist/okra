@@ -16,7 +16,7 @@ And with 1 when there is an error:
   > - Everything is great (E1)
   >   - Did everything
   > EOF
-  <stdin>:1:No time found in "Everything is great"
+  <stdin>:3:No time found in "Everything is great"
   [1]
 
 This also works with files:

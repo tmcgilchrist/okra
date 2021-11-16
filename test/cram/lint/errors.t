@@ -138,7 +138,7 @@ Format errors
     No time entry found. Each KR must be followed by '- @... (x days)'
   [1]
   $ okra lint --short err-no-time.md
-  err-no-time.md:1:No time found in "Everything is great"
+  err-no-time.md:3:No time found in "Everything is great"
   [1]
 
   $ cat > err-invalid-time.md << EOF
@@ -155,7 +155,7 @@ Format errors
     Invalid time entry found. Format is '- @eng1 (x days), @eng2 (x days)'
   [1]
   $ okra lint --short err-invalid-time.md
-  err-invalid-time.md:1:Invalid time in "@a (day)"
+  err-invalid-time.md:4:Invalid time in "@a (day)"
   [1]
 
   $ cat > err-multiple-time.md << EOF
@@ -173,7 +173,7 @@ Format errors
     Multiple time entries found. Only one time entry should follow immediately after the KR.
   [1]
   $ okra lint --short err-multiple-time.md
-  err-multiple-time.md:1:Multiple time entries for "Everything is great"
+  err-multiple-time.md:3:Multiple time entries for "Everything is great"
   [1]
 
   $ cat > err-no-work.md << EOF
@@ -189,7 +189,7 @@ Format errors
     No work items found. This may indicate an unreported parsing error. Remove the KR if it is without work.
   [1]
   $ okra lint --short err-no-work.md
-  err-no-work.md:1:No work found for "Everything is great"
+  err-no-work.md:3:No work found for "Everything is great"
   [1]
 
   $ cat > err-no-kr-id.md << EOF
@@ -206,7 +206,7 @@ Format errors
     No KR ID found. KRs should be in the format "This is a KR (PLAT123)", where PLAT123 is the KR ID. For KRs that don't have an ID yet, use "New KR" and for work without a KR use "No KR".
   [1]
   $ okra lint --short err-no-kr-id.md
-  err-no-kr-id.md:1:No KR ID found for "Everything is great"
+  err-no-kr-id.md:3:No KR ID found for "Everything is great"
   [1]
 
   $ cat > err-no-project.md << EOF
