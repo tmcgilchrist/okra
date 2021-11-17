@@ -33,5 +33,12 @@ val lint :
   in_channel ->
   lint_result
 
+val lint_string_list :
+  ?include_sections:string list ->
+  ?ignore_sections:string list ->
+  string list ->
+  lint_result
+(** [lint_string_list] is like {!lint} except the input is a list of lines *)
+
 val string_of_error : lint_error -> string
 val short_messages_of_error : string -> lint_error -> string list

@@ -123,6 +123,26 @@ let check_document ~include_sections ~ignore_sections s =
   | Parser.No_project_found s -> Error (No_project_found (grep_n s lines, s))
   | Parser.Not_all_includes_accounted_for s -> Error (Not_all_includes s)
 
+let document_ok ~include_sections ~ignore_sections ~format_errors s =
+  if !format_errors <> [] then
+    Error
+      (Format_error
+         (List.sort (fun (x, _) (y, _) -> compare x y) !format_errors))
+  else check_document ~include_sections ~ignore_sections s
+
+let lint_string_list ?(include_sections = []) ?(ignore_sections = []) lines =
+  let format_errors = ref [] in
+  let rec check_and_read buf pos = function
+    | [] -> Buffer.contents buf
+    | line :: rest ->
+        format_errors := check_line line pos @ !format_errors;
+        Buffer.add_string buf line;
+        Buffer.add_string buf "\n";
+        check_and_read buf (pos + 1) rest
+  in
+  let s = check_and_read (Buffer.create 1024) 1 lines in
+  document_ok ~include_sections ~ignore_sections ~format_errors s
+
 let lint ?(include_sections = []) ?(ignore_sections = []) ic =
   let format_errors = ref [] in
   let rec check_and_read buf ic pos =
@@ -137,11 +157,7 @@ let lint ?(include_sections = []) ?(ignore_sections = []) ic =
     | e -> raise e
   in
   let s = check_and_read (Buffer.create 1024) ic 1 in
-  if !format_errors <> [] then
-    Error
-      (Format_error
-         (List.sort (fun (x, _) (y, _) -> compare x y) !format_errors))
-  else check_document ~include_sections ~ignore_sections s
+  document_ok ~include_sections ~ignore_sections ~format_errors s
 
 let short_messages_of_error file_name =
   let short_message line_number msg =
