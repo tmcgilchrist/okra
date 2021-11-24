@@ -1,24 +1,25 @@
-# mirage/irmin
+## [irmin](https://github.com/mirage/irmin)
 Irmin is a distributed database that follows the same design principles as Git
 
-## Pull Requests
+### Pull Requests
 
-### Opened (and not merged in same time frame)
+#### Opened (and not merged in same time frame)
 
  - [Small fix](https://github.com/mirage/irmin) by @Bactrian
 
    (created: 2021-02-01T00:00:00Z, reviewed by: @Dromedary)
+   Fixes a small thing
 
 
-### Merged
+#### Merged
 
  - [Smaller fix](https://github.com/mirage/irmin) by @Bactrian
 
    (merged: 2021-02-01T00:00:02Z, reviewed by: @Dromedary)
+   Fixes a really small thing
 
 
-## Issues
+### Issues
 
-- [Small bug](https://github.com/mirage/irmin) by @Dromedary
-
-   (created: 2021-01-27T00:00:00Z)
+ - [Small bug](https://github.com/mirage/irmin) by @Dromedary (created/merged: 2021-01-27T00:00:00Z)
+   A small bug

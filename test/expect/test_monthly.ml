@@ -22,7 +22,8 @@ let repo_report =
   let data : data =
     Repo_report.
       {
-        repo = "mirage/irmin";
+        org = "mirage";
+        repo = "irmin";
         description =
           Some
             "Irmin is a distributed database that follows the same design \
@@ -77,4 +78,6 @@ let repo_report =
   in
   Project_map.add "mirage/irmin" data map
 
-let () = Repo_report.pp Fmt.stdout repo_report
+let () =
+  Repo_report.pp ~with_names:true ~with_times:true ~with_descriptions:true
+    Fmt.stdout repo_report
