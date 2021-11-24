@@ -21,7 +21,7 @@ Missing include sections are errors, for engineer reports this is "Last Week"
   > 
   > More unformatted text.
   > EOF
-  [ERROR(S)]: input stream
+  [ERROR(S)]: <stdin>
   
   Missing includes section: LAST WEEK
   [1]
@@ -46,7 +46,7 @@ The include_section checker looks for all passed sections
   > 
   > More unformatted text.
   > EOF
-  [ERROR(S)]: input stream
+  [ERROR(S)]: <stdin>
   
   Missing includes section: NEXT WEEK,
   LAST WEEK

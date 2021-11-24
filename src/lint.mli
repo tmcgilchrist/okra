@@ -17,12 +17,12 @@
 
 type lint_error =
   | Format_error of (int * string) list
-  | No_time_found of string
-  | Invalid_time of string
-  | Multiple_time_entries of string
-  | No_work_found of string
-  | No_KR_ID_found of string
-  | No_project_found of string
+  | No_time_found of int option * string
+  | Invalid_time of int option * string
+  | Multiple_time_entries of int option * string
+  | No_work_found of int option * string
+  | No_KR_ID_found of int option * string
+  | No_project_found of int option * string
   | Not_all_includes of string list
 
 type lint_result = (unit, lint_error) result
@@ -34,3 +34,4 @@ val lint :
   lint_result
 
 val string_of_error : lint_error -> string
+val short_messages_of_error : string -> lint_error -> string list

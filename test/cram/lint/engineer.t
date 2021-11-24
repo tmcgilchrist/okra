@@ -29,7 +29,7 @@ This is a valid one:
   > 
   > More unformatted text.
   > EOF
-  [OK]: input stream
+  [OK]: <stdin>
 
 Errors in include section are detected even if the rest is ignored.
 
@@ -51,7 +51,7 @@ Errors in include section are detected even if the rest is ignored.
   > 
   > More unformatted text.
   > EOF
-  [ERROR(S)]: input stream
+  [ERROR(S)]: <stdin>
   
   In KR "This is a KR (KRID)":
     No time entry found. Each KR must be followed by '- @... (x days)'
@@ -77,7 +77,7 @@ Only "No KR" and "New KR" are supported for KR's without identifiers
   > 
   > More unformatted text.
   > EOF
-  [ERROR(S)]: input stream
+  [ERROR(S)]: <stdin>
   
   In KR "This is a KR (Off KR)":
     No KR ID found. KRs should be in the format "This is a KR (PLAT123)", where PLAT123 is the KR ID. For KRs that don't have an ID yet, use "New KR" and for work without a KR use "No KR".

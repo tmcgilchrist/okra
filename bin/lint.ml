@@ -14,10 +14,13 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *)
 
+type format = Short | Pretty
+
 type t = {
   include_sections : string list;
   ignore_sections : string list;
   files : string list;
+  format : format;
 }
 
 open Cmdliner
@@ -74,21 +77,26 @@ let run conf =
     | Error e -> [ (name, Some e) ]
   in
   let report_error name e =
-    Fmt.(
-      pf stderr "%a: %s\n\n%s" (pp_status red) "ERROR(S)" name
-        (Okra.Lint.string_of_error e))
+    match conf.format with
+    | Pretty ->
+        Fmt.(
+          pf stderr "%a: %s\n\n%s" (pp_status red) "ERROR(S)" name
+            (Okra.Lint.string_of_error e))
+    | Short ->
+        List.iter print_endline (Okra.Lint.short_messages_of_error name e)
   in
-  let report_ok name = Fmt.pr "%a: %s\n%!" (pp_status green) "OK" name in
+  let report_ok name =
+    match conf.format with
+    | Pretty -> Fmt.pr "%a: %s\n%!" (pp_status green) "OK" name
+    | Short -> ()
+  in
   try
     let errors =
       if conf.files <> [] then
         List.concat_map
-          (fun path ->
-            with_in_file path (fun ic ->
-                let name = Printf.sprintf "file %s" path in
-                collect_errors name ic))
+          (fun path -> with_in_file path (fun ic -> collect_errors path ic))
           conf.files
-      else collect_errors "input stream" stdin
+      else collect_errors "<stdin>" stdin
     in
     let correct, errors =
       List.fold_left
@@ -105,13 +113,28 @@ let run conf =
     Printf.fprintf stderr "Caught unknown error while linting:\n\n";
     raise e
 
+let format_term =
+  let open Let_syntax_cmdliner in
+  let+ short =
+    Arg.(
+      value
+      & Arg.flag
+      & Arg.info
+          ~doc:
+            "Output to stdout and emit one line per error,\n\
+             using the format `file:line:message`."
+          [ "short" ])
+  in
+  if short then Short else Pretty
+
 let conf_term =
   let open Let_syntax_cmdliner in
   let+ include_sections = include_sections_term
   and+ ignore_sections = ignore_sections_term
   and+ files = Common.files
+  and+ format = format_term
   and+ () = Common.setup () in
-  { include_sections; ignore_sections; files }
+  { include_sections; ignore_sections; files; format }
 
 let term =
   let open Let_syntax_cmdliner in
