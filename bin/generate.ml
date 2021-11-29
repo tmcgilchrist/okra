@@ -55,6 +55,26 @@ let no_links_term =
   @@ Arg.info ~doc:"Generate shortened GitHub style urls" ~docv:"NO_LINKS"
        [ "no-links" ]
 
+(* Report printing configuration *)
+
+let with_names_term =
+  Arg.value
+  @@ Arg.flag
+  @@ Arg.info ~doc:"Adds names of authors to a generated report"
+       ~docv:"WITH_NAMES" [ "with-names" ]
+
+let with_times_term =
+  Arg.value
+  @@ Arg.flag
+  @@ Arg.info ~doc:"Adds times or PRs/Issues to a generated report"
+       ~docv:"WITH_TIMES" [ "with-times" ]
+
+let with_descriptions_term =
+  Arg.value
+  @@ Arg.flag
+  @@ Arg.info ~doc:"Adds the body of the Issue/PR to the report"
+       ~docv:"WITH_DESCRIPTIONS" [ "with-descriptions" ]
+
 let calendar_term : Calendar.t Term.t =
   let open Let_syntax_cmdliner in
   let+ week = week_term
@@ -203,21 +223,23 @@ let get_or_error = function
       Fmt.epr "%s" m;
       exit 1
 
-let run_monthly cal repos token =
+let run_monthly cal repos token with_names with_times with_descriptions =
   let from, to_ = Calendar.range cal in
   let format_date f = CalendarLib.Printer.Date.fprint "%0Y/%0m/%0d" f in
   let period = Calendar.to_iso8601 cal in
   let projects = Lwt_main.run (Repo_fetch.get ~period ~token repos) in
   Fmt.(
     pf stdout "# Reports (%a - %a)\n\n%a" format_date from format_date to_
-      Repo_report.pp projects)
+      (Repo_report.pp ~with_names ~with_times ~with_descriptions)
+      projects)
 
-let run cal okra_conf token no_activity no_links with_repositories repos =
-  function
+let run cal okra_conf token no_activity no_links with_names with_times
+    with_descriptions with_repositories repos = function
   | Engineer ->
       run_engineer okra_conf cal (Conf.projects okra_conf) token no_activity
         no_links with_repositories
-  | Repository -> run_monthly cal repos token
+  | Repository ->
+      run_monthly cal repos token with_names with_times with_descriptions
 
 let term =
   let open Let_syntax_cmdliner in
@@ -227,6 +249,9 @@ let term =
   and+ with_repositories = with_repositories_term
   and+ kind = kind_term
   and+ no_links = no_links_term
+  and+ with_names = with_names_term
+  and+ with_times = with_times_term
+  and+ with_descriptions = with_descriptions_term
   and+ repos = repositories
   and+ okra_conf = Common.conf
   and+ () = Common.setup () in
@@ -236,7 +261,8 @@ let term =
     if no_activity then ""
     else get_or_error @@ Get_activity.Token.load token_file
   in
-  run cal okra_conf token no_activity no_links with_repositories repos kind
+  run cal okra_conf token no_activity no_links with_names with_times
+    with_descriptions with_repositories repos kind
 
 let cmd =
   let info =

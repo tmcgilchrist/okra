@@ -225,6 +225,8 @@ okra generate --kind=repository --month=10 mirage/irmin mirage/mirage
 
 This will generate a single report with an Irmin and Mirage section for October (and the current year). Note, the Github API isn't as useful for repositories so the further back in time you go, the more requests have to be made to the API and the long the report will take to produce.
 
+By default the repository report does not contain author names, time of creation/merge or the description of the issue/PR. There are flags called `--with-names`, `--with-times` and `--with-descriptions` to toggle these respectively.
+
 ### Team activity report
 
 The expected team report format is similar, but here every section is parsed and multiple engineers may have worked on each KR. Any section called `OKR Updates` is ignored by default and may be used to propose KR changes.

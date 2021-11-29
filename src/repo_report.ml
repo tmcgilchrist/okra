@@ -54,11 +54,18 @@ module Issue = struct
     let closed_at = json / "closedAt" |> U.to_string_option in
     { author; cursor; title; url; body; closed; closed_at; created_at }
 
-  let pp ppf { author; title; url; created_at; _ } =
+  let pp ~with_names ~with_times ~with_descriptions ppf
+      { author; title; url; created_at; body; _ } =
+    let pp_user ppf = Fmt.pf ppf "@%s" in
+    let pp_created_at ppf = Fmt.pf ppf " (created/merged: %s)" in
+    let pp_author ppf = Fmt.pf ppf " by %a" pp_user in
     Fmt.(
-      pf ppf "- [%s](%s) by @%s\n\n   (created: %s)\n" title url
-        (Option.value ~default:"No author" author)
-        created_at)
+      pf ppf " - [%s](%s)%a%a\n   %a\n" title url (option pp_author)
+        (if not with_names then None else author)
+        (option pp_created_at)
+        (if not with_times then None else Some created_at)
+        (option string)
+        (if not with_descriptions then None else Some body))
 
   let query =
     {| issues (last:100, orderBy: { direction: ASC, field: CREATED_AT }, before: $before_issue) {
@@ -136,23 +143,31 @@ module PR = struct
     in
     List.fold_left split ([], []) ts
 
-  let pp ppf { author; title; url; created_at; merged_at; reviewers; _ } =
+  let pp ~with_names ~with_times ~with_descriptions ppf
+      { author; title; url; created_at; merged_at; reviewers; body; _ } =
     let pp_user ppf = Fmt.pf ppf "@%s" in
-    if reviewers = [] then
+    let pp_created_at ppf = Fmt.pf ppf " (created/merged: %s)" in
+    let pp_author ppf = Fmt.pf ppf " by %a" pp_user in
+    if reviewers = [] || not with_names then
       Fmt.(
-        pf ppf " - [%s](%s) by %a\n\n   (%s)\n" title url pp_user
-          (Option.value ~default:"No author" author)
-          (Option.value ~default:("created: " ^ created_at)
-             (Option.map (( ^ ) "merged: ") merged_at)))
+        pf ppf " - [%s](%s)%a%a\n   %a\n" title url (option pp_author)
+          (if not with_names then None else author)
+          (option pp_created_at)
+          (if not with_times then None
+          else if merged_at = None then Some created_at
+          else merged_at)
+          (option string)
+          (if not with_descriptions then None else Some body))
     else
       Fmt.(
-        pf ppf " - [%s](%s) by %a\n\n   (%s, reviewed by: %a)\n" title url
-          pp_user
+        pf ppf " - [%s](%s) by %a\n\n   (%s, reviewed by: %a)\n   %a\n" title
+          url pp_user
           (Option.value ~default:"No author" author)
           (Option.value ~default:("created: " ^ created_at)
              (Option.map (( ^ ) "merged: ") merged_at))
           Fmt.(list ~sep:(fun ppf _ -> Fmt.pf ppf ", ") pp_user)
-          reviewers)
+          reviewers (option string)
+          (if not with_descriptions then None else Some body))
 
   (* The Gihub Graphql API doesn't let you specify a from and to
      for accessing PRs or issues so we have paginate our way back
@@ -191,6 +206,7 @@ module PR = struct
 end
 
 type data = {
+  org : string;
   repo : string;
   description : string option;
   issues : Issue.t list;
@@ -213,25 +229,35 @@ let query projects =
     (List.map (fun (owner, name) -> project_query ~owner name) projects
     |> String.concat "\n")
 
-let pp_data ppf (data : data) =
+let pp_data ~with_names ~with_times ~with_descriptions ppf (data : data) =
   let pp_prs ppf prs =
     let opened, merged = PR.split_by_status prs in
     Fmt.pf ppf
-      "### Opened (and not merged in same time frame)\n\n%a\n\n### Merged\n\n%a"
-      Fmt.(list PR.pp)
+      "#### Opened (and not merged in same time frame)\n\n\
+       %a\n\n\
+       #### Merged\n\n\
+       %a"
+      Fmt.(list (PR.pp ~with_names ~with_times ~with_descriptions))
       (List.sort
          (fun v1 v2 -> String.compare v1.PR.created_at v2.created_at)
          opened)
-      Fmt.(list PR.pp)
+      Fmt.(list (PR.pp ~with_names ~with_times ~with_descriptions))
       (List.sort
          (fun v1 v2 ->
            String.compare (Option.get v1.PR.merged_at) (Option.get v2.merged_at))
          merged)
   in
-  Fmt.pf ppf "# %s\n%s\n\n## Pull Requests\n\n%a\n\n## Issues\n\n%a" data.repo
+  Fmt.pf ppf
+    "## [%s](https://github.com/%s/%s)\n\
+     %s\n\n\
+     ### Pull Requests\n\n\
+     %a\n\n\
+     ### Issues\n\n\
+     %a"
+    data.repo data.org data.repo
     (Option.value ~default:"No description" data.description)
     pp_prs data.prs
-    Fmt.(list Issue.pp)
+    Fmt.(list (Issue.pp ~with_names ~with_times ~with_descriptions))
     (List.sort
        (fun v1 v2 -> String.compare v1.Issue.created_at v2.created_at)
        data.issues)
@@ -240,10 +266,14 @@ module Project_map = Map.Make (String)
 
 type t = data Project_map.t
 
-let pp ppf t =
-  Project_map.bindings t |> List.map snd |> Fmt.(pf ppf "%a" (list pp_data))
+let pp ?(with_names = false) ?(with_times = false) ?(with_descriptions = false)
+    ppf t =
+  Project_map.bindings t
+  |> List.map snd
+  |> Fmt.(
+       pf ppf "%a" (list (pp_data ~with_names ~with_times ~with_descriptions)))
 
-let parse_data (from, to_) repo json =
+let parse_data (from, to_) org repo json =
   let project = json / "data" / underscore repo in
   let description = project / "description" |> U.to_string_option in
   let issues =
@@ -276,6 +306,7 @@ let parse_data (from, to_) repo json =
   ( need_more_prs,
     need_more_issues,
     {
+      org;
       repo;
       description;
       issues = List.filter (filter_issues from to_) issues;
@@ -323,8 +354,8 @@ module Make (C : Cohttp_lwt.S.Client) = struct
     let open Lwt.Infix in
     let repos = List.map owner_name repos in
     let* json = exec ~period ~token (query repos) in
-    let rec parse acc period name json =
-      match parse_data period name json with
+    let rec parse acc period org name json =
+      match parse_data period org name json with
       | None, None, data ->
           if acc = [] then Lwt.return data
           else Lwt.return (merge_data (data :: acc))
@@ -337,11 +368,11 @@ module Make (C : Cohttp_lwt.S.Client) = struct
                are done. *)
             exec ?before_pr ?before_issue ~period ~token (query repos)
           in
-          parse (data :: acc) period name json
+          parse (data :: acc) period org name json
     in
     let map = Project_map.empty in
     Lwt_list.fold_left_s
-      (fun m (_, name) ->
-        parse [] period name json >|= fun v -> add_list name v m)
+      (fun m (org, name) ->
+        parse [] period org name json >|= fun v -> add_list name v m)
       map repos
 end

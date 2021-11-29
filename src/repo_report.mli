@@ -29,7 +29,8 @@ module Issue : sig
   val parse : Yojson.Safe.t -> t
   (** Parses the json received from the Github Graphql API *)
 
-  val pp : t Fmt.t
+  val pp :
+    with_names:bool -> with_times:bool -> with_descriptions:bool -> t Fmt.t
   (** Prints the issue to a markdown format *)
 end
 
@@ -55,7 +56,8 @@ module PR : sig
   val parse : Yojson.Safe.t -> t
   (** Parses the json received from the Github Graphql API *)
 
-  val pp : t Fmt.t
+  val pp :
+    with_names:bool -> with_times:bool -> with_descriptions:bool -> t Fmt.t
   (** Prints the issue to a markdown format *)
 
   val query : string
@@ -63,6 +65,7 @@ module PR : sig
 end
 
 type data = {
+  org : string;
   repo : string;
   description : string option;
   issues : Issue.t list;
@@ -85,5 +88,6 @@ module Make (C : Cohttp_lwt.S.Client) : sig
       specified [period] using the Github [token] *)
 end
 
-val pp : t Fmt.t
+val pp :
+  ?with_names:bool -> ?with_times:bool -> ?with_descriptions:bool -> t Fmt.t
 (** Prints a markdown formatted view of the data *)
