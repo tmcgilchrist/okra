@@ -180,24 +180,12 @@ module Gitlab = struct
       inner [] l
 
     let get_project ~token i =
-      let uri = Uri.of_string (Fmt.str "%s/projects/%i" Env.gitlab_uri i) in
-      let+ res =
-        G.API.get ~token ~uri (fun body ->
-            Lwt.return @@ Gitlab_j.project_short_of_string body)
-      in
-      (i, G.Response.value res)
+      let+ res = G.Project.by_id ~token ~project_id:i () in
+      (i, Option.get @@ G.Response.value res)
 
     let make_activity ~token ~before ~after =
       let open G.Monad in
-      let uri = Uri.of_string (Fmt.str "%s/events" Env.gitlab_uri) in
-      let uri =
-        Uri.add_query_params uri
-          [ ("before", [ before ]); ("after", [ after ]) ]
-      in
-      let* res =
-        G.API.get ~token ~uri (fun body ->
-            Lwt.return (Gitlab_j.events_of_string body))
-      in
+      let* res = G.Event.all ~token ~before ~after () in
       let events = G.Response.value res in
       let ids =
         List.map (fun (v : Gitlab_t.event) -> v.event_project_id) events
