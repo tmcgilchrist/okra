@@ -22,6 +22,7 @@ type t = {
   locations : string list;
   footer : string option;
   okr_db : string option;
+  gitlab_token : string option;
 }
 
 let default =
@@ -30,6 +31,7 @@ let default =
     locations = [];
     footer = None;
     okr_db = None;
+    gitlab_token = None;
   }
 
 let conf_err s = Error (`Msg (Fmt.str "Okra Conf Error: %s" s))
@@ -79,12 +81,14 @@ let of_yaml yaml =
   find "locations" yaml >>= map_option to_string_exn >>= fun locations ->
   find "footer" yaml >>| Option.map to_string_exn >>= fun footer ->
   find "okr-db" yaml >>| Option.map to_string_exn >>= fun okr_db ->
-  Ok { projects; locations; footer; okr_db }
+  find "gitlab_token" yaml >>| Option.map to_string_exn >>= fun gitlab_token ->
+  Ok { projects; locations; footer; okr_db; gitlab_token }
 
 let projects { projects; _ } = projects
 let locations { locations; _ } = locations
 let footer { footer; _ } = footer
 let okr_db t = t.okr_db
+let gitlab_token t = t.gitlab_token
 
 let load file =
   let open Rresult in

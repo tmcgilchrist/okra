@@ -34,6 +34,7 @@
   logs
   fmt
   get-activity
+  gitlab
   calendar
   csv
   (omd (>= 2.0))))
