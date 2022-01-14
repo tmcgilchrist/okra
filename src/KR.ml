@@ -202,7 +202,7 @@ let update_from_master_db t db =
     | None -> orig_kr
     | Some db_kr ->
         (match db_kr.status with
-        | Some Active | Some Scheduled -> ()
+        | Some Active -> ()
         | Some s ->
             Log.warn (fun l ->
                 l "Work logged on KR marked as %S: %S (%S)"
