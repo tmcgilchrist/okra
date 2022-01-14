@@ -199,8 +199,15 @@ let make_time_entries t =
 let update_from_master_db t db =
   let update (orig_kr : t) (db_kr : Masterdb.elt_t option) =
     match db_kr with
-    | None -> orig_kr
+    | None ->
+        if orig_kr.id = New_KR then
+          Log.warn (fun l -> l "KR ID not found for new KR %S" orig_kr.title);
+        orig_kr
     | Some db_kr ->
+        if orig_kr.id = No_KR then
+          Log.warn (fun l ->
+              l "KR ID updated from \"No KR\" to %S:\n- %S\n- %S" db_kr.id
+                orig_kr.title db_kr.title);
         (match db_kr.status with
         | Some Active -> ()
         | Some s ->
