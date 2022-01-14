@@ -66,18 +66,6 @@ Behaviour without a database
 Behaviour with a database
 
   $ cat eng1.md eng2.md | okra cat --okr-db=okrs.csv --engineer > agg.md && cat agg.md
-  okra: [WARNING] Objective for KR "KR123" does not match objective in database:
-  - ""
-  - "Actual objective"
-  okra: [WARNING] Project for KR "KR123" does not match project in database:
-  - "Last Week"
-  - "Actual project"
-  okra: [WARNING] Objective for KR "KR123" does not match objective in database:
-  - ""
-  - "Actual objective"
-  okra: [WARNING] Project for KR "KR123" does not match project in database:
-  - "Last Week"
-  - "Actual project"
   # Actual project
   
   ## Actual objective
@@ -88,18 +76,6 @@ Behaviour with a database
     - Some other work
 
   $ okra cat --okr-db=okrs.csv --engineer --append-to=agg.md eng3.md > agg2.md && cat agg2.md
-  okra: [WARNING] Objective for KR "KR123" does not match objective in database:
-  - ""
-  - "Actual objective"
-  okra: [WARNING] Project for KR "KR123" does not match project in database:
-  - "Last Week"
-  - "Actual project"
-  okra: [WARNING] Objective for KR "KR124" does not match objective in database:
-  - ""
-  - "Actual objective"
-  okra: [WARNING] Project for KR "KR124" does not match project in database:
-  - "Last Week"
-  - "Actual project"
   # Actual project
   
   ## Actual objective

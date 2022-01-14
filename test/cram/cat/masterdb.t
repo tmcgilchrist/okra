@@ -21,15 +21,6 @@ When `--okr-db` is passed, metadata is fixed.
   >   - @a (1 day)
   >   - Did all the things
   > EOF
-  okra: [WARNING] Title for KR "KR1" does not match title in database:
-  - "Wrong title"
-  - "Actual title"
-  okra: [WARNING] Objective for KR "KR1" does not match objective in database:
-  - "Wrong objective"
-  - "Actual objective"
-  okra: [WARNING] Project for KR "KR1" does not match project in database:
-  - "Wrong project"
-  - "Actual project"
   # Actual project
   
   ## Actual objective
@@ -58,6 +49,7 @@ In that case, metadata is preserved.
   >   - @a (1 day)
   >   - Did all the things
   > EOF
+  okra: [WARNING] KR ID not found for new KR "Something else"
   # Actual project
   
   ## Actual objective
@@ -86,9 +78,6 @@ If KR ID is "New KR", look for title in database to get real KR ID.
   >   - Did all the things
   > 
   > EOF
-  okra: [WARNING] KR ID updated from unspecified to "KR1" :
-  - "Actual title"
-  - "Actual title"
   # Actual project
   
   ## Actual objective
@@ -109,7 +98,7 @@ If KR ID is "No KR", look for title in database to get real KR ID.
   >   - Did all the things
   > 
   > EOF
-  okra: [WARNING] KR ID updated from unspecified to "KR1" :
+  okra: [WARNING] KR ID updated from "No KR" to "KR1":
   - "Actual title"
   - "Actual title"
   # Actual project
