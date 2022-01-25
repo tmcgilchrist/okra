@@ -8,6 +8,8 @@
 (license ISC)
 (authors "Magnus Skjegstad")
 (maintainers "magnus@skjegstad.com")
+(homepage "https://github.com/magnuss/okra")
+(bug_reports "https://github.com/MagnusS/okra/issues")
 
 (package
  (name okra-bin)
@@ -34,7 +36,7 @@
   logs
   fmt
   get-activity
-  gitlab
+  (gitlab (= 0.1.0))
   calendar
   csv
   (omd (>= 2.0))))
