@@ -5,6 +5,8 @@ description: "A library of tools for report parsing"
 maintainer: ["magnus@skjegstad.com"]
 authors: ["Magnus Skjegstad"]
 license: "ISC"
+homepage: "https://github.com/magnuss/okra"
+bug-reports: "https://github.com/MagnusS/okra/issues"
 depends: [
   "dune" {>= "2.8"}
   "ocaml" {>= "4.10"}
@@ -12,7 +14,7 @@ depends: [
   "logs"
   "fmt"
   "get-activity"
-  "gitlab"
+  "gitlab" {= "0.1.0"}
   "calendar"
   "csv"
   "omd" {>= "2.0"}
