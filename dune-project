@@ -23,6 +23,7 @@
   okra
   cmdliner
   bos
+  dune-build-info
   (yaml (>= 3.0))
   (cohttp-lwt-unix (>= 4.0.0))))
 
