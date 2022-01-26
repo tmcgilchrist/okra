@@ -21,8 +21,13 @@ open Cmdliner
 let root_term = Term.ret (Term.const (`Help (`Pager, None)))
 
 let root_cmd =
+  let version =
+    match Build_info.V1.version () with
+    | None -> "dev"
+    | Some v -> Build_info.V1.Version.to_string v
+  in
   let info =
-    Term.info "okra" ~doc:"a tool to parse and process OKR reports"
+    Term.info "okra" ~version ~doc:"a tool to parse and process OKR reports"
       ~man:
         [
           `S Manpage.s_description;

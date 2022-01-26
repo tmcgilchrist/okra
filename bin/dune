@@ -2,4 +2,13 @@
  (name main)
  (package okra-bin)
  (public_name okra)
- (libraries okra cmdliner bos yaml cohttp-lwt-unix fmt.cli logs.cli fmt.tty))
+ (libraries
+  okra
+  cmdliner
+  bos
+  yaml
+  cohttp-lwt-unix
+  fmt.cli
+  logs.cli
+  fmt.tty
+  dune-build-info))
