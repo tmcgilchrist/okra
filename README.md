@@ -15,7 +15,7 @@ With opam (remove existing okra-related pins first):
 $ opam pin -y https://github.com/MagnusS/okra.git#release
 ```
 
-This should install two packages; `okra` and `okra-bin`.
+This should install two packages; `okra` and `okra-bin`. Note that `okra-bin` is required to have the `okra` command in path.
 
 ## Generating weekly engineer reports
 
