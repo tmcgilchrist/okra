@@ -20,24 +20,23 @@ open Cmdliner
 
 let root_term = Term.ret (Term.const (`Help (`Pager, None)))
 
-let root_cmd =
+let root_info =
   let version =
     match Build_info.V1.version () with
     | None -> "dev"
     | Some v -> Build_info.V1.Version.to_string v
   in
-  let info =
-    Term.info "okra" ~version ~doc:"a tool to parse and process OKR reports"
-      ~man:
-        [
-          `S Manpage.s_description;
-          `P
-            "This tool can be used to aggregate and process OKR reports in a \
-             specific format. See project README for details.";
-        ]
-  in
-  (root_term, info)
+  Cmd.info "okra" ~version ~doc:"a tool to parse and process OKR reports"
+    ~man:
+      [
+        `S Manpage.s_description;
+        `P
+          "This tool can be used to aggregate and process OKR reports in a \
+           specific format. See project README for details.";
+      ]
 
 let () =
-  Term.(
-    exit @@ eval_choice root_cmd [ Cat.cmd; Lint.cmd; Stats.cmd; Generate.cmd ])
+  exit
+  @@ Cmd.eval
+       (Cmd.group ~default:root_term root_info
+          [ Cat.cmd; Lint.cmd; Stats.cmd; Generate.cmd ])

@@ -196,7 +196,7 @@ let term =
 
 let cmd =
   let info =
-    Term.info "cat" ~doc:"parse and concatenate reports"
+    Cmd.info "cat" ~doc:"parse and concatenate reports"
       ~man:
         [
           `S Manpage.s_description;
@@ -205,4 +205,4 @@ let cmd =
              per KR. See below for options for modifying the output format.";
         ]
   in
-  (term, info)
+  Cmd.v info term

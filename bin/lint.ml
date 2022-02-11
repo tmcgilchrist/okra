@@ -149,7 +149,7 @@ let term =
 
 let cmd =
   let info =
-    Term.info "lint"
+    Cmd.info "lint"
       ~doc:"Check for formatting errors and missing information in the report"
       ~man:
         [
@@ -160,4 +160,4 @@ let cmd =
           `P "Reads from stdin if no files are specified.";
         ]
   in
-  (term, info)
+  Cmd.v info term
