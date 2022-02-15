@@ -282,7 +282,7 @@ let term =
 
 let cmd =
   let info =
-    Term.info "generate"
+    Cmd.info "generate"
       ~doc:"Generate an initial weekly report based on Github activity"
       ~man:
         [
@@ -299,4 +299,4 @@ let cmd =
              the README at https://github.com/talex5/get-activity.";
         ]
   in
-  (term, info)
+  Cmd.v info term

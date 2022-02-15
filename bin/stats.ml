@@ -115,5 +115,5 @@ let term =
   run conf
 
 let cmd =
-  let info = Term.info "stats" ~doc:"show OKR statistics" in
-  (term, info)
+  let info = Cmd.info "stats" ~doc:"show OKR statistics" in
+  Cmd.v info term

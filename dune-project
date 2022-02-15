@@ -21,7 +21,7 @@
   logs
   fmt
   okra
-  cmdliner
+  (cmdliner (>= 1.1.0))
   bos
   dune-build-info
   (yaml (>= 3.0))

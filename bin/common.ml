@@ -117,7 +117,7 @@ let filter =
       ~exclude_engineers ()
   in
   Term.(
-    pure f
+    const f
     $ include_projects
     $ exclude_projects
     $ include_objectives
@@ -147,4 +147,4 @@ let conf =
     | false -> Conf.default
     | true -> get_or_error @@ Conf.load okra_file
   in
-  Term.(pure load $ Conf.cmdliner)
+  Term.(const load $ Conf.cmdliner)
