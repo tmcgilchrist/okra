@@ -94,6 +94,9 @@ module Filter : sig
 
   val string_of_kr : KR.id -> string
 
+  val union : t -> t -> t
+  (** Combine two filters into a new filter *)
+
   val v :
     ?include_projects:string list ->
     ?exclude_projects:string list ->
