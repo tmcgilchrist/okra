@@ -1,5 +1,5 @@
 (*
- * Copyright (c) 2021 Magnus Skjegstad <magnus@skjegstad.com>
+ * Copyright (c) 2021-22 Magnus Skjegstad <magnus@skjegstad.com>
  * Copyright (c) 2021 Thomas Gazagnaire <thomas@gazagnaire.org>
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -21,6 +21,9 @@ type t = {
   show_engineers : bool;
   ignore_sections : string list;
   include_sections : string list;
+  include_teams : string list;
+  include_categories : string list;
+  include_reports : string list;
   filter : Okra.Report.filter;
   files : string list;
   in_place : bool;
@@ -143,7 +146,25 @@ let run conf =
             (Printexc.to_string e));
       exit 1
   in
-  let okrs = Okra.Report.filter conf.filter okrs in
+  let filters =
+    match okr_db with
+    | None -> conf.filter
+    | Some okr_db ->
+        let additional_krs =
+          Okra.Masterdb.find_krs_for_teams okr_db conf.include_teams
+          @ Okra.Masterdb.find_krs_for_categories okr_db conf.include_categories
+          @ Okra.Masterdb.find_krs_for_reports okr_db conf.include_reports
+        in
+        let kr_ids =
+          List.map
+            (fun f ->
+              Okra.Report.Filter.kr_of_string (f : Okra.Masterdb.elt_t).id)
+            additional_krs
+        in
+        let extra_filter = Okra.Report.Filter.v ?include_krs:(Some kr_ids) () in
+        Okra.Report.Filter.union conf.filter extra_filter
+  in
+  let okrs = Okra.Report.filter filters okrs in
   let pp =
     Okra.Report.pp ~show_time:conf.show_time ~show_time_calc:conf.show_time_calc
       ~show_engineers:conf.show_engineers
@@ -156,10 +177,13 @@ let conf_term =
   and+ show_time_calc = show_time_calc_term
   and+ show_engineers = show_engineers_term
   and+ okr_db = okr_db_term
-  and+ append_to = append_to
+  and+ append_to
   and+ filter = Common.filter
   and+ ignore_sections = Common.ignore_sections
   and+ include_sections = Common.include_sections
+  and+ include_categories = Common.include_categories
+  and+ include_teams = Common.include_teams
+  and+ include_reports = Common.include_reports
   and+ files = Common.files
   and+ output = Common.output
   and+ in_place = Common.in_place
@@ -174,6 +198,9 @@ let conf_term =
     show_engineers;
     ignore_sections;
     include_sections;
+    include_categories;
+    include_teams;
+    include_reports;
     filter;
     okr_db;
     files;
