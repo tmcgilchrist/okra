@@ -177,7 +177,7 @@ let conf_term =
   and+ show_time_calc = show_time_calc_term
   and+ show_engineers = show_engineers_term
   and+ okr_db = okr_db_term
-  and+ append_to
+  and+ append_to = append_to
   and+ filter = Common.filter
   and+ ignore_sections = Common.ignore_sections
   and+ include_sections = Common.include_sections

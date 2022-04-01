@@ -338,16 +338,20 @@ module Filter = struct
     && StringSet.is_empty f.exclude_engineers
 
   let union t1 t2 =
-          {
-                  include_projects = StringSet.union t1.include_projects t2.include_projects;
-                  exclude_projects = StringSet.union t1.exclude_projects t2.exclude_projects;
-                  include_objectives = StringSet.union t1.include_objectives t2.include_objectives;
-                  exclude_objectives = StringSet.union t1.exclude_objectives t2.exclude_objectives;
-                  include_krs = StringSet.union t1.include_krs t2.include_krs;
-                  exclude_krs = StringSet.union t1.exclude_krs t2.exclude_krs;
-                  include_engineers = StringSet.union t1.include_engineers t2.include_engineers;
-                  exclude_engineers = StringSet.union t1.exclude_engineers t2.exclude_engineers;
-          }
+    {
+      include_projects = StringSet.union t1.include_projects t2.include_projects;
+      exclude_projects = StringSet.union t1.exclude_projects t2.exclude_projects;
+      include_objectives =
+        StringSet.union t1.include_objectives t2.include_objectives;
+      exclude_objectives =
+        StringSet.union t1.exclude_objectives t2.exclude_objectives;
+      include_krs = StringSet.union t1.include_krs t2.include_krs;
+      exclude_krs = StringSet.union t1.exclude_krs t2.exclude_krs;
+      include_engineers =
+        StringSet.union t1.include_engineers t2.include_engineers;
+      exclude_engineers =
+        StringSet.union t1.exclude_engineers t2.exclude_engineers;
+    }
 
   let v ?(include_projects = []) ?(exclude_projects = [])
       ?(include_objectives = []) ?(exclude_objectives = []) ?(include_krs = [])

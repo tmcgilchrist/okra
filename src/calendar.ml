@@ -20,7 +20,6 @@ type date = Cal.Date.t
 type t = { from : date; to_ : date }
 
 let week t = Cal.Date.week t.from (* ISO compliant? *)
-
 let month t = Cal.Date.month t.from |> Cal.Date.int_of_month
 let year t = Cal.Date.year t.from
 let day = 60. *. 60. *. 24.

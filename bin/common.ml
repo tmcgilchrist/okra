@@ -39,8 +39,8 @@ let include_reports =
   let i =
     Arg.info [ "include-reports" ]
       ~doc:
-        "If non-empty, only aggregate KRs that are included in one of these reports. Requires a \
-         database."
+        "If non-empty, only aggregate KRs that are included in one of these \
+         reports. Requires a database."
   in
   Arg.(value & opt (list string) [] i)
 

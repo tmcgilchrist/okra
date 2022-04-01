@@ -80,13 +80,13 @@ let load_csv ?(separator = ',') f =
         line := !line + 1;
         let find_and_trim col = Csv.Row.find row col |> String.trim in
         let find_and_trim_opt col =
-                let v = find_and_trim col in
-                if v <> "" then Some v else None
+          let v = find_and_trim col in
+          if v <> "" then Some v else None
         in
         let find_and_trim_list col =
-                match find_and_trim_opt col with
-                | None -> []
-                | Some s -> Str.split (Str.regexp "[ ,]+") s
+          match find_and_trim_opt col with
+          | None -> []
+          | Some s -> Str.split (Str.regexp "[ ,]+") s
         in
         let printable_id = find_and_trim "id" in
         let e =
@@ -146,29 +146,28 @@ let find_title_opt t title =
     okrs
 
 let filter_krs t f =
-        let v = Hashtbl.to_seq_values t in
-        List.of_seq (Seq.filter f v)
+  let v = Hashtbl.to_seq_values t in
+  List.of_seq (Seq.filter f v)
 
 let find_krs_for_teams t teams =
-        let teams = List.map String.uppercase_ascii teams in
-        let p e =
-                List.exists (String.equal (String.uppercase_ascii e.team)) teams
-        in
-        filter_krs t p
+  let teams = List.map String.uppercase_ascii teams in
+  let p e = List.exists (String.equal (String.uppercase_ascii e.team)) teams in
+  filter_krs t p
 
 let find_krs_for_categories t categories =
-        let categories = List.map String.uppercase_ascii categories in
-        let p e =
-                List.exists (String.equal (String.uppercase_ascii e.category)) categories
-        in
-        filter_krs t p
+  let categories = List.map String.uppercase_ascii categories in
+  let p e =
+    List.exists (String.equal (String.uppercase_ascii e.category)) categories
+  in
+  filter_krs t p
 
 let find_krs_for_reports t reports =
-        let reports = List.map String.uppercase_ascii reports in
-        let p e =
-                List.exists (fun report ->
-                                let report = String.uppercase_ascii report in
-                                List.exists (String.equal report) reports)
-                e.reports
-        in
-        filter_krs t p
+  let reports = List.map String.uppercase_ascii reports in
+  let p e =
+    List.exists
+      (fun report ->
+        let report = String.uppercase_ascii report in
+        List.exists (String.equal report) reports)
+      e.reports
+  in
+  filter_krs t p
