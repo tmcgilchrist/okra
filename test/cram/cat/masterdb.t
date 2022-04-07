@@ -4,12 +4,12 @@ Master DB
 When `--okr-db` is passed, metadata is fixed.
 
   $ cat > okrs.csv << EOF
-  > id,title,objective,status,schedule,lead,team,category,project
-  > KR1,Actual title,Actual objective,active,,,,,Actual project
-  > Kr2,Actual title 2,Actual objective,active,,,,,Actual project
-  > KR3,Dropped KR,Actual objective,dropped,,,,,Actual project
-  > KR4,Unscheduled KR,Actual objective,unscheduled,,,,,Actual project
-  > KR5,Missing status KR,Actual objective,,,,,,Actual project
+  > id,title,objective,status,links,schedule,lead,team,category,project,reports
+  > KR1,Actual title,Actual objective,active,,,,team1,category1,Actual project,"report1,report2"
+  > Kr2,Actual title 2,Actual objective,active,,,,team1,category2,Actual project,report2
+  > KR3,Dropped KR,Actual objective,dropped,,,,team2,category1,Actual project,report1
+  > KR4,Unscheduled KR,Actual objective,unscheduled,,,,team2,category2,Actual project,report1
+  > KR5,Missing status KR,Actual objective,,,,,team2,category1,Actual project,report1
   > EOF
 
   $ okra cat --okr-db=okrs.csv << EOF
@@ -28,6 +28,100 @@ When `--okr-db` is passed, metadata is fixed.
   - Actual title (KR1)
     - @a (1 day)
     - Did all the things
+
+It is possible to filter on category.
+
+  $ okra cat --okr-db=okrs.csv --include-categories=category2 << EOF
+  > # Actual project
+  > 
+  > ## Actual objective
+  > 
+  > - Actual title (kr1)
+  >   - @a (1 day)
+  >   - Did all the things
+  > 
+  > - Actual title 2 (KR2)
+  >   - @b (1 day)
+  >   - Did more of the things
+  > 
+  > EOF
+  # Actual project
+  
+  ## Actual objective
+  
+  - Actual title 2 (Kr2)
+    - @b (1 day)
+    - Did more of the things
+
+It is possible to filter by report.
+
+  $ okra cat --okr-db=okrs.csv --include-reports=report2 << EOF
+  > # Project
+  > 
+  > - Actual title (KR1)
+  >   - @a (1 day)
+  >   - Did all the things
+  > 
+  > - Dropped KR (KR3)
+  >   - @a (1 day)
+  >   - Did more of the things
+  > EOF
+  okra: [WARNING] Work logged on KR marked as "Dropped": "Dropped KR" ("KR3")
+  # Actual project
+  
+  ## Actual objective
+  
+  - Actual title (KR1)
+    - @a (1 day)
+    - Did all the things
+
+It is possible to filter by team.
+
+  $ okra cat --okr-db=okrs.csv --include-teams=team1 << EOF
+  > # Project
+  > 
+  > - Actual title (KR1)
+  >   - @a (1 day)
+  >   - Did all the things
+  > 
+  > - Dropped KR (KR3)
+  >   - @a (1 day)
+  >   - Did more of the things
+  > EOF
+  okra: [WARNING] Work logged on KR marked as "Dropped": "Dropped KR" ("KR3")
+  # Actual project
+  
+  ## Actual objective
+  
+  - Actual title (KR1)
+    - @a (1 day)
+    - Did all the things
+
+It is possible to filter on more than one team.
+
+  $ okra cat --okr-db=okrs.csv --include-teams=team1,team2 << EOF
+  > # Project
+  > 
+  > - Actual title (KR1)
+  >   - @a (1 day)
+  >   - Did all the things
+  > 
+  > - Dropped KR (KR3)
+  >   - @a (1 day)
+  >   - Did more of the things
+  > EOF
+  okra: [WARNING] Work logged on KR marked as "Dropped": "Dropped KR" ("KR3")
+  # Actual project
+  
+  ## Actual objective
+  
+  - Actual title (KR1)
+    - @a (1 day)
+    - Did all the things
+  
+  - Dropped KR (KR3)
+    - @a (1 day)
+    - Did more of the things
 
 Instead of a KR ID, it is possible to put "New KR".
 In that case, metadata is preserved.

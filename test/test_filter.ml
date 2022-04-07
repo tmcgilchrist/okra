@@ -142,7 +142,9 @@ let test_exclude_engineers () =
   let t2 = filter t ~include_krs:[ ID id3 ] ~include_engineers:[ e2 ] in
   let kr = get_kr t2 in
   Alcotest.(check (list (list (pair string (float 0.)))))
-    "check time entries" [ [ (e2, 10.) ] ] kr.KR.time_entries
+    "check time entries"
+    [ [ (e2, 10.) ] ]
+    kr.KR.time_entries
 
 let tests =
   [

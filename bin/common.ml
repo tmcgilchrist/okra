@@ -17,6 +17,33 @@
 
 open Cmdliner
 
+let include_categories =
+  let i =
+    Arg.info [ "include-categories" ]
+      ~doc:
+        "If non-empty, only aggregate KRs in these categories. Requires a \
+         database."
+  in
+  Arg.(value & opt (list string) [] i)
+
+let include_teams =
+  let i =
+    Arg.info [ "include-teams" ]
+      ~doc:
+        "If non-empty, only aggregate KRs from these teams. Requires a \
+         database."
+  in
+  Arg.(value & opt (list string) [] i)
+
+let include_reports =
+  let i =
+    Arg.info [ "include-reports" ]
+      ~doc:
+        "If non-empty, only aggregate KRs that are included in one of these \
+         reports. Requires a database."
+  in
+  Arg.(value & opt (list string) [] i)
+
 let include_sections =
   let i =
     Arg.info [ "include-sections" ]

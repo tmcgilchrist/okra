@@ -22,17 +22,11 @@ module Log = (val Logs.src_log src : Logs.LOG)
 open Omd
 
 exception No_time_found of string (* Record found without a time record *)
-
 exception Invalid_time of string (* Time record found, but has errors *)
-
 exception No_work_found of string (* No work items found under KR *)
-
 exception Multiple_time_entries of string (* More than one time entry found *)
-
 exception No_KR_ID_found of string (* Empty or no KR ID *)
-
 exception No_project_found of string (* No project found *)
-
 exception Invalid_markdown_in_work_items of string
 (* Subset of markdown not supported in work items *)
 
