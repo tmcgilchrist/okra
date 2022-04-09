@@ -135,7 +135,11 @@ let merge x y =
     | ID x, _ | _, ID x -> ID x
     | No_KR, No_KR -> No_KR
     | New_KR, New_KR -> New_KR
-    | _ -> failwith "Mismatch between KR kinds"
+    | No_KR, New_KR | New_KR, No_KR ->
+        Fmt.failwith
+          "Mismatch between KR kinds. Same title was used with both No KR and \
+           New KR. Title: %s"
+          title
   in
   let time_entries = x.time_entries @ y.time_entries in
   let time_per_engineer =
