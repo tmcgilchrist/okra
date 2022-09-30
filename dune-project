@@ -36,6 +36,7 @@
   (alcotest :with-test)
   logs
   fmt
+  tls
   get-activity
   (gitlab (= 0.1.2))
   calendar
