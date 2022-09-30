@@ -38,7 +38,7 @@
   fmt
   tls
   get-activity
-  (gitlab (= 0.1.2))
+  (gitlab (>= 0.1.4))
   calendar
   csv
   (omd (>= 2.0))))
