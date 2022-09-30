@@ -37,9 +37,8 @@
   logs
   fmt
   get-activity
-  (gitlab (>= 0.1.3))
+  (gitlab (>= 0.1.4))
   calendar
   csv
-  ISO8601
   (omd (>= 2.0))))
 (using mdx 0.1)
