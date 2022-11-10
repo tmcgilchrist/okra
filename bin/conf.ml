@@ -100,13 +100,6 @@ let home =
   | None -> Fmt.failwith "$HOME is not set!"
   | Some dir -> dir
 
-let default_okra_file =
+let default_file_path =
   let ( / ) = Filename.concat in
   home / ".okra" / "conf.yaml"
-
-open Cmdliner
-
-let cmdliner =
-  Arg.value
-  @@ Arg.opt Arg.file default_okra_file
-  @@ Arg.info ~doc:"Okra configuration file" ~docv:"CONF" [ "conf" ]

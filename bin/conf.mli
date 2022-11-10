@@ -39,5 +39,5 @@ val gitlab_token : t -> string option
 val load : string -> (t, [ `Msg of string ]) result
 (** [load file] attempts to load a configuration from [file] *)
 
-val cmdliner : string Cmdliner.Term.t
-(** Cmdliner term for configuration file location *)
+val default_file_path : string
+(* [default_file_path] is the default file path of the Okra configuration. *)
