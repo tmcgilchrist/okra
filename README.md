@@ -173,7 +173,17 @@ or
 $ okra lint --team report.md
 ```
 
+You can also lint multiple engineer reports in one go with the `okra team lint` command.
 
+For instance, running:
+
+```
+$ okra team lint -C admin/ -W 40.41
+```
+
+Will lint the reports of all of the team members you defined in your configuration file.
+
+Note that you need to define one or multiple teams in your Okra configuration file for the `okra team` subcommands to function.
 
 ## Report formats
 
@@ -265,6 +275,14 @@ projects:
 locations:
   - "/path/to/admin/dir1"
   - "/path/to/admin/dir2"
+# Teams are used for the `okra team` subcommands.
+teams:
+  - name: My Team
+    members:
+      - name: Engineer 1
+        github: eng1
+      - name: Engineer 2
+        github: eng2
 footer: |
   # Meetings
   - A recurring meeting
