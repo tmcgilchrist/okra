@@ -48,41 +48,39 @@ let fail_fmt_patterns =
 
 let pp_error ppf = function
   | Format_error x ->
-      List.iter (fun (pos, msg) -> Fmt.pf ppf "Line %d: %s\n" pos msg) x;
-      Fmt.pf ppf "%d formatting errors found. Parsing aborted.\n"
-        (List.length x)
+      let pp_msg ppf (pos, msg) = Fmt.pf ppf "Line %d: %s" pos msg in
+      Fmt.pf ppf "@[<v 0>%a@,%d formatting errors found. Parsing aborted.@]"
+        (Fmt.list ~sep:Fmt.sp pp_msg)
+        x (List.length x)
   | No_time_found (_, s) ->
       Fmt.pf ppf
-        "In KR %S:\n\
-        \  No time entry found. Each KR must be followed by '- @@... (x days)'\n"
+        "@[<hv 2>In KR %S:@ No time entry found. Each KR must be followed by \
+         '- @@... (x days)'@]@,"
         s
   | Invalid_time (_, s) ->
       Fmt.pf ppf
-        "In KR %S:\n\
-        \  Invalid time entry found. Format is '- @@eng1 (x days), @@eng2 (x \
-         days)'\n"
+        "@[<hv 2>In KR %S:@ Invalid time entry found. Format is '- @@eng1 (x \
+         days), @@eng2 (x days)'@]@,"
         s
   | Multiple_time_entries (_, s) ->
       Fmt.pf ppf
-        "In KR %S:\n\
-        \  Multiple time entries found. Only one time entry should follow \
-         immediately after the KR.\n"
+        "@[<hv 2>In KR %S:@ Multiple time entries found. Only one time entry \
+         should follow immediately after the KR.@]@,"
         s
   | No_work_found (_, s) ->
       Fmt.pf ppf
-        "In KR %S:\n\
-        \  No work items found. This may indicate an unreported parsing error. \
-         Remove the KR if it is without work.\n"
+        "@[<hv 2>In KR %S:@ No work items found. This may indicate an \
+         unreported parsing error. Remove the KR if it is without work.@]@,"
         s
   | No_KR_ID_found (_, s) ->
       Fmt.pf ppf
-        "In KR %S:\n\
-        \  No KR ID found. KRs should be in the format \"This is a KR \
-         (PLAT123)\", where PLAT123 is the KR ID. For KRs that don't have an \
-         ID yet, use \"New KR\" and for work without a KR use \"No KR\".\n"
+        "@[<hv 2>In KR %S:@ No KR ID found. KRs should be in the format \"This \
+         is a KR (PLAT123)\", where PLAT123 is the KR ID. For KRs that don't \
+         have an ID yet, use \"New KR\" and for work without a KR use \"No \
+         KR\".@]@,"
         s
   | No_project_found (_, s) ->
-      Fmt.pf ppf "In KR %S:\n  No project found (starting with '#')\n" s
+      Fmt.pf ppf "@[<hv 2>In KR %S:@ No project found (starting with '#')@]@," s
   | Not_all_includes s ->
       Fmt.pf ppf "Missing includes section: %a\n" Fmt.(list ~sep:comma string) s
 
