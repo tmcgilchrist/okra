@@ -20,6 +20,8 @@ type t
 val default : t
 (** A default configuration *)
 
+val teams : t -> Okra.Team.t list
+
 val projects : t -> Okra.Activity.project list
 (** A user's list of activer projects *)
 

@@ -39,4 +39,4 @@ let () =
   exit
   @@ Cmd.eval
        (Cmd.group ~default:root_term root_info
-          [ Cat.cmd; Lint.cmd; Stats.cmd; Generate.cmd ])
+          [ Cat.cmd; Lint.cmd; Stats.cmd; Generate.cmd; Team.cmd ])

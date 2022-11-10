@@ -32,23 +32,46 @@ type project = Activity.project = {
   items : string list; [@default []]
 }
 [@@deriving yaml]
+
+module Team = struct
+  module Member = struct
+    type t = { name : string; github : string } [@@deriving yaml]
+  end
+
+  type t = { name : string; members : Member.t list } [@@deriving yaml]
+end
+
 type t = {
   projects : project list; [@default [ default_project ]]
-  locations : string list;
+  teams : Team.t list; [@default []]
   locations : string list; [@default []]
   footer : string option;
   okr_db : string option;
   gitlab_token : string option;
 }
+[@@deriving yaml]
 
 let default =
   {
     projects = [ default_project ];
+    teams = [];
     locations = [];
     footer = None;
     okr_db = None;
     gitlab_token = None;
   }
+
+let teams { teams; _ } =
+  let to_okra Team.{ name; members } =
+    let members =
+      List.map
+        (fun Team.Member.{ name; github } ->
+          Okra.Team.Member.make ~name ~github)
+        members
+    in
+    Okra.Team.make ~name ~members
+  in
+  List.map to_okra teams
 
 let projects { projects; _ } = projects
 let locations { locations; _ } = locations

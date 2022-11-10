@@ -42,3 +42,4 @@ val lint_string_list :
 
 val string_of_error : lint_error -> string
 val short_messages_of_error : string -> lint_error -> string list
+val pp_error : Format.formatter -> lint_error -> unit
