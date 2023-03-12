@@ -19,6 +19,7 @@
   (alcotest :with-test)
   (mdx :with-test)
   logs
+  lwt_ssl
   fmt
   okra
   (cmdliner (>= 1.1.0))
