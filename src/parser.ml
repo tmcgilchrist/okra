@@ -137,6 +137,7 @@ let rec block = function
   | Definition_list _ -> err_markdown "Definition_list"
   | Thematic_break _ -> err_markdown "Thematic_break"
   | Heading _ -> err_markdown "Heading"
+  | Table _ -> err_markdown "Table"
 
 let inline_to_string = Printer.to_string Item.pp_inline
 let item_to_string = Printer.to_string Item.pp

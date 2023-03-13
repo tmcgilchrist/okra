@@ -42,5 +42,5 @@
   (gitlab (>= 0.1.4))
   calendar
   csv
-  (omd (>= 2.0))))
+  (omd (>= 2.0.0~alpha3))))
 (using mdx 0.1)
