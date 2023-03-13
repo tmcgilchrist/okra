@@ -154,8 +154,8 @@ module PR = struct
           (if not with_names then None else author)
           (option pp_created_at)
           (if not with_times then None
-          else if merged_at = None then Some created_at
-          else merged_at)
+           else if merged_at = None then Some created_at
+           else merged_at)
           (option string)
           (if not with_descriptions then None else Some body))
     else
