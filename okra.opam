@@ -5,10 +5,10 @@ description: "A library of tools for report parsing"
 maintainer: ["magnus@skjegstad.com"]
 authors: ["Magnus Skjegstad"]
 license: "ISC"
-homepage: "https://github.com/magnuss/okra"
+homepage: "https://github.com/MagnusS/okra"
 bug-reports: "https://github.com/MagnusS/okra/issues"
 depends: [
-  "dune" {>= "2.8"}
+  "dune" {>= "3.7"}
   "ocaml" {>= "4.10"}
   "alcotest" {with-test}
   "logs"
@@ -35,6 +35,7 @@ build: [
     "@doc" {with-doc}
   ]
 ]
+dev-repo: "git+https://github.com/MagnusS/okra.git"
 pin-depends: [
   ["get-activity.dev" "git+https://github.com/patricoferris/get-activity#a384724b4630031e07c2f2962f44bf76378685d8"]
 ]

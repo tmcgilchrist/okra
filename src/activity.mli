@@ -58,9 +58,9 @@ module Gitlab : sig
     item list Repo_map.t
 
   module Fetch
-      (Env : Gitlab_s.Env)
-      (Time : Gitlab_s.Time)
-      (CL : Cohttp_lwt.S.Client) : sig
+      (_ : Gitlab_s.Env)
+      (_ : Gitlab_s.Time)
+      (_ : Cohttp_lwt.S.Client) : sig
     module G : Gitlab_s.Gitlab
 
     val make_activity :

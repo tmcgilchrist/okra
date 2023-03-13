@@ -1,3 +1,4 @@
 (mdx
- (packages okra-bin)
+ (deps
+  (package okra-bin))
  (files README.md))

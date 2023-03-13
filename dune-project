@@ -1,15 +1,15 @@
-(lang dune 2.8)
+(lang dune 3.7)
 (name okra)
 
 (generate_opam_files true)
 
+(using mdx 0.3)
 (cram enable)
 
 (license ISC)
 (authors "Magnus Skjegstad")
 (maintainers "magnus@skjegstad.com")
-(homepage "https://github.com/magnuss/okra")
-(bug_reports "https://github.com/MagnusS/okra/issues")
+(source (github MagnusS/okra))
 
 (package
  (name okra-bin)
@@ -43,4 +43,3 @@
   calendar
   csv
   (omd (>= 2.0.0~alpha3))))
-(using mdx 0.1)
