@@ -10,14 +10,15 @@ bug-reports: "https://github.com/MagnusS/okra/issues"
 depends: [
   "dune" {>= "3.7"}
   "ocaml" {>= "4.10"}
-  "alcotest" {with-test}
-  "logs"
-  "fmt"
-  "tls"
+  "alcotest" {>= "1.7.0" & with-test}
+  "logs" {>= "0.7.0"}
+  "fmt" {>= "0.9.0"}
+  "lwt" {>= "5.6.1"}
+  "tls" {>= "0.17.0"}
   "get-activity"
-  "gitlab" {>= "0.1.4"}
-  "calendar"
-  "csv"
+  "gitlab" {>= "0.1.7"}
+  "calendar" {>= "3.0.0"}
+  "csv" {>= "2.4"}
   "omd" {>= "2.0.0~alpha3"}
   "odoc" {with-doc}
 ]
