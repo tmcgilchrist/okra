@@ -47,6 +47,7 @@ type t = {
   locations : string list; [@default []]
   footer : string option;
   okr_db : string option;
+  admin_dir : string option;
   gitlab_token : string option;
 }
 [@@deriving yaml]
@@ -58,6 +59,7 @@ let default =
     locations = [];
     footer = None;
     okr_db = None;
+    admin_dir = None;
     gitlab_token = None;
   }
 
@@ -77,6 +79,7 @@ let projects { projects; _ } = projects
 let locations { locations; _ } = locations
 let footer { footer; _ } = footer
 let okr_db t = t.okr_db
+let admin_dir t = t.admin_dir
 let gitlab_token t = t.gitlab_token
 
 let load file =

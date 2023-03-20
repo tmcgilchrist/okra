@@ -17,7 +17,11 @@
 open Cmdliner
 
 let lint conf week_range admin_dir =
-  let admin_dir = Option.get admin_dir in
+  let admin_dir =
+    match admin_dir with
+    | Some x -> x
+    | None -> Option.get (Conf.admin_dir conf)
+  in
   let week_range =
     match week_range with
     | Some weeks -> weeks
@@ -35,6 +39,25 @@ let lint conf week_range admin_dir =
   let lint_report = Okra.Team.lint admin_dir weeks teams in
   Format.printf "%a" Okra.Team.pp_lint_report lint_report
 
+let aggregate conf week admin_dir =
+  let admin_dir =
+    match admin_dir with
+    | Some x -> x
+    | None -> Option.get (Conf.admin_dir conf)
+  in
+  let okr_db =
+    match Conf.okr_db conf with
+    | None -> None
+    | Some f -> Some (Okra.Masterdb.load_csv f)
+  in
+  let teams = Conf.teams conf in
+  let week = int_of_string (Option.get week) in
+  let report = Okra.Team.aggregate ?okr_db admin_dir week teams in
+  let pp =
+    Okra.Report.pp ~show_time:true ~show_time_calc:false ~show_engineers:true
+  in
+  Okra.Printer.to_channel stdout pp report
+
 (* Commands *)
 
 let lint_cmd =
@@ -42,7 +65,7 @@ let lint_cmd =
     let doc = "Path of the admin repository directory." in
     Arg.(
       value
-      & opt (some dir) (Some Filename.current_dir_name)
+      & opt (some dir) None
       & info [ "C"; "admin-dir" ] ~docv:"ADMIN_DIR" ~doc)
   in
   let weeks =
@@ -54,7 +77,24 @@ let lint_cmd =
   let info = Cmd.info "lint" ~doc in
   Cmd.v info Term.(const lint $ Common.conf $ weeks $ admin_dir)
 
+let aggregate_cmd =
+  let admin_dir =
+    let doc = "Path of the admin repository directory." in
+    Arg.(
+      value
+      & opt (some dir) None
+      & info [ "C"; "admin-dir" ] ~docv:"ADMIN_DIR" ~doc)
+  in
+  let week =
+    let doc = "The week range to lint reports for." in
+    Arg.(
+      value & opt (some string) None & info [ "W"; "week" ] ~docv:"WEEKS" ~doc)
+  in
+  let doc = "Aggregate reports for a team." in
+  let info = Cmd.info "aggregate" ~doc in
+  Cmd.v info Term.(const aggregate $ Common.conf $ week $ admin_dir)
+
 let cmd =
   let doc = "Work on multiple reports for a team" in
   let info = Cmd.info "team" ~doc in
-  Cmd.group info [ lint_cmd ]
+  Cmd.group info [ aggregate_cmd; lint_cmd ]

@@ -28,23 +28,29 @@ let make ~name ~members = { name; members }
 let name { name; _ } = name
 let members { members; _ } = members
 
-type report = Not_found | Complete | Erroneous of Lint.lint_error
+type report =
+  | Not_found of string
+  | Complete of string
+  | Erroneous of (string * Lint.lint_error)
+
 type lint_report = (t * (Member.t * (int * report) list) list) list
+
+let file_path ~admin_dir ~week ~engineer_name =
+  Format.asprintf "%s/weekly/2023/%02i/%s.md" admin_dir week engineer_name
 
 let lint_member_week admin_dir member week =
   let fname =
-    Format.asprintf "%s/weekly/2022/%i/%s.md" admin_dir week
-      (Member.github member)
+    file_path ~admin_dir ~week ~engineer_name:(Member.github member)
   in
   match Sys.file_exists fname with
-  | false -> Not_found
+  | false -> Not_found fname
   | true -> (
       let ic = In_channel.open_text fname in
       match
         Lint.lint ~include_sections:[ "Last week" ] ~ignore_sections:[] ic
       with
-      | Ok () -> Complete
-      | Error e -> Erroneous e)
+      | Ok () -> Complete fname
+      | Error e -> Erroneous (fname, e))
 
 let lint_member admin_dir weeks member =
   let lint_member_week = lint_member_week admin_dir member in
@@ -59,9 +65,10 @@ let lint admin_dir weeks teams =
   List.map (fun team -> (team, lint_team (members team))) teams
 
 let pp_report ppf = function
-  | Not_found -> Fmt.pf ppf "Not found ❌"
-  | Complete -> Fmt.pf ppf "Complete ✅"
-  | Erroneous e -> Fmt.pf ppf "Lint error ⚠️@ @[<v 0>%a@]" Lint.pp_error e
+  | Not_found fpath -> Fmt.pf ppf "Not found: %s ❌" fpath
+  | Complete _ -> Fmt.pf ppf "Complete ✅"
+  | Erroneous (fpath, e) ->
+      Fmt.pf ppf "Lint error at %s ⚠️@ @[<v 0>%a@]" fpath Lint.pp_error e
 
 let pp_lint_report ppf lint_report =
   let pp_report_lint ppf (week, report) =
@@ -80,3 +87,43 @@ let pp_lint_report ppf lint_report =
   Fmt.pf ppf "@[<v 0>%a@]@."
     (Fmt.list ~sep:(Fmt.any "@;<1 2>") pp_team_lint)
     lint_report
+
+let aggregate ?okr_db admin_dir week teams =
+  let files =
+    List.concat
+    @@ List.map
+         (fun team ->
+           List.map
+             (fun member ->
+               file_path ~admin_dir ~week ~engineer_name:(Member.github member))
+             (members team))
+         teams
+  in
+  let content =
+    
+      String.concat "\n"
+      @@ List.map
+          (fun file -> 
+            try
+            In_channel.with_open_text file In_channel.input_all
+          with Sys_error e ->
+            Printf.eprintf "An error ocurred while reading the input file(s).\n";
+            Printf.eprintf "Error: %s\n" e;
+            ""
+            )
+          files
+  in
+  let md = Omd.of_string content in
+  let report =
+    try
+      Report.of_markdown ~ignore_sections:[] ~include_sections:[ "Last week" ]
+        ?okr_db md
+    with e ->
+      Printf.eprintf
+        "An error ocurred while parsing the input file(s). Run `lint` for more \
+         information.\n\n\
+         %s\n"
+        (Printexc.to_string e);
+      exit 1
+  in
+  report
