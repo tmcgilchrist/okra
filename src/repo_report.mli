@@ -78,7 +78,7 @@ module Project_map : Map.S with type key := string
 type t = data Project_map.t
 (** A map from repositories to their PR/issue data *)
 
-module Make (C : Cohttp_lwt.S.Client) : sig
+module Make (_ : Cohttp_lwt.S.Client) : sig
   val get :
     period:string * string ->
     token:string ->

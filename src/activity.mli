@@ -57,10 +57,7 @@ module Gitlab : sig
     Gitlab_t.events * (int * Gitlab_t.project_short) list ->
     item list Repo_map.t
 
-  module Fetch
-      (Env : Gitlab_s.Env)
-      (Time : Gitlab_s.Time)
-      (CL : Cohttp_lwt.S.Client) : sig
+  module Fetch (_ : Gitlab_s.Env) (_ : Gitlab_s.Time) (_ : Cohttp_lwt.S.Client) : sig
     module G : Gitlab_s.Gitlab
 
     val make_activity :

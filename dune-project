@@ -1,32 +1,32 @@
-(lang dune 2.8)
+(lang dune 3.7)
 (name okra)
 
 (generate_opam_files true)
 
+(using mdx 0.3)
 (cram enable)
 
 (license ISC)
 (authors "Magnus Skjegstad")
 (maintainers "magnus@skjegstad.com")
-(homepage "https://github.com/magnuss/okra")
-(bug_reports "https://github.com/MagnusS/okra/issues")
+(source (github MagnusS/okra))
 
 (package
  (name okra-bin)
  (synopsis "Report parsing executable")
  (description "An executable to be used for report parsing")
  (depends
-  (alcotest :with-test)
-  (mdx :with-test)
-  logs
-  lwt_ssl
-  fmt
-  okra
-  (cmdliner (>= 1.1.0))
+  (alcotest (and (>= 1.7.0) :with-test))
+  (mdx (and (>= 2.2.1) :with-test))
+  (logs (>= 0.7.0))
+  (lwt_ssl (>= 1.2.0))
+  (fmt (>= 0.9.0))
+  (okra (= :version))
+  (cmdliner (>= 1.1.1))
   bos
   dune-build-info
   (yaml (>= 3.0))
-  (cohttp-lwt-unix (>= 4.0.0))))
+  (cohttp-lwt-unix (>= 5.0.0))))
 
 (package
  (name okra)
@@ -34,13 +34,13 @@
  (description "A library of tools for report parsing")
  (depends
   (ocaml (>= 4.10))
-  (alcotest :with-test)
-  logs
-  fmt
-  tls
+  (alcotest (and (>= 1.7.0) :with-test))
+  (logs (>= 0.7.0))
+  (fmt (>= 0.9.0))
+  (lwt (>= 5.6.1))
+  (tls (>= 0.17.0))
   get-activity
-  (gitlab (>= 0.1.4))
-  calendar
-  csv
-  (omd (>= 2.0))))
-(using mdx 0.1)
+  (gitlab (>= 0.1.7))
+  (calendar (>= 3.0.0))
+  (csv (>= 2.4))
+  (omd (>= 2.0.0~alpha3))))

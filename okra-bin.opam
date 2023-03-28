@@ -5,20 +5,21 @@ description: "An executable to be used for report parsing"
 maintainer: ["magnus@skjegstad.com"]
 authors: ["Magnus Skjegstad"]
 license: "ISC"
-homepage: "https://github.com/magnuss/okra"
+homepage: "https://github.com/MagnusS/okra"
 bug-reports: "https://github.com/MagnusS/okra/issues"
 depends: [
-  "dune" {>= "2.8"}
-  "alcotest" {with-test}
-  "mdx" {with-test}
-  "logs"
-  "fmt"
-  "okra"
-  "cmdliner" {>= "1.1.0"}
+  "dune" {>= "3.7"}
+  "alcotest" {>= "1.7.0" & with-test}
+  "mdx" {>= "2.2.1" & with-test}
+  "logs" {>= "0.7.0"}
+  "lwt_ssl" {>= "1.2.0"}
+  "fmt" {>= "0.9.0"}
+  "okra" {= version}
+  "cmdliner" {>= "1.1.1"}
   "bos"
   "dune-build-info"
   "yaml" {>= "3.0"}
-  "cohttp-lwt-unix" {>= "4.0.0"}
+  "cohttp-lwt-unix" {>= "5.0.0"}
   "odoc" {with-doc}
 ]
 build: [
@@ -35,3 +36,4 @@ build: [
     "@doc" {with-doc}
   ]
 ]
+dev-repo: "git+https://github.com/MagnusS/okra.git"
