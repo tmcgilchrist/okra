@@ -80,7 +80,7 @@ let pp_lint_report ppf lint_report =
       member_lint
   in
   let pp_team_lint ppf (team, members_list) =
-    Fmt.pf ppf "=== %s === @;<1 2>%a" (name team)
+    Fmt.pf ppf "=== %s ===@;<1 2>%a" (name team)
       (Fmt.list ~sep:(Fmt.any "@;<1 2>") pp_member_lint)
       members_list
   in
