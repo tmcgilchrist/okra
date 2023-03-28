@@ -39,6 +39,7 @@
   (fmt (>= 0.9.0))
   (lwt (>= 5.6.1))
   (tls (>= 0.17.0))
+  xdg
   get-activity
   (gitlab (>= 0.1.7))
   (calendar (>= 3.0.0))

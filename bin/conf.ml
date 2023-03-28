@@ -13,7 +13,17 @@
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *)
+
 open Okra
+
+let xdg =
+  Xdg.create
+    ~env:(fun x -> try Some (Unix.getenv x) with Not_found -> None)
+    ()
+
+let config_dir =
+  let ( / ) = Filename.concat in
+  Xdg.config_dir xdg / "okra"
 
 let default_project = { Activity.title = "TODO ADD KR (ID)"; items = [] }
 
@@ -95,11 +105,6 @@ let load file =
   Bos.OS.File.read (Fpath.v file) >>= fun contents ->
   Yaml.of_string contents >>= fun yaml -> of_yaml yaml
 
-let home =
-  match Sys.getenv_opt "HOME" with
-  | None -> Fmt.failwith "$HOME is not set!"
-  | Some dir -> dir
-
 let default_file_path =
   let ( / ) = Filename.concat in
-  home / ".okra" / "conf.yaml"
+  config_dir / "conf.yaml"
