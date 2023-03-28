@@ -45,7 +45,7 @@ let lint_member_week admin_dir member ~week ~year =
   match Sys.file_exists fname with
   | false -> Not_found fname
   | true -> (
-      let ic = In_channel.open_text fname in
+      let ic = open_in fname in
       match
         Lint.lint ~include_sections:[ "Last week" ] ~ignore_sections:[] ic
       with
@@ -88,6 +88,12 @@ let pp_lint_report ppf lint_report =
     (Fmt.list ~sep:(Fmt.any "@;<1 2>") pp_team_lint)
     lint_report
 
+let read_file f =
+  let ic = open_in f in
+  let s = really_input_string ic (in_channel_length ic) in
+  close_in ic;
+  s
+
 let aggregate ?okr_db admin_dir ~year ~week teams =
   let files =
     List.concat
@@ -106,7 +112,7 @@ let aggregate ?okr_db admin_dir ~year ~week teams =
          (fun file ->
            if not (Sys.file_exists file) then ""
            else
-             try In_channel.with_open_text file In_channel.input_all
+             try read_file file
              with Sys_error e ->
                Printf.eprintf
                  "An error ocurred while reading the input file(s).\n";
