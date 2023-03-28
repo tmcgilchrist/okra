@@ -16,7 +16,7 @@
 
 open Cmdliner
 
-let lint conf week_range admin_dir =
+let lint () conf year week_range admin_dir =
   let admin_dir =
     match admin_dir with
     | Some x -> x
@@ -36,10 +36,10 @@ let lint conf week_range admin_dir =
   let rhe = int_of_string rhe in
   let weeks = List.init (rhe - lhe + 1) (fun x -> lhe + x) in
   let teams = Conf.teams conf in
-  let lint_report = Okra.Team.lint admin_dir weeks teams in
+  let lint_report = Okra.Team.lint admin_dir ~year ~weeks teams in
   Format.printf "%a" Okra.Team.pp_lint_report lint_report
 
-let aggregate conf week admin_dir =
+let aggregate () conf year week admin_dir =
   let admin_dir =
     match admin_dir with
     | Some x -> x
@@ -52,47 +52,42 @@ let aggregate conf week admin_dir =
   in
   let teams = Conf.teams conf in
   let week = int_of_string (Option.get week) in
-  let report = Okra.Team.aggregate ?okr_db admin_dir week teams in
+  let report = Okra.Team.aggregate ?okr_db admin_dir ~year ~week teams in
   let pp =
     Okra.Report.pp ~show_time:true ~show_time_calc:false ~show_engineers:true
   in
   Okra.Printer.to_channel stdout pp report
 
 (* Commands *)
+let admin_dir =
+  let doc = "Path of the admin repository directory." in
+  let env = Cmd.Env.info "OKRA_ADMIN_DIR" in
+  Arg.(
+    value
+    & opt (some dir) None
+    & info [ "C"; "admin-dir" ] ~docv:"ADMIN_DIR" ~env ~doc)
+
+let weeks =
+  let doc = "The week range to consider reports for." in
+  Arg.(
+    value & opt (some string) None & info [ "W"; "weeks" ] ~docv:"WEEKS" ~doc)
+
+let year =
+  let doc = "The year to consider reports for." in
+  Arg.(value & opt int 2023 & info [ "Y"; "year" ] ~docv:"YEAR" ~doc)
 
 let lint_cmd =
-  let admin_dir =
-    let doc = "Path of the admin repository directory." in
-    Arg.(
-      value
-      & opt (some dir) None
-      & info [ "C"; "admin-dir" ] ~docv:"ADMIN_DIR" ~doc)
-  in
-  let weeks =
-    let doc = "The week range to lint reports for." in
-    Arg.(
-      value & opt (some string) None & info [ "W"; "weeks" ] ~docv:"WEEKS" ~doc)
-  in
   let doc = "Lint reports for a team." in
   let info = Cmd.info "lint" ~doc in
-  Cmd.v info Term.(const lint $ Common.conf $ weeks $ admin_dir)
+  Cmd.v info
+    Term.(const lint $ Common.setup () $ Common.conf $ year $ weeks $ admin_dir)
 
 let aggregate_cmd =
-  let admin_dir =
-    let doc = "Path of the admin repository directory." in
-    Arg.(
-      value
-      & opt (some dir) None
-      & info [ "C"; "admin-dir" ] ~docv:"ADMIN_DIR" ~doc)
-  in
-  let week =
-    let doc = "The week range to lint reports for." in
-    Arg.(
-      value & opt (some string) None & info [ "W"; "week" ] ~docv:"WEEKS" ~doc)
-  in
   let doc = "Aggregate reports for a team." in
   let info = Cmd.info "aggregate" ~doc in
-  Cmd.v info Term.(const aggregate $ Common.conf $ week $ admin_dir)
+  Cmd.v info
+    Term.(
+      const aggregate $ Common.setup () $ Common.conf $ year $ weeks $ admin_dir)
 
 let cmd =
   let doc = "Work on multiple reports for a team" in
