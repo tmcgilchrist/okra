@@ -77,6 +77,13 @@ let parse_okr_title s =
     let i = String.rindex s '(' in
     let t = String.trim (String.sub s 0 i) in
     Some (t, KR.New_KR)
+  else if
+    String.lowercase_ascii s = "other"
+    || String.lowercase_ascii s = "others"
+    || String.lowercase_ascii s = "off-kr"
+    || String.lowercase_ascii s = "off kr"
+    || String.lowercase_ascii s = "misc"
+  then Some (s, No_KR)
   else if is_suffix "(no kr)" s || is_suffix "(no okr)" s then
     let i = String.rindex s '(' in
     let t = String.trim (String.sub s 0 i) in
