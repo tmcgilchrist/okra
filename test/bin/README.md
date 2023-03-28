@@ -66,8 +66,8 @@ The configuration file for `okra` allows you to setup some default values and lo
 ```sh
 $ cat conf.simple.yaml
 projects:
-  - "Make Okra, the OKR management tool (OKR1)"
-  - "Make a web interface for Okra (OKR2)"
+  - title: "Make Okra, the OKR management tool (OKR1)"
+  - title: "Make a web interface for Okra (OKR2)"
 $ okra generate --week=37 --year=2021  --no-activity --conf=conf.simple.yaml
 <USERNAME> week 37: 2021/09/13 -- 2021/09/19
 
@@ -138,8 +138,8 @@ Sometimes you might have some recurring comments to make outside of last week's 
 ```sh
 $ cat conf.footer.yaml
 projects:
-  - "Make Okra, the OKR management tool (OKR1)"
-  - "Make a web interface for Okra (OKR2)"
+  - title: "Make Okra, the OKR management tool (OKR1)"
+  - title: "Make a web interface for Okra (OKR2)"
 footer: |
   # Meetings
   - A meeting with x, y and z

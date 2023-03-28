@@ -27,9 +27,15 @@ let config_dir =
 
 let default_project = { Activity.title = "TODO ADD KR (ID)"; items = [] }
 
+type project = Activity.project = {
+  title : string;
+  items : string list; [@default []]
+}
+[@@deriving yaml]
 type t = {
-  projects : Activity.project list;
+  projects : project list; [@default [ default_project ]]
   locations : string list;
+  locations : string list; [@default []]
   footer : string option;
   okr_db : string option;
   gitlab_token : string option;
@@ -43,56 +49,6 @@ let default =
     okr_db = None;
     gitlab_token = None;
   }
-
-let conf_err s = Error (`Msg (Fmt.str "Okra Conf Error: %s" s))
-
-let projects_of_yaml t =
-  let open Rresult in
-  let open Yaml.Util in
-  let map (f : Yaml.value -> 'a) = function
-    | `A lst -> List.map f lst
-    | _ -> raise (Yaml.Util.Value_error "Expected a list to map over")
-  in
-  let project_of_yaml = function
-    | `String title -> { default_project with title }
-    | `O assoc -> (
-        let title = List.assoc_opt "title" assoc |> Option.map to_string_exn in
-        let items =
-          List.assoc_opt "items" assoc |> Option.map (map to_string_exn)
-        in
-        match (title, items) with
-        | Some title, Some items -> { title; items }
-        | Some title, None -> { default_project with title }
-        | _, _ ->
-            raise
-              (Value_error "expected a list of projects with at least a title"))
-    | _ ->
-        raise
-          (Value_error
-             "project description must be a list of strings or { title; items }")
-  in
-  match t with
-  | None -> Ok [ default_project ]
-  | Some (`A v) -> (
-      try Ok (List.map project_of_yaml v)
-      with Yaml.Util.Value_error s -> conf_err s)
-  | Some _ -> conf_err "Expected a list"
-
-let of_yaml yaml =
-  let open Rresult in
-  let open Yaml.Util in
-  let map_option f = function
-    | None -> Ok [ "TODO ADD KR (ID)" ]
-    | Some (`A v) -> (
-        try Ok (List.map f v) with Yaml.Util.Value_error s -> conf_err s)
-    | Some _ -> conf_err "Expected a list"
-  in
-  find "projects" yaml >>= projects_of_yaml >>= fun projects ->
-  find "locations" yaml >>= map_option to_string_exn >>= fun locations ->
-  find "footer" yaml >>| Option.map to_string_exn >>= fun footer ->
-  find "okr-db" yaml >>| Option.map to_string_exn >>= fun okr_db ->
-  find "gitlab_token" yaml >>| Option.map to_string_exn >>= fun gitlab_token ->
-  Ok { projects; locations; footer; okr_db; gitlab_token }
 
 let projects { projects; _ } = projects
 let locations { locations; _ } = locations

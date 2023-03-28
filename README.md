@@ -73,7 +73,7 @@ A list of projects you are working on can be provided in the configuration file 
 
 ```
 projects:
-  - "Improve OKRA (OKRA1)"
+  - title: "Improve OKRA (OKRA1)"
 ```
 
 More information is provided at the bottom of the README.
@@ -260,7 +260,7 @@ You can store a `conf.yaml` file in `~/.okra` to provide the binary with extra i
 ```yaml
 # Projects are used in weekly report generation (optional)
 projects:
-  - "Make okra great (Plat123)"
+  - title: "Make okra great (Plat123)"
 # Locations will be used in aggregation across multiple directories (optional)
 locations:
   - "/path/to/admin/dir1"

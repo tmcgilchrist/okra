@@ -12,4 +12,6 @@
   logs.cli
   fmt.tty
   dune-build-info
-  xdg))
+  xdg)
+ (preprocess
+  (pps ppx_deriving_yaml)))

@@ -23,6 +23,7 @@
   (fmt (>= 0.9.0))
   (okra (= :version))
   (cmdliner (>= 1.1.1))
+  ppx_deriving_yaml
   bos
   dune-build-info
   (yaml (>= 3.0))
