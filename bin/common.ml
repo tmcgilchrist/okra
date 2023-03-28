@@ -169,9 +169,14 @@ let get_or_error = function
       exit 1
 
 let conf =
+  let conf_arg =
+    Arg.value
+    @@ Arg.opt Arg.file Conf.default_file_path
+    @@ Arg.info ~doc:"Okra configuration file" ~docv:"CONF" [ "conf" ]
+  in
   let load okra_file =
     match get_or_error @@ Bos.OS.File.exists (Fpath.v okra_file) with
     | false -> Conf.default
     | true -> get_or_error @@ Conf.load okra_file
   in
-  Term.(const load $ Conf.cmdliner)
+  Term.(const load $ conf_arg)

@@ -23,6 +23,7 @@
   (fmt (>= 0.9.0))
   (okra (= :version))
   (cmdliner (>= 1.1.1))
+  (ppx_deriving_yaml (>= 0.2.0))
   bos
   dune-build-info
   (yaml (>= 3.0))
@@ -39,6 +40,7 @@
   (fmt (>= 0.9.0))
   (lwt (>= 5.6.1))
   (tls (>= 0.17.0))
+  xdg
   get-activity
   (gitlab (>= 0.1.7))
   (calendar (>= 3.0.0))

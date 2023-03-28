@@ -23,8 +23,7 @@ No KR ID found:
   > EOF
   [ERROR(S)]: <stdin>
   
-  In KR "This is a KR":
-    No project found (starting with '#')
+  In KR "This is a KR": No project found (starting with '#')
   [1]
 
 No work items found:
@@ -217,8 +216,7 @@ Format errors
   $ okra lint err-no-project.md
   [ERROR(S)]: err-no-project.md
   
-  In KR "Everything is great":
-    No project found (starting with '#')
+  In KR "Everything is great": No project found (starting with '#')
   [1]
   $ okra lint --short err-no-project.md
   err-no-project.md:1:No project found for "Everything is great"

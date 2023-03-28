@@ -20,6 +20,8 @@ type t
 val default : t
 (** A default configuration *)
 
+val teams : t -> Okra.Team.t list
+
 val projects : t -> Okra.Activity.project list
 (** A user's list of activer projects *)
 
@@ -32,6 +34,10 @@ val footer : t -> string option
 val okr_db : t -> string option
 (** [okr_db] is the location of the OKR database. *)
 
+val admin_dir : t -> string option
+(** [admin_dir] is the location of the admin directory for the teams
+    subcommands. *)
+
 val gitlab_token : t -> string option
 (** [gitlab_token] is the optional Gitlab token, if present your Gitlab activity
     will also be queried. *)
@@ -39,5 +45,5 @@ val gitlab_token : t -> string option
 val load : string -> (t, [ `Msg of string ]) result
 (** [load file] attempts to load a configuration from [file] *)
 
-val cmdliner : string Cmdliner.Term.t
-(** Cmdliner term for configuration file location *)
+val default_file_path : string
+(* [default_file_path] is the default file path of the Okra configuration. *)
