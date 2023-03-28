@@ -104,12 +104,14 @@ let aggregate ?okr_db admin_dir ~year ~week teams =
     String.concat "\n"
     @@ List.map
          (fun file ->
-           try In_channel.with_open_text file In_channel.input_all
-           with Sys_error e ->
-             Printf.eprintf
-               "An error ocurred while reading the input file(s).\n";
-             Printf.eprintf "Error: %s\n" e;
-             "")
+           if not (Sys.file_exists file) then ""
+           else
+             try In_channel.with_open_text file In_channel.input_all
+             with Sys_error e ->
+               Printf.eprintf
+                 "An error ocurred while reading the input file(s).\n";
+               Printf.eprintf "Error: %s\n" e;
+               "")
          files
   in
   let md = Omd.of_string content in
