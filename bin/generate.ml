@@ -104,8 +104,8 @@ let fetch ~token ~period =
   let token = Gitlab.G.Token.of_string token in
   Gitlab.make_activity ~token ~before ~after
 
-let run_engineer conf cal projects token no_activity no_links with_repositories
-    =
+let run_engineer ppf conf cal projects token no_activity no_links
+    with_repositories =
   let open Lwt.Syntax in
   let period = Calendar.to_iso8601 cal in
   let week = Calendar.week cal in
@@ -162,7 +162,7 @@ let run_engineer conf cal projects token no_activity no_links with_repositories
   let pp_footer ppf conf = Fmt.(pf ppf "\n\n%a" string conf) in
   let activity = Activity.make ~projects activity in
   Fmt.(
-    pr "%s\n\n%a%a%a" header (Activity.pp ~no_links ()) activity
+    pf ppf "%s\n\n%a%a%a" header (Activity.pp ~no_links ()) activity
       (Activity.pp_activity ~gitlab:true ~no_links:false ())
       gitlab_activity (option pp_footer) (Conf.footer conf))
 
@@ -172,23 +172,23 @@ let get_or_error = function
       Fmt.epr "%s" m;
       exit 1
 
-let run_monthly cal repos token with_names with_times with_descriptions =
+let run_monthly ppf cal repos token with_names with_times with_descriptions =
   let from, to_ = Calendar.range cal in
   let format_date f = CalendarLib.Printer.Date.fprint "%0Y/%0m/%0d" f in
   let period = Calendar.to_iso8601 cal in
   let projects = Lwt_main.run (Repo_fetch.get ~period ~token repos) in
   Fmt.(
-    pf stdout "# Reports (%a - %a)\n\n%a" format_date from format_date to_
+    pf ppf "# Reports (%a - %a)\n\n%a" format_date from format_date to_
       (Repo_report.pp ~with_names ~with_times ~with_descriptions)
       projects)
 
-let run cal conf token no_activity no_links with_names with_times
+let run ppf cal conf token no_activity no_links with_names with_times
     with_descriptions with_repositories repos = function
   | Engineer ->
-      run_engineer conf cal (Conf.projects conf) token no_activity no_links
+      run_engineer ppf conf cal (Conf.projects conf) token no_activity no_links
         with_repositories
   | Repository ->
-      run_monthly cal repos token with_names with_times with_descriptions
+      run_monthly ppf cal repos token with_names with_times with_descriptions
 
 let term =
   let open Let_syntax_cmdliner in
@@ -210,7 +210,8 @@ let term =
   let with_names = Common.with_names c in
   let with_times = Common.with_days c in
   let with_descriptions = Common.with_description c in
-  run cal conf token no_activity no_links with_names with_times
+  let ppf = Format.formatter_of_out_channel (Common.output c) in
+  run ppf cal conf token no_activity no_links with_names with_times
     with_descriptions with_repositories repos kind
 
 let cmd =
