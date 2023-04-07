@@ -288,22 +288,8 @@ let printconf =
     descriptions;
   }
 
-(* I/O *)
-
-let files = Arg.(value & pos_all non_dir_file [] & info [] ~docv:"FILE")
-
 let output =
   Arg.(value & opt (some string) None & info [ "o"; "output" ] ~docv:"FILE")
-
-let in_place = Arg.(value & flag & info [ "i"; "in-place" ])
-
-let admin_dir =
-  let doc = "Path to the admin directory." in
-  let env = Cmd.Env.info "OKRA_ADMIN_DIR" in
-  Arg.(
-    value
-    & opt (some dir) None
-    & info [ "C"; "admin-dir" ] ~docv:"DIR" ~env ~doc)
 
 type t = {
   okr_db : string option;
@@ -312,10 +298,8 @@ type t = {
   includes : includes;
   printconf : printconf;
   calendar : Okra.Calendar.t;
-  files : string list;
   output : string option;
-  in_place : bool;
-  admin_dir : string option;
+  repo : string option;
   conf : Conf.t;
 }
 
@@ -346,6 +330,12 @@ let conf =
   in
   Term.(const load $ conf_arg)
 
+let repo =
+  let doc = "Path to the repository containing the weekly reports." in
+  let env = Cmd.Env.info "OKRA_REPO" in
+  Arg.(
+    value & opt (some dir) None & info [ "C"; "repo-dir" ] ~docv:"DIR" ~env ~doc)
+
 let term =
   let open Let_syntax_cmdliner in
   let+ () = setup ()
@@ -353,23 +343,19 @@ let term =
   and+ filter = filter
   and+ includes = includes
   and+ printconf = printconf
-  and+ files = files
   and+ conf = conf
   and+ calendar = calendar
-  and+ in_place = in_place
   and+ output = output
-  and+ admin_dir = admin_dir in
+  and+ repo = repo in
   {
     okr_db;
     filter;
     includes;
     printconf;
-    files;
     calendar;
     conf;
-    in_place;
     output;
-    admin_dir;
+    repo;
     okr_db_state = None;
   }
 
@@ -405,41 +391,12 @@ let filter t =
       let extra_filter = Okra.Filter.v ?include_krs:(Some kr_ids) () in
       Okra.Filter.union t.filter extra_filter
 
-let admin_dir t =
-  match t.admin_dir with
-  | Some x -> x
-  | None -> Option.get (Conf.admin_dir t.conf)
+let repo t =
+  match t.repo with Some x -> x | None -> Option.get (Conf.admin_dir t.conf)
 
 let date t = t.calendar
 let year t = Okra.Calendar.year t.calendar
 let weeks t = Okra.Calendar.weeks t.calendar
-
-let read_file f =
-  let ic = open_in f in
-  let s = really_input_string ic (in_channel_length ic) in
-  close_in ic;
-  s
-
-let input t =
-  match t.files with
-  | [] -> Omd.of_channel stdin
-  | fs ->
-      let s = String.concat "\n" (List.map read_file fs) in
-      Omd.of_string s
-
-let input_files t = t.files
-
-let output t =
-  match t.output with
-  | Some f -> open_out f
-  | None -> (
-      if not t.in_place then stdout
-      else
-        match t.files with
-        | [] -> Fmt.invalid_arg "[-i] needs at list an input file."
-        | [ f ] -> open_out f
-        | _ -> Fmt.invalid_arg "[-i] needs at most a file.")
-
 let teams t = Conf.teams t.conf
 let include_sections t = t.includes.include_sections
 let ignore_sections t = t.includes.ignore_sections
@@ -448,3 +405,34 @@ let with_names t = t.printconf.names
 let with_links t = not t.printconf.links
 let with_description t = t.printconf.descriptions
 let conf t = t.conf
+
+let output ?(input_files = []) ?(in_place = false) t =
+  match t.output with
+  | Some f -> open_out f
+  | None -> (
+      if not in_place then stdout
+      else
+        match input_files with
+        | [] -> Fmt.invalid_arg "[-i] needs at list an input file."
+        | [ f ] -> open_out f
+        | _ -> Fmt.invalid_arg "[-i] needs at most a file.")
+
+(* I/O *)
+
+let input_files = Arg.(value & pos_all non_dir_file [] & info [] ~docv:"FILE")
+let in_place = Arg.(value & flag & info [ "i"; "in-place" ])
+
+let read_file f =
+  let ic = open_in f in
+  let s = really_input_string ic (in_channel_length ic) in
+  close_in ic;
+  s
+
+let input =
+  let open Let_syntax_cmdliner in
+  let+ files = input_files in
+  match files with
+  | [] -> Omd.of_channel stdin
+  | fs ->
+      let s = String.concat "\n" (List.map read_file fs) in
+      Omd.of_string s

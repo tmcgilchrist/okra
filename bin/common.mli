@@ -20,12 +20,16 @@ open Cmdliner
 type t
 
 val term : t Term.t
+val input : Omd.doc Term.t
+val input_files : string list Term.t
+val in_place : bool Term.t
+
+(** read parameters *)
+
 val okr_db : t -> Okra.Masterdb.t option
 val filter : t -> Okra.Filter.t
-val admin_dir : t -> string
-val input : t -> Omd.doc
-val input_files : t -> string list
-val output : t -> out_channel
+val repo : t -> string
+val output : ?input_files:string list -> ?in_place:bool -> t -> out_channel
 val conf : t -> Conf.t
 
 (* sections *)

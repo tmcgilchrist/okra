@@ -15,7 +15,12 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *)
 
-type t = { c : Common.t; append_to : string option }
+type t = {
+  c : Common.t;
+  md : Omd.doc;
+  append_to : string option;
+  output : out_channel;
+}
 
 open Cmdliner
 
@@ -35,7 +40,6 @@ let read_file f =
   s
 
 let run conf =
-  let md = Common.input conf.c in
   let oc = Common.output conf.c in
   let okr_db = Common.okr_db conf.c in
   let existing_report =
@@ -53,7 +57,7 @@ let run conf =
       Okra.Report.of_markdown ?existing_report
         ~ignore_sections:(Common.ignore_sections conf.c)
         ~include_sections:(Common.include_sections conf.c)
-        ?okr_db md
+        ?okr_db conf.md
     with e ->
       Logs.err (fun l ->
           l
@@ -73,8 +77,13 @@ let run conf =
 
 let term =
   let open Let_syntax_cmdliner in
-  let+ c = Common.term and+ append_to = append_to in
-  run { c; append_to }
+  let+ c = Common.term
+  and+ append_to = append_to
+  and+ md = Common.input
+  and+ input_files = Common.input_files
+  and+ in_place = Common.in_place in
+  let output = Common.output ~input_files ~in_place c in
+  run { c; md; append_to; output }
 
 let cmd =
   let info =

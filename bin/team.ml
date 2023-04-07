@@ -17,15 +17,15 @@
 open Cmdliner
 
 let lint t =
-  let admin_dir = Common.admin_dir t in
+  let repo = Common.repo t in
   let weeks = Common.weeks t in
   let year = Common.year t in
   let teams = Common.teams t in
-  let lint_report = Okra.Team.lint admin_dir ~year ~weeks teams in
+  let lint_report = Okra.Team.lint repo ~year ~weeks teams in
   Format.printf "%a" Okra.Team.pp_lint_report lint_report
 
 let aggregate t =
-  let admin_dir = Common.admin_dir t in
+  let repo = Common.repo t in
   let okr_db = Common.okr_db t in
   let teams = Common.teams t in
   let year = Common.year t in
@@ -34,7 +34,7 @@ let aggregate t =
     | [ w ] -> w
     | _ -> failwith "provide only one week"
   in
-  let report = Okra.Team.aggregate ?okr_db admin_dir ~year ~week teams in
+  let report = Okra.Team.aggregate ?okr_db repo ~year ~week teams in
   let pp =
     Okra.Report.pp ~show_time:true ~show_time_calc:false ~show_engineers:true
   in

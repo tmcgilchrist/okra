@@ -15,7 +15,7 @@
  *)
 
 type format = Short | Pretty
-type t = { c : Common.t; format : format }
+type t = { c : Common.t; input_files : string list; format : format }
 
 open Cmdliner
 
@@ -54,10 +54,10 @@ let run conf =
   in
   try
     let errors =
-      if Common.input_files conf.c <> [] then
+      if conf.input_files <> [] then
         List.concat_map
           (fun path -> with_in_file path (fun ic -> collect_errors path ic))
-          (Common.input_files conf.c)
+          conf.input_files
       else collect_errors "<stdin>" stdin
     in
     let correct, errors =
@@ -91,8 +91,10 @@ let format_term =
 
 let term =
   let open Let_syntax_cmdliner in
-  let+ c = Common.term and+ format = format_term in
-  run { c; format }
+  let+ c = Common.term
+  and+ format = format_term
+  and+ input_files = Common.input_files in
+  run { c; input_files; format }
 
 let cmd =
   let info =

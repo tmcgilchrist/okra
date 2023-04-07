@@ -16,7 +16,7 @@
  *)
 
 type kind = Projects | Objectives | KRs
-type t = { c : Common.t; kind : kind }
+type t = { c : Common.t; md : Omd.doc; kind : kind }
 
 open Okra
 
@@ -76,12 +76,11 @@ let print kind t =
         krs
 
 let run conf =
-  let md = Common.input conf.c in
   let okrs =
     Okra.Report.of_markdown
       ~ignore_sections:(Common.ignore_sections conf.c)
       ~include_sections:(Common.include_sections conf.c)
-      md
+      conf.md
   in
   let okrs = Okra.Filter.apply (Common.filter conf.c) okrs in
   print conf.kind okrs
@@ -98,8 +97,8 @@ let kind =
 
 let term =
   let open Let_syntax_cmdliner in
-  let+ kind = kind and+ c = Common.term in
-  run { c; kind }
+  let+ kind = kind and+ c = Common.term and+ md = Common.input in
+  run { c; md; kind }
 
 let cmd =
   let info = Cmd.info "stats" ~doc:"show OKR statistics" in
