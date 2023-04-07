@@ -26,6 +26,9 @@ val week : t -> int
 val month : t -> int
 (** [week t] gets the week from [t] *)
 
+val weeks : t -> int list
+(** [to_weeks] returns the list of weeks in the calendar range [t]. *)
+
 val year : t -> int
 (** [year t] gets the year from [t] *)
 

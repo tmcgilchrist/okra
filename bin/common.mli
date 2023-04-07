@@ -17,14 +17,35 @@
 
 open Cmdliner
 
-val include_sections : string list Term.t
-val ignore_sections : string list Term.t
-val include_categories : string list Term.t
-val include_teams : string list Term.t
-val include_reports : string list Term.t
-val filter : Okra.Report.filter Term.t
-val files : string list Term.t
-val output : string option Term.t
-val in_place : bool Term.t
-val setup : unit -> unit Term.t
-val conf : Conf.t Term.t
+type t
+
+val term : t Term.t
+val okr_db : t -> Okra.Masterdb.t option
+val filter : t -> Okra.Filter.t
+val admin_dir : t -> string
+val input : t -> Omd.doc
+val input_files : t -> string list
+val output : t -> out_channel
+val conf : t -> Conf.t
+
+(* sections *)
+
+val include_sections : t -> string list
+val ignore_sections : t -> string list
+
+(* printing options *)
+
+val with_days : t -> bool
+val with_names : t -> bool
+val with_links : t -> bool
+val with_description : t -> bool
+
+(* dates *)
+
+val date : t -> Okra.Calendar.t
+val year : t -> int
+val weeks : t -> int list
+
+(* teams *)
+
+val teams : t -> Okra.Team.t list

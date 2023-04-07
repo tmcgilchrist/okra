@@ -1,7 +1,7 @@
 
 Team Lint example
 
-  $ okra team lint -C admin/ -W 40.42 -Y 2022 --conf ./conf.yml
+  $ okra team lint -C admin/ -W 40-42 -y 2022 --conf ./conf.yml
   === My Team ===
     + Engineer 1
       + Report week 40: Complete ✅

@@ -15,73 +15,9 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *)
 
-type t = {
-  show_time : bool;
-  show_time_calc : bool;
-  show_engineers : bool;
-  ignore_sections : string list;
-  include_sections : string list;
-  include_teams : string list;
-  include_categories : string list;
-  include_reports : string list;
-  filter : Okra.Report.filter;
-  files : string list;
-  in_place : bool;
-  output : string option;
-  okr_db : string option;
-  append_to : string option;
-}
+type t = { c : Common.t; append_to : string option }
 
 open Cmdliner
-
-let show_time_term =
-  let info =
-    Arg.info [ "show-time" ] ~doc:"Include engineering time in output"
-  in
-  Arg.value (Arg.opt Arg.bool true info)
-
-let show_time_calc_term =
-  let info =
-    Arg.info [ "show-time-calc" ]
-      ~doc:
-        "Include intermediate time calculations in output, showing each time \
-         entry found with a sum at the end. This is useful for debugging when \
-         aggregating reports for multiple weeks."
-  in
-  Arg.value (Arg.opt Arg.bool false info)
-
-let show_engineers_term =
-  let info =
-    Arg.info [ "show-engineers" ] ~doc:"Include a list of engineers per KR"
-  in
-  Arg.value (Arg.opt Arg.bool true info)
-
-let engineer_term =
-  let info =
-    Arg.info [ "engineer"; "e" ]
-      ~doc:
-        "Aggregate engineer reports. This is an alias for \
-         --include-sections=\"last week\", --ignore-sections=\"\""
-  in
-  Arg.value (Arg.flag info)
-
-let team_term =
-  let info =
-    Arg.info [ "team"; "t" ]
-      ~doc:
-        "Aggregate team reports. This is an alias for --include-sections=\"\", \
-         --ignore-sections=\"OKR updates\""
-  in
-  Arg.value (Arg.flag info)
-
-let okr_db_term =
-  let info =
-    Arg.info [ "okr-db" ]
-      ~doc:
-        "Replace KR titles, objectives and projects with information from a \
-         CSV. Requires header with columns id,title,objective,project."
-  in
-  Arg.value (Arg.opt (Arg.some Arg.file) None info)
 
 let append_to =
   let info =
@@ -99,29 +35,9 @@ let read_file f =
   s
 
 let run conf =
-  let okr_db =
-    match conf.okr_db with
-    | None -> None
-    | Some f -> Some (Okra.Masterdb.load_csv f)
-  in
-  let md =
-    match conf.files with
-    | [] -> Omd.of_channel stdin
-    | fs ->
-        let s = String.concat "\n" (List.map read_file fs) in
-        Omd.of_string s
-  in
-  let oc =
-    match conf.output with
-    | Some f -> open_out f
-    | None -> (
-        if not conf.in_place then stdout
-        else
-          match conf.files with
-          | [] -> Fmt.invalid_arg "[-i] needs at list an input file."
-          | [ f ] -> open_out f
-          | _ -> Fmt.invalid_arg "[-i] needs at most a file.")
-  in
+  let md = Common.input conf.c in
+  let oc = Common.output conf.c in
+  let okr_db = Common.okr_db conf.c in
   let existing_report =
     match conf.append_to with
     | None -> None
@@ -135,8 +51,9 @@ let run conf =
   let okrs =
     try
       Okra.Report.of_markdown ?existing_report
-        ~ignore_sections:conf.ignore_sections
-        ~include_sections:conf.include_sections ?okr_db md
+        ~ignore_sections:(Common.ignore_sections conf.c)
+        ~include_sections:(Common.include_sections conf.c)
+        ?okr_db md
     with e ->
       Logs.err (fun l ->
           l
@@ -146,80 +63,18 @@ let run conf =
             (Printexc.to_string e));
       exit 1
   in
-  let filters =
-    match okr_db with
-    | None -> conf.filter
-    | Some okr_db ->
-        let additional_krs =
-          Okra.Masterdb.find_krs_for_teams okr_db conf.include_teams
-          @ Okra.Masterdb.find_krs_for_categories okr_db conf.include_categories
-          @ Okra.Masterdb.find_krs_for_reports okr_db conf.include_reports
-        in
-        let kr_ids =
-          List.map
-            (fun f ->
-              Okra.Report.Filter.kr_of_string (f : Okra.Masterdb.elt_t).id)
-            additional_krs
-        in
-        let extra_filter = Okra.Report.Filter.v ?include_krs:(Some kr_ids) () in
-        Okra.Report.Filter.union conf.filter extra_filter
-  in
-  let okrs = Okra.Report.filter filters okrs in
+  let filters = Common.filter conf.c in
+  let okrs = Okra.Filter.apply filters okrs in
   let pp =
-    Okra.Report.pp ~show_time:conf.show_time ~show_time_calc:conf.show_time_calc
-      ~show_engineers:conf.show_engineers
+    Okra.Report.pp ~show_time:(Common.with_days conf.c) ~show_time_calc:false
+      ~show_engineers:(Common.with_names conf.c)
   in
   Okra.Printer.to_channel oc pp okrs
 
-let conf_term =
-  let open Let_syntax_cmdliner in
-  let+ show_time = show_time_term
-  and+ show_time_calc = show_time_calc_term
-  and+ show_engineers = show_engineers_term
-  and+ okr_db = okr_db_term
-  and+ append_to = append_to
-  and+ filter = Common.filter
-  and+ ignore_sections = Common.ignore_sections
-  and+ include_sections = Common.include_sections
-  and+ include_categories = Common.include_categories
-  and+ include_teams = Common.include_teams
-  and+ include_reports = Common.include_reports
-  and+ files = Common.files
-  and+ output = Common.output
-  and+ in_place = Common.in_place
-  and+ conf = Common.conf
-  and+ () = Common.setup () in
-  let okr_db =
-    match (okr_db, Conf.okr_db conf) with Some x, _ -> Some x | None, x -> x
-  in
-  {
-    show_time;
-    show_time_calc;
-    show_engineers;
-    ignore_sections;
-    include_sections;
-    include_categories;
-    include_teams;
-    include_reports;
-    filter;
-    okr_db;
-    files;
-    output;
-    in_place;
-    append_to;
-  }
-
 let term =
   let open Let_syntax_cmdliner in
-  let+ conf = conf_term and+ team = team_term and+ engineer = engineer_term in
-  let conf =
-    if engineer then
-      { conf with ignore_sections = []; include_sections = [ "Last week" ] }
-    else if team then
-      { conf with ignore_sections = [ "OKR Updates" ]; include_sections = [] }
-    else conf
-  in
-  run conf
+  let+ c = Common.term and+ append_to = append_to in
+  run { c; append_to }
 
 let cmd =
   let info =

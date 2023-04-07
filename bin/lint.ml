@@ -15,49 +15,9 @@
  *)
 
 type format = Short | Pretty
-
-type t = {
-  include_sections : string list;
-  ignore_sections : string list;
-  files : string list;
-  format : format;
-}
+type t = { c : Common.t; format : format }
 
 open Cmdliner
-
-let include_sections_term =
-  let info =
-    Arg.info [ "include-sections" ]
-      ~doc:
-        "If non-empty, only lint entries under these sections - everything \
-         else is ignored."
-  in
-  Arg.value (Arg.opt (Arg.list Arg.string) [] info)
-
-let ignore_sections_term =
-  let info =
-    Arg.info [ "ignore-sections" ]
-      ~doc:"If non-empty, don't lint entries under the specified sections."
-  in
-  Arg.value (Arg.opt (Arg.list Arg.string) [ "OKR updates" ] info)
-
-let engineer_term =
-  let info =
-    Arg.info [ "engineer"; "e" ]
-      ~doc:
-        "Lint an engineer report. This is an alias for \
-         --include-sections=\"last week\", --ignore-sections=\"\""
-  in
-  Arg.value (Arg.flag info)
-
-let team_term =
-  let info =
-    Arg.info [ "team"; "t" ]
-      ~doc:
-        "Lint a team report. This is an alias for --include-sections=\"\", \
-         --ignore-sections=\"OKR updates\""
-  in
-  Arg.value (Arg.flag info)
 
 let with_in_file path f =
   let ic = Stdlib.open_in path in
@@ -70,8 +30,10 @@ let pp_status style ppf s = Fmt.(pf ppf "[%a]" style s)
 let run conf =
   let collect_errors name ic =
     match
-      Okra.Lint.lint ~include_sections:conf.include_sections
-        ~ignore_sections:conf.ignore_sections ic
+      Okra.Lint.lint
+        ~include_sections:(Common.include_sections conf.c)
+        ~ignore_sections:(Common.ignore_sections conf.c)
+        ic
     with
     | Ok () -> [ (name, None) ]
     | Error e -> [ (name, Some e) ]
@@ -92,10 +54,10 @@ let run conf =
   in
   try
     let errors =
-      if conf.files <> [] then
+      if Common.input_files conf.c <> [] then
         List.concat_map
           (fun path -> with_in_file path (fun ic -> collect_errors path ic))
-          conf.files
+          (Common.input_files conf.c)
       else collect_errors "<stdin>" stdin
     in
     let correct, errors =
@@ -127,25 +89,10 @@ let format_term =
   in
   if short then Short else Pretty
 
-let conf_term =
-  let open Let_syntax_cmdliner in
-  let+ include_sections = include_sections_term
-  and+ ignore_sections = ignore_sections_term
-  and+ files = Common.files
-  and+ format = format_term
-  and+ () = Common.setup () in
-  { include_sections; ignore_sections; files; format }
-
 let term =
   let open Let_syntax_cmdliner in
-  let+ conf = conf_term and+ engineer = engineer_term and+ team = team_term in
-  let conf =
-    if engineer then
-      { conf with include_sections = [ "Last week" ]; ignore_sections = [] }
-    else if team then { conf with ignore_sections = [ "OKR updates" ] }
-    else conf
-  in
-  run conf
+  let+ c = Common.term and+ format = format_term in
+  run { c; format }
 
 let cmd =
   let info =

@@ -21,7 +21,7 @@ type t = {
   show_engineers : bool;
   ignore_sections : string list;
   include_sections : string list;
-  filter : Okra.Report.Filter.t;
+  filter : Okra.Filter.t;
   okr_db : Okra.Masterdb.t option;
 }
 
@@ -32,7 +32,7 @@ let default_conf =
     show_engineers = true;
     ignore_sections = [];
     include_sections = [];
-    filter = Okra.Report.Filter.empty;
+    filter = Okra.Filter.empty;
     okr_db = None;
   }
 
@@ -50,7 +50,7 @@ let run ?(conf = default_conf) files =
     Okra.Report.of_markdown ~ignore_sections:conf.ignore_sections
       ~include_sections:conf.include_sections ?okr_db:conf.okr_db md
   in
-  let okrs = Okra.Report.filter conf.filter okrs in
+  let okrs = Okra.Filter.apply conf.filter okrs in
   Okra.Report.print ~show_time:conf.show_time
     ~show_time_calc:conf.show_time_calc ~show_engineers:conf.show_engineers okrs
 

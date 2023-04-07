@@ -40,6 +40,7 @@ module Objective : sig
   val find_all : report -> string -> (project * t) list
 end
 
+val empty : unit -> t
 val dump : t Fmt.t
 val of_krs : ?okr_db:Masterdb.t -> KR.t list -> t
 val of_projects : project list -> t
@@ -80,54 +81,3 @@ val pp :
 
 val print :
   ?show_time:bool -> ?show_time_calc:bool -> ?show_engineers:bool -> t -> unit
-
-(** {2 Filtering} *)
-
-module Filter : sig
-  type t
-
-  val empty : t
-
-  val kr_of_string : string -> KR.id
-  (** [kr_of_string s] is [`New_KR] iff [s="New KR"], [`No_kr] iff [s="No KR"],
-      and [`ID s] otherwise. *)
-
-  val string_of_kr : KR.id -> string
-
-  val union : t -> t -> t
-  (** Combine two filters into a new filter *)
-
-  val v :
-    ?include_projects:string list ->
-    ?exclude_projects:string list ->
-    ?include_objectives:string list ->
-    ?exclude_objectives:string list ->
-    ?include_krs:KR.id list ->
-    ?exclude_krs:KR.id list ->
-    ?include_engineers:string list ->
-    ?exclude_engineers:string list ->
-    unit ->
-    t
-  (** Build a filter.
-
-      Keep the KR [k] in the report iff the conjonction of the following is
-      true:
-
-      - [include_project] is not empty AND [k.project] is in [include_projects]
-        OR [exclude_project] is not empty AND [k.project] is not in
-        [exclude_project];
-      - [include_objective] is not empty AND [k.objective] is in
-        [include_objectives] OR [exclude_objectives] is not empty AND
-        [k.objective] is not in [exclude_projects];
-      - [include_krs] is not empty AND [k.krs] is [Some id] AND [id] is in
-        [include_krs] OR [exclude_krs] is not empty AND [k.krs] is [Some id] AND
-        [id] is not in [exclude_projects];
-      - [include_engineers] is not empty AND the intersection of
-        [k.time_per_engineer] and [include_engineers] is not empty OR
-        [exclude_krs] is not empty AND [k.time_per_engineer] and
-        [exclude_engineers] is empty. *)
-end
-
-type filter = Filter.t
-
-val filter : filter -> t -> t

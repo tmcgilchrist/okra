@@ -25,7 +25,17 @@ let year t = Cal.Date.year t.from
 let day = 60. *. 60. *. 24.
 let now () = Cal.now () |> Cal.to_date
 
-(* ISO8601 compliant: https://en.wikipedia.org/wiki/ISO_week_date#Calculating_an_ordinal_or_month_date_from_a_week_date *)
+let weeks { from; to_ } =
+  let result = ref [] in
+  if Cal.Date.year from <> Cal.Date.year to_ then
+    failwith "invalid calendar range";
+  for week = Cal.Date.week from to Cal.Date.week to_ do
+    result := week :: !result
+  done;
+  List.rev !result
+
+(* ISO8601 compliant:
+   https://en.wikipedia.org/wiki/ISO_week_date#Calculating_an_ordinal_or_month_date_from_a_week_date *)
 let monday_of_week week year =
   let fourth =
     Cal.Date.make year 1 4 |> Cal.Date.day_of_week |> Cal.Date.int_of_day
@@ -64,7 +74,8 @@ let of_month ?year month =
 let range { from; to_ } = (from, to_)
 
 let to_iso8601 t =
-  (* We store the dates, not the times as well so we add the extra day minus one second *)
+  (* We store the dates, not the times as well so we add the extra day minus one
+     second *)
   ( Cal.Date.to_unixfloat t.from |> Get_activity.Period.to_8601,
     Cal.Date.to_unixfloat t.to_ +. day -. 1. |> Get_activity.Period.to_8601 )
 
