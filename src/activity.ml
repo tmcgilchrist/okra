@@ -102,8 +102,8 @@ let pp ?(gitlab = false) ?(no_links = false) () ppf
     (pp_activity ~gitlab ~no_links ())
     activity
 
-(* The equivalent get-activity style information for Gitlab
-   is in the Events API *)
+(* The equivalent get-activity style information for Gitlab is in the Events
+   API *)
 module Gitlab = struct
   open Get_activity.Contributions
 

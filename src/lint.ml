@@ -86,8 +86,8 @@ let pp_error ppf = function
 
 let string_of_error = Fmt.to_to_string pp_error
 
-(* Check a single line for formatting errors returning
-   a list of error messages with the position *)
+(* Check a single line for formatting errors returning a list of error messages
+   with the position *)
 let check_line line pos =
   List.fold_left
     (fun acc (regexp, msg) ->
@@ -100,8 +100,8 @@ let grep_n s lines =
     (fun (i, line) -> if Str.string_match re line 0 then Some i else None)
     lines
 
-(* Parse document as a string to check for aggregation errors
-   (assumes no formatting errors) *)
+(* Parse document as a string to check for aggregation errors (assumes no
+   formatting errors) *)
 let check_document ~include_sections ~ignore_sections s =
   let lines =
     String.split_on_char '\n' s |> List.mapi (fun i s -> (i + 1, s))

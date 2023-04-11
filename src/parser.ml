@@ -37,7 +37,7 @@ exception Not_all_includes_accounted_for of string list
 type t =
   | KR_id of KR.id (* ID of KR *)
   | KR_title of string (* Title without ID, tech lead *)
-  | Work of Item.t list (*  Work items *)
+  | Work of Item.t list (* Work items *)
   | Time of string
 
 type markdown = (string * string) list Omd.block list
@@ -153,20 +153,20 @@ let kr ~project ~objective = function
   | [] -> None
   | l ->
       (* This function expects a list of entries for the same KR, typically
-         corresponding to a set of weekly reports. Each list item will consist of
-         a list of okr_t items, which provides time, work items etc for this entry.
+         corresponding to a set of weekly reports. Each list item will consist
+         of a list of okr_t items, which provides time, work items etc for this
+         entry.
 
          This function will aggregate all entries for the same KR in an
-         okr_entry record for easier processing later.
-      *)
+         okr_entry record for easier processing later. *)
       let title = ref "" in
       let id = ref None in
       let time_entries = ref [] in
 
-      (* Assume each item in list has the same O/KR/Proj, so just parse
-         the first one *)
-      (* todo we could sanity check here by verifying that every entry has
-         the same KR/O *)
+      (* Assume each item in list has the same O/KR/Proj, so just parse the
+         first one *)
+      (* todo we could sanity check here by verifying that every entry has the
+         same KR/O *)
       List.iter
         (function
           | KR_title s -> title := s
@@ -188,9 +188,9 @@ let kr ~project ~objective = function
                     | false -> None
                     | true ->
                         let user = Str.matched_group 1 s in
-                        (* todo: let this conversion raise an exception,
-                           would be nice to exit more cleanly, but it
-                           should be fatal *)
+                        (* todo: let this conversion raise an exception, would
+                           be nice to exit more cleanly, but it should be
+                           fatal *)
                         let days = Float.of_string (Str.matched_group 2 s) in
                         Some (user, days))
                   t_split
