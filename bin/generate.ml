@@ -161,10 +161,11 @@ let run_engineer ppf conf cal projects token no_activity no_links
   in
   let pp_footer ppf conf = Fmt.(pf ppf "\n\n%a" string conf) in
   let activity = Activity.make ~projects activity in
-  Fmt.(
-    pf ppf "%s\n\n%a%a%a" header (Activity.pp ~no_links ()) activity
-      (Activity.pp_activity ~gitlab:true ~no_links:false ())
-      gitlab_activity (option pp_footer) (Conf.footer conf))
+  Fmt.pf ppf "%s\n\n%a%a%a%!" header (Activity.pp ~no_links ()) activity
+    (Activity.pp_activity ~gitlab:true ~no_links:false ())
+    gitlab_activity
+    Fmt.(option pp_footer)
+    (Conf.footer conf)
 
 let get_or_error = function
   | Ok v -> v
@@ -177,10 +178,9 @@ let run_monthly ppf cal repos token with_names with_times with_descriptions =
   let format_date f = CalendarLib.Printer.Date.fprint "%0Y/%0m/%0d" f in
   let period = Calendar.to_iso8601 cal in
   let projects = Lwt_main.run (Repo_fetch.get ~period ~token repos) in
-  Fmt.(
-    pf ppf "# Reports (%a - %a)\n\n%a" format_date from format_date to_
-      (Repo_report.pp ~with_names ~with_times ~with_descriptions)
-      projects)
+  Fmt.pf ppf "# Reports (%a - %a)\n\n%a%!" format_date from format_date to_
+    (Repo_report.pp ~with_names ~with_times ~with_descriptions)
+    projects
 
 let run ppf cal conf token no_activity no_links with_names with_times
     with_descriptions with_repositories repos = function
