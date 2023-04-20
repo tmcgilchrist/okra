@@ -242,7 +242,7 @@ let update_from_master_db t db =
       let db_kr = Masterdb.find_title_opt db t.title in
       update t db_kr
 
-let items ?(show_time = true) ?(show_time_calc = true) ?(show_engineers = true)
+let items ?(show_time = true) ?(show_time_calc = false) ?(show_engineers = true)
     kr =
   let open Item in
   let items =

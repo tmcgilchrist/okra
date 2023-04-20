@@ -17,7 +17,7 @@
 let owner_name s =
   match Astring.String.cut ~sep:"/" s with
   | Some t -> t
-  | None -> failwith "failed to get owner and name"
+  | None -> Fmt.failwith "%s: failed to get owner and name" s
 
 module U = Yojson.Safe.Util
 
@@ -169,10 +169,9 @@ module PR = struct
           reviewers (option string)
           (if not with_descriptions then None else Some body))
 
-  (* The Gihub Graphql API doesn't let you specify a from and to
-     for accessing PRs or issues so we have paginate our way back
-     to from if that is necessary. The way to do this is with the
-     cursor *)
+  (* The Gihub Graphql API doesn't let you specify a from and to for accessing
+     PRs or issues so we have paginate our way back to from if that is
+     necessary. The way to do this is with the cursor *)
   let query =
     {| pullRequests (last:100, orderBy: { direction: ASC, field: CREATED_AT }, before: $before_pr) {
     edges {
@@ -361,11 +360,11 @@ module Make (C : Cohttp_lwt.S.Client) = struct
           else Lwt.return (merge_data (data :: acc))
       | before_pr, before_issue, data ->
           let* json =
-            (* TODO: we always ask for all the data even if we don't need more issues
-               when searching for more PRs (and for every repository). For queries not
-               too far in the past, and with not too many repos per query this is okay
-               but in the long-term it might be good to drop parts of the query when they
-               are done. *)
+            (* TODO: we always ask for all the data even if we don't need more
+               issues when searching for more PRs (and for every repository).
+               For queries not too far in the past, and with not too many repos
+               per query this is okay but in the long-term it might be good to
+               drop parts of the query when they are done. *)
             exec ?before_pr ?before_issue ~period ~token (query repos)
           in
           parse (data :: acc) period org name json

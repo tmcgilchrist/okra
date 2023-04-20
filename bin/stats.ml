@@ -16,13 +16,7 @@
  *)
 
 type kind = Projects | Objectives | KRs
-
-type t = {
-  ignore_sections : string list;
-  include_sections : string list;
-  filter : Okra.Report.filter;
-  kind : kind;
-}
+type t = { c : Common.t; md : Omd.doc; kind : kind }
 
 open Okra
 
@@ -82,12 +76,13 @@ let print kind t =
         krs
 
 let run conf =
-  let md = Omd.of_channel stdin in
   let okrs =
-    Okra.Report.of_markdown ~ignore_sections:conf.ignore_sections
-      ~include_sections:conf.include_sections md
+    Okra.Report.of_markdown
+      ~ignore_sections:(Common.ignore_sections conf.c)
+      ~include_sections:(Common.include_sections conf.c)
+      conf.md
   in
-  let okrs = Okra.Report.filter conf.filter okrs in
+  let okrs = Okra.Filter.apply (Common.filter conf.c) okrs in
   print conf.kind okrs
 
 open Cmdliner
@@ -100,19 +95,10 @@ let kind =
   in
   Arg.(value (opt ks KRs i))
 
-let conf_term =
-  let open Let_syntax_cmdliner in
-  let+ kind = kind
-  and+ ignore_sections = Common.ignore_sections
-  and+ include_sections = Common.include_sections
-  and+ filter = Common.filter
-  and+ () = Common.setup () in
-  { ignore_sections; include_sections; filter; kind }
-
 let term =
   let open Let_syntax_cmdliner in
-  let+ conf = conf_term in
-  run conf
+  let+ kind = kind and+ c = Common.term and+ md = Common.input in
+  run { c; md; kind }
 
 let cmd =
   let info = Cmd.info "stats" ~doc:"show OKR statistics" in

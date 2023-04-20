@@ -48,11 +48,11 @@ let filter ?include_projects ?exclude_projects ?include_objectives
     ?exclude_objectives ?include_krs ?exclude_krs ?include_engineers
     ?exclude_engineers t =
   let f =
-    Okra.Report.Filter.v ?include_projects ?exclude_projects ?include_objectives
+    Okra.Filter.v ?include_projects ?exclude_projects ?include_objectives
       ?exclude_objectives ?include_krs ?exclude_krs ?include_engineers
       ?exclude_engineers ()
   in
-  Okra.Report.filter f t
+  Okra.Filter.apply f t
 
 let test_include_projects () =
   let t = report () in

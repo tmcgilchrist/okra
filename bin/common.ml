@@ -17,50 +17,17 @@
 
 open Cmdliner
 
-let include_categories =
-  let i =
-    Arg.info [ "include-categories" ]
+(* DB *)
+let okr_db =
+  let info =
+    Arg.info [ "okr-db" ]
       ~doc:
-        "If non-empty, only aggregate KRs in these categories. Requires a \
-         database."
+        "Replace KR titles, objectives and projects with information from a \
+         CSV. Requires header with columns id,title,objective,project."
   in
-  Arg.(value & opt (list string) [] i)
+  Arg.value (Arg.opt (Arg.some Arg.file) None info)
 
-let include_teams =
-  let i =
-    Arg.info [ "include-teams" ]
-      ~doc:
-        "If non-empty, only aggregate KRs from these teams. Requires a \
-         database."
-  in
-  Arg.(value & opt (list string) [] i)
-
-let include_reports =
-  let i =
-    Arg.info [ "include-reports" ]
-      ~doc:
-        "If non-empty, only aggregate KRs that are included in one of these \
-         reports. Requires a database."
-  in
-  Arg.(value & opt (list string) [] i)
-
-let include_sections =
-  let i =
-    Arg.info [ "include-sections" ]
-      ~doc:
-        "If non-empty, only aggregate entries under these sections - \
-         everything else is ignored."
-  in
-  Arg.(value & opt (list string) [] i)
-
-let ignore_sections =
-  let i =
-    Arg.info [ "ignore-sections" ]
-      ~doc:
-        "If non-empty, ignore everyhing under these sections (titles) from the \
-         report"
-  in
-  Arg.(value & opt (list string) [ "OKR updates" ] i)
+(* Filters *)
 
 let include_projects =
   let i =
@@ -127,32 +94,214 @@ let exclude_engineers =
   in
   Arg.(value (opt (list string) [] i))
 
-let files = Arg.(value & pos_all non_dir_file [] & info [] ~docv:"FILE")
+let engineer_report =
+  let info =
+    Arg.info [ "engineer"; "e" ]
+      ~doc:
+        "Lint an engineer report. This is an alias for \
+         --include-sections=\"last week\", --ignore-sections=\"\""
+  in
+  Arg.value (Arg.flag info)
+
+let team_report =
+  let info =
+    Arg.info [ "team"; "t" ]
+      ~doc:
+        "Lint a team report. This is an alias for --include-sections=\"\", \
+         --ignore-sections=\"OKR updates\""
+  in
+  Arg.value (Arg.flag info)
+
+let filter =
+  let open Let_syntax_cmdliner in
+  let+ include_projects = include_projects
+  and+ exclude_projects = exclude_projects
+  and+ include_objectives = include_objectives
+  and+ exclude_objectives = exclude_objectives
+  and+ include_krs = include_krs
+  and+ exclude_krs = exclude_krs
+  and+ include_engineers = include_engineers
+  and+ exclude_engineers = exclude_engineers in
+  let include_krs = List.map Okra.Filter.kr_of_string include_krs in
+  let exclude_krs = List.map Okra.Filter.kr_of_string exclude_krs in
+  Okra.Filter.v ~include_projects ~exclude_projects ~include_objectives
+    ~exclude_objectives ~include_krs ~exclude_krs ~include_engineers
+    ~exclude_engineers ()
+
+(* more filters.. *)
+
+let include_categories =
+  let i =
+    Arg.info [ "include-categories" ]
+      ~doc:
+        "If non-empty, only aggregate KRs in these categories. Requires a \
+         database."
+  in
+  Arg.(value & opt (list string) [] i)
+
+let include_teams =
+  let i =
+    Arg.info [ "include-teams" ]
+      ~doc:
+        "If non-empty, only aggregate KRs from these teams. Requires a \
+         database."
+  in
+  Arg.(value & opt (list string) [] i)
+
+let include_reports =
+  let i =
+    Arg.info [ "include-reports" ]
+      ~doc:
+        "If non-empty, only aggregate KRs that are included in one of these \
+         reports. Requires a database."
+  in
+  Arg.(value & opt (list string) [] i)
+
+let include_sections =
+  let i =
+    Arg.info [ "include-sections" ]
+      ~doc:
+        "If non-empty, only aggregate entries under these sections - \
+         everything else is ignored."
+  in
+  Arg.(value & opt (list string) [] i)
+
+let ignore_sections =
+  let i =
+    Arg.info [ "ignore-sections" ]
+      ~doc:
+        "If non-empty, ignore everyhing under these sections (titles) from the \
+         report"
+  in
+  Arg.(value & opt (list string) [ "OKR updates" ] i)
+
+type includes = {
+  include_categories : string list; (* not totally sure what these are ... *)
+  include_teams : string list; (* TODO: what it is? *)
+  include_reports : string list; (* TODO: what it is? *)
+  include_sections : string list;
+  ignore_sections : string list;
+}
+
+let includes =
+  let open Let_syntax_cmdliner in
+  let+ include_sections = include_sections
+  and+ ignore_sections = ignore_sections
+  and+ engineer_report = engineer_report
+  and+ team_report = team_report
+  and+ include_categories = include_categories
+  and+ include_reports = include_reports
+  and+ include_teams = include_teams in
+  let include_sections =
+    if engineer_report then [ "Last week" ] else include_sections
+  in
+  let ignore_sections =
+    if team_report then [ "OKR Updates" ] else ignore_sections
+  in
+  {
+    include_sections;
+    ignore_sections;
+    include_teams;
+    include_reports;
+    include_categories;
+  }
+
+(* Calendar term *)
+
+let week =
+  Arg.value
+  @@ Arg.opt Arg.(some int) None
+  @@ Arg.info ~doc:"The week of the year defaulting to the current week"
+       ~docv:"WEEK" [ "w"; "week" ]
+
+let weeks =
+  Arg.value
+  @@ Arg.opt Arg.(some (pair ~sep:'-' int int)) None
+  @@ Arg.info ~doc:"A range specified by a start and end week (inclusive)"
+       ~docv:"WEEKS" [ "W"; "weeks" ]
+
+let month =
+  Arg.value
+  @@ Arg.opt Arg.(some int) None
+  @@ Arg.info
+       ~doc:
+         "The month of the year defaulting to the current month (January = 1)"
+       ~docv:"MONTH" [ "m"; "month" ]
+
+let year =
+  Arg.value
+  @@ Arg.opt Arg.(some int) None
+  @@ Arg.info ~doc:"The year defaulting to the current year" ~docv:"YEAR"
+       [ "y"; "year" ]
+
+let calendar : Okra.Calendar.t Term.t =
+  let open Let_syntax_cmdliner in
+  let module C = CalendarLib.Calendar in
+  let+ week = week and+ weeks = weeks and+ month = month and+ year = year in
+  match (week, weeks, month, year) with
+  | None, None, None, year -> Okra.Calendar.of_week ?year (C.now () |> C.week)
+  | Some week, _, _, year -> Okra.Calendar.of_week ?year week
+  | None, Some range, _, year -> Okra.Calendar.of_week_range ?year range
+  | None, None, Some month, year -> Okra.Calendar.of_month ?year month
+
+(* Report printing configuration *)
+
+let no_links =
+  Arg.value
+  @@ Arg.flag
+  @@ Arg.info ~doc:"Generate shortened GitHub style urls" [ "no-links" ]
+
+let no_names =
+  Arg.value
+  @@ Arg.flag
+  @@ Arg.info ~doc:"Remove names of authors to the generated reports"
+       [ "no-names" ]
+
+let no_days =
+  Arg.value
+  @@ Arg.flag
+  @@ Arg.info ~doc:"Remove days to the generated reports" [ "no-days" ]
+
+let with_descriptions =
+  Arg.value
+  @@ Arg.flag
+  @@ Arg.info ~doc:"Adds the body of the Issue/PR to the report"
+       [ "with-descriptions" ]
+
+type printconf = {
+  links : bool;
+  names : bool;
+  days : bool;
+  descriptions : bool;
+}
+
+let printconf =
+  let open Let_syntax_cmdliner in
+  let+ no_links = no_links
+  and+ no_names = no_names
+  and+ no_days = no_days
+  and+ descriptions = with_descriptions in
+  {
+    links = not no_links;
+    days = not no_days;
+    names = not no_names;
+    descriptions;
+  }
 
 let output =
   Arg.(value & opt (some string) None & info [ "o"; "output" ] ~docv:"FILE")
 
-let in_place = Arg.(value & flag & info [ "i"; "in-place" ])
-
-let filter =
-  let f include_projects exclude_projects include_objectives exclude_objectives
-      include_krs exclude_krs include_engineers exclude_engineers =
-    let include_krs = List.map Okra.Report.Filter.kr_of_string include_krs in
-    let exclude_krs = List.map Okra.Report.Filter.kr_of_string exclude_krs in
-    Okra.Report.Filter.v ~include_projects ~exclude_projects ~include_objectives
-      ~exclude_objectives ~include_krs ~exclude_krs ~include_engineers
-      ~exclude_engineers ()
-  in
-  Term.(
-    const f
-    $ include_projects
-    $ exclude_projects
-    $ include_objectives
-    $ exclude_objectives
-    $ include_krs
-    $ exclude_krs
-    $ include_engineers
-    $ exclude_engineers)
+type t = {
+  okr_db : string option;
+  mutable okr_db_state : Okra.Masterdb.t option;
+  filter : Okra.Filter.t;
+  includes : includes;
+  printconf : printconf;
+  calendar : Okra.Calendar.t;
+  output : string option;
+  repo : string option;
+  conf : Conf.t;
+}
 
 let setup () =
   let open Let_syntax_cmdliner in
@@ -180,3 +329,110 @@ let conf =
     | true -> get_or_error @@ Conf.load okra_file
   in
   Term.(const load $ conf_arg)
+
+let repo =
+  let doc = "Path to the repository containing the weekly reports." in
+  let env = Cmd.Env.info "OKRA_REPO" in
+  Arg.(
+    value & opt (some dir) None & info [ "C"; "repo-dir" ] ~docv:"DIR" ~env ~doc)
+
+let term =
+  let open Let_syntax_cmdliner in
+  let+ () = setup ()
+  and+ okr_db = okr_db
+  and+ filter = filter
+  and+ includes = includes
+  and+ printconf = printconf
+  and+ conf = conf
+  and+ calendar = calendar
+  and+ output = output
+  and+ repo = repo in
+  {
+    okr_db;
+    filter;
+    includes;
+    printconf;
+    calendar;
+    conf;
+    output;
+    repo;
+    okr_db_state = None;
+  }
+
+let okr_db t =
+  match t.okr_db_state with
+  | Some s -> Some s
+  | None -> (
+      let db =
+        match t.okr_db with Some db -> Some db | None -> Conf.okr_db t.conf
+      in
+      match db with
+      | None -> None
+      | Some f ->
+          let state = Okra.Masterdb.load_csv f in
+          t.okr_db_state <- Some state;
+          Some state)
+
+let filter t =
+  match okr_db t with
+  | None -> t.filter
+  | Some okr_db ->
+      let additional_krs =
+        Okra.Masterdb.find_krs_for_teams okr_db t.includes.include_teams
+        @ Okra.Masterdb.find_krs_for_categories okr_db
+            t.includes.include_categories
+        @ Okra.Masterdb.find_krs_for_reports okr_db t.includes.include_reports
+      in
+      let kr_ids =
+        List.map
+          (fun f -> Okra.Filter.kr_of_string (f : Okra.Masterdb.elt_t).id)
+          additional_krs
+      in
+      let extra_filter = Okra.Filter.v ?include_krs:(Some kr_ids) () in
+      Okra.Filter.union t.filter extra_filter
+
+let repo t =
+  match t.repo with Some x -> x | None -> Option.get (Conf.admin_dir t.conf)
+
+let date t = t.calendar
+let year t = Okra.Calendar.year t.calendar
+let weeks t = Okra.Calendar.weeks t.calendar
+let teams t = Conf.teams t.conf
+let include_sections t = t.includes.include_sections
+let ignore_sections t = t.includes.ignore_sections
+let with_days t = t.printconf.days
+let with_names t = t.printconf.names
+let with_links t = not t.printconf.links
+let with_description t = t.printconf.descriptions
+let conf t = t.conf
+
+let output ?(input_files = []) ?(in_place = false) t =
+  match t.output with
+  | Some f -> open_out f
+  | None -> (
+      if not in_place then stdout
+      else
+        match input_files with
+        | [] -> Fmt.invalid_arg "[-i] needs at list an input file."
+        | [ f ] -> open_out f
+        | _ -> Fmt.invalid_arg "[-i] needs at most a file.")
+
+(* I/O *)
+
+let input_files = Arg.(value & pos_all non_dir_file [] & info [] ~docv:"FILE")
+let in_place = Arg.(value & flag & info [ "i"; "in-place" ])
+
+let read_file f =
+  let ic = open_in f in
+  let s = really_input_string ic (in_channel_length ic) in
+  close_in ic;
+  s
+
+let input =
+  let open Let_syntax_cmdliner in
+  let+ files = input_files in
+  match files with
+  | [] -> Omd.of_channel stdin
+  | fs ->
+      let s = String.concat "\n" (List.map read_file fs) in
+      Omd.of_string s
