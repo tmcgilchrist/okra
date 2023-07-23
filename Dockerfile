@@ -5,8 +5,9 @@ COPY okra.opam okra-bin.opam .
 RUN opam install . --depext-only
 RUN opam install . --deps-only --with-test
 COPY . .
-RUN opam exec -- dune build --profile=release
+RUN opam exec -- dune build --profile=dev
 
-FROM scratch
+FROM alpine
 COPY --from=build /src/_build/install/default/bin/okra /okra
+WORKDIR /src
 ENTRYPOINT ["/okra"]
