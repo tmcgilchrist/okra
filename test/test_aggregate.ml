@@ -31,7 +31,8 @@ let test_time_parsing f () =
   Alcotest.(check (float 0.0)) "eng1 time" 3.0 (Hashtbl.find res "eng1");
   Alcotest.(check (float 0.0)) "eng3 time" 5.0 (Hashtbl.find res "eng3");
   Alcotest.(check (float 0.0)) "eng4 time" 1.5 (Hashtbl.find res "eng4");
-  Alcotest.(check (float 0.0)) "eng5 time" 11.0 (Hashtbl.find res "eng5")
+  Alcotest.(check (float 0.0)) "eng5 time" 11.0 (Hashtbl.find res "eng5");
+  Alcotest.(check (float 0.0)) "eng6 time" 1.0 (Hashtbl.find res "eng6")
 
 let tests =
   [

@@ -13,7 +13,7 @@ No KR ID found:
   [ERROR(S)]: <stdin>
   
   In KR "This is a KR":
-    No KR ID found. KRs should be in the format "This is a KR (PLAT123)", where PLAT123 is the KR ID. For KRs that don't have an ID yet, use "New KR" and for work without a KR use "No KR".
+    No KR ID found. WIs should be in the format "This is a WI (#123)", where 123 is the WI issue ID. Legacy KRs should be in the format "This is a KR (PLAT123)", where PLAT123 is the KR ID. have an ID yet, use "New KR" and for work without a KR use "No KR".
   [1]
 
   $ okra lint << EOF
@@ -202,7 +202,7 @@ Format errors
   [ERROR(S)]: err-no-kr-id.md
   
   In KR "Everything is great":
-    No KR ID found. KRs should be in the format "This is a KR (PLAT123)", where PLAT123 is the KR ID. For KRs that don't have an ID yet, use "New KR" and for work without a KR use "No KR".
+    No KR ID found. WIs should be in the format "This is a WI (#123)", where 123 is the WI issue ID. Legacy KRs should be in the format "This is a KR (PLAT123)", where PLAT123 is the KR ID. have an ID yet, use "New KR" and for work without a KR use "No KR".
   [1]
   $ okra lint --short err-no-kr-id.md
   err-no-kr-id.md:3:No KR ID found for "Everything is great"

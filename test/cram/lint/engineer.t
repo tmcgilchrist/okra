@@ -8,10 +8,15 @@ This is a valid one:
   > 
   > - Project1 (KR1)
   > - Project2 (KR2)
+  > - Project3 (#3)
   > 
   > This is not formatted.
   > 
   > # Last week
+  > 
+  > - This is a WI (#123)
+  >   - @eng1 (1 day)
+  >   - My work
   > 
   > - This is a KR (KR123)
   >   - @eng1 (1 day)
@@ -80,5 +85,5 @@ Only "No KR" and "New KR" are supported for KR's without identifiers
   [ERROR(S)]: <stdin>
   
   In KR "This is a KR (Off KR)":
-    No KR ID found. KRs should be in the format "This is a KR (PLAT123)", where PLAT123 is the KR ID. For KRs that don't have an ID yet, use "New KR" and for work without a KR use "No KR".
+    No KR ID found. WIs should be in the format "This is a WI (#123)", where 123 is the WI issue ID. Legacy KRs should be in the format "This is a KR (PLAT123)", where PLAT123 is the KR ID. have an ID yet, use "New KR" and for work without a KR use "No KR".
   [1]
