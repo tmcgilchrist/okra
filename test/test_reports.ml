@@ -53,9 +53,16 @@ let test_kr_agg1 () =
   (* also check that time adds up *)
   Alcotest.(check (float 0.0)) "eng1 time" 4.0 (Hashtbl.find res "eng1")
 
+let test_work_item () =
+  let res = aggregate "./reports/work_item.acc" in
+  Alcotest.(check bool) "#123 exists" true (contains_kr res (ID "#123"));
+  let res = Okra.Aggregate.by_engineer res in
+  Alcotest.(check (float 0.0)) "eng1 time" 1.0 (Hashtbl.find res "eng1")
+
 let tests =
   [
     ("Test_kr_aggregation", `Quick, test_kr_agg1);
     ("Test_newkr_exists", `Quick, test_newkr_exists1);
     ("Test_newkr_replaced", `Quick, test_newkr_replaced1);
+    ("Test_work_item", `Quick, test_work_item);
   ]

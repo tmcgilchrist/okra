@@ -35,6 +35,14 @@ Examples of valid ones:
   >   - More work
   > EOF
   [OK]: <stdin>
+  $ okra lint --team << EOF
+  > # This is a title
+  > 
+  > - This is a WI (#123)
+  >   - @eng1 (1 day)
+  >   - My work
+  > EOF
+  [OK]: <stdin>
 
 Errors are not ignored outside the ignored section
 
