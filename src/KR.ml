@@ -225,13 +225,14 @@ let update_from_master_db t db =
                   "Work logged on KR with no status set, status should be \
                    Active: %S (%S)"
                   db_kr.title db_kr.id));
-        {
-          orig_kr with
-          id = ID db_kr.printable_id;
-          title = db_kr.title;
-          objective = db_kr.objective;
-          project = db_kr.project;
-        }
+        merge orig_kr
+          {
+            orig_kr with
+            id = ID db_kr.printable_id;
+            title = db_kr.title;
+            objective = db_kr.objective;
+            project = db_kr.project;
+          }
   in
 
   match t.id with
