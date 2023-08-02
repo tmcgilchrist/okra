@@ -107,22 +107,13 @@ let load_csv ?(separator = ',') f =
         in
         if e.id = "" then
           raise (Missing_ID (!line, "A unique KR ID is required per line"));
-        if Hashtbl.mem res e.id then
+        if e.id <> "#" && Hashtbl.mem res e.id then
           raise
             (Duplicate_ID (!line, Fmt.str "KR ID \"%s\" is not unique." e.id));
         if e.title = "" then
           raise
             (Missing_title
                (!line, Fmt.str "KR ID \"%s\" does not have a title" e.id));
-        if e.objective = "" then
-          raise
-            (Missing_objective
-               ( !line,
-                 Fmt.str "KR ID \"%s\" does is not part of an objective" e.id ));
-        if e.project = "" then
-          raise
-            (Missing_project
-               (!line, Fmt.str "KR ID \"%s\" does is not part of a project" e.id));
         Hashtbl.add res e.id e)
       rows;
     res
