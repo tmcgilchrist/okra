@@ -28,12 +28,14 @@ type lint_error =
 type lint_result = (unit, lint_error) result
 
 val lint :
+  ?okr_db:Masterdb.t ->
   ?include_sections:string list ->
   ?ignore_sections:string list ->
   in_channel ->
   lint_result
 
 val lint_string_list :
+  ?okr_db:Masterdb.t ->
   ?include_sections:string list ->
   ?ignore_sections:string list ->
   string list ->
