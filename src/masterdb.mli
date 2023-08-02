@@ -24,12 +24,13 @@ exception KR_not_found of string
 type cat_t = Commercial | Community
 
 type status_t =
-  | Active
-  | Dropped
-  | Complete
+  | Draft
   | Scheduled
-  | Unscheduled
-  | Wontfix
+  | Active
+  | Paused
+  | Blocked
+  | Complete
+  | Dropped
 
 type elt_t = private {
   id : string;

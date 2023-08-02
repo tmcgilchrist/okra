@@ -24,12 +24,13 @@ exception KR_not_found of string
 type cat_t = Commercial | Community
 
 type status_t =
-  | Active
-  | Dropped
-  | Complete
+  | Draft
   | Scheduled
-  | Unscheduled
-  | Wontfix
+  | Active
+  | Paused
+  | Blocked
+  | Complete
+  | Dropped
 
 type elt_t = {
   id : string;
@@ -49,23 +50,30 @@ type elt_t = {
 type t = (string, elt_t) Hashtbl.t
 
 let status_of_string s =
-  match String.uppercase_ascii s with
-  | "ACTIVE" -> Some Active
-  | "DROPPED" -> Some Dropped
-  | "COMPLETE" -> Some Complete
-  | "SCHEDULED" -> Some Scheduled
-  | "UNSCHEDULED" -> Some Unscheduled
-  | "WONTFIX" -> Some Wontfix
+  match Astring.String.cuts ~sep:" " (String.uppercase_ascii s) with
+  | "DRAFT" :: _ -> Some Draft
+  | "SCHEDULED" :: _ -> Some Scheduled
+  | "ACTIVE" :: _ -> Some Active
+  | "PAUSED" :: _ -> Some Paused
+  | "BLOCKED" :: _ -> Some Blocked
+  | "DROPPED" :: _ -> Some Dropped
+  | "COMPLETE" :: _ -> Some Complete
   | _ -> None
 
 let string_of_status s =
   match s with
+  | Draft -> "Draft"
+  | Scheduled -> "Scheduled"
   | Active -> "Active"
+  | Paused -> "Paused"
+  | Blocked -> "Blocked"
   | Dropped -> "Dropped"
   | Complete -> "Complete"
-  | Scheduled -> "Scheduled"
-  | Unscheduled -> "Unscheduled"
-  | Wontfix -> "Wontfix"
+
+let normalise_title s =
+  match Astring.String.cut ~sep:":" s with
+  | Some (_, s) -> String.trim s
+  | None -> s
 
 let empty_db = Hashtbl.create 13
 
@@ -93,7 +101,7 @@ let load_csv ?(separator = ',') f =
           {
             id = String.uppercase_ascii printable_id;
             printable_id;
-            title = find_and_trim "title";
+            title = find_and_trim "title" |> normalise_title;
             objective = find_and_trim "objective";
             project = find_and_trim "project";
             schedule = find_and_trim_opt "schedule";
