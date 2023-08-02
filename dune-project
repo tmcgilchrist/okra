@@ -19,7 +19,7 @@
   (alcotest (and (>= 1.7.0) :with-test))
   (mdx (and (>= 2.2.1) :with-test))
   (logs (>= 0.7.0))
-  (lwt_ssl (>= 1.2.0))
+  tls
   (fmt (>= 0.9.0))
   (okra (= :version))
   (cmdliner (>= 1.1.1))
