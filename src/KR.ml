@@ -225,7 +225,7 @@ let update_from_master_db t db =
                   "Work logged on KR with no status set, status should be \
                    Active: %S (%S)"
                   db_kr.title db_kr.id));
-        merge orig_kr
+        let kr =
           {
             orig_kr with
             id = ID db_kr.printable_id;
@@ -233,6 +233,10 @@ let update_from_master_db t db =
             objective = db_kr.objective;
             project = db_kr.project;
           }
+        in
+        (* show the warnings *)
+        ignore (merge orig_kr kr);
+        kr
   in
 
   match t.id with
