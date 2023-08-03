@@ -8,7 +8,6 @@ When `--okr-db` is passed, metadata is fixed.
   > KR1,Actual title,Actual objective,active,,,,team1,category1,Actual project,"report1,report2"
   > Kr2,Actual title 2,Actual objective,active,,,,team1,category2,Actual project,report2
   > KR3,Dropped KR,Actual objective,dropped,,,,team2,category1,Actual project,report1
-  > KR4,Unscheduled KR,Actual objective,unscheduled,,,,team2,category2,Actual project,report1
   > KR5,Missing status KR,Actual objective,,,,,team2,category1,Actual project,report1
   > EOF
 
@@ -21,6 +20,15 @@ When `--okr-db` is passed, metadata is fixed.
   >   - @a (1 day)
   >   - Did all the things
   > EOF
+  okra: [WARNING] Conflicting titles:
+  - "Wrong title"
+  - "Actual title"
+  okra: [WARNING] KR "Wrong title" appears in two projects:
+  - "Wrong project"
+  - "Actual project"
+  okra: [WARNING] KR "Wrong title" appears in two objectives:
+  - "Wrong objective"
+  - "Actual objective"
   # Actual project
   
   ## Actual objective
@@ -66,7 +74,13 @@ It is possible to filter by report.
   >   - @a (1 day)
   >   - Did more of the things
   > EOF
+  okra: [WARNING] KR "Actual title" appears in two projects:
+  - "Project"
+  - "Actual project"
   okra: [WARNING] Work logged on KR marked as "Dropped": "Dropped KR" ("KR3")
+  okra: [WARNING] KR "Dropped KR" appears in two projects:
+  - "Project"
+  - "Actual project"
   # Actual project
   
   ## Actual objective
@@ -88,7 +102,13 @@ It is possible to filter by team.
   >   - @a (1 day)
   >   - Did more of the things
   > EOF
+  okra: [WARNING] KR "Actual title" appears in two projects:
+  - "Project"
+  - "Actual project"
   okra: [WARNING] Work logged on KR marked as "Dropped": "Dropped KR" ("KR3")
+  okra: [WARNING] KR "Dropped KR" appears in two projects:
+  - "Project"
+  - "Actual project"
   # Actual project
   
   ## Actual objective
@@ -110,7 +130,13 @@ It is possible to filter on more than one team.
   >   - @a (1 day)
   >   - Did more of the things
   > EOF
+  okra: [WARNING] KR "Actual title" appears in two projects:
+  - "Project"
+  - "Actual project"
   okra: [WARNING] Work logged on KR marked as "Dropped": "Dropped KR" ("KR3")
+  okra: [WARNING] KR "Dropped KR" appears in two projects:
+  - "Project"
+  - "Actual project"
   # Actual project
   
   ## Actual objective
@@ -252,7 +278,6 @@ Warn when using KRs that are not active or missing status
   > 
   > EOF
   okra: [WARNING] Work logged on KR marked as "Dropped": "Dropped KR" ("KR3")
-  okra: [WARNING] Work logged on KR marked as "Unscheduled": "Unscheduled KR" ("KR4")
   okra: [WARNING] Work logged on KR with no status set, status should be Active: "Missing status KR" ("KR5")
   # Actual project
   
