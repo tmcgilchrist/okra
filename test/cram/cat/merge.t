@@ -66,6 +66,12 @@ Behaviour without a database
 Behaviour with a database
 
   $ cat eng1.md eng2.md | okra cat --okr-db=okrs.csv --engineer > agg.md && cat agg.md
+  okra: [WARNING] KR "A Kr" appears in two projects:
+  - "Last Week"
+  - "Actual project"
+  okra: [WARNING] KR "A Kr" appears in two projects:
+  - "Last Week"
+  - "Actual project"
   # Actual project
   
   ## Actual objective
@@ -76,6 +82,12 @@ Behaviour with a database
     - Some other work
 
   $ okra cat --okr-db=okrs.csv --engineer --append-to=agg.md eng3.md > agg2.md && cat agg2.md
+  okra: [WARNING] KR "A Kr" appears in two projects:
+  - "Last Week"
+  - "Actual project"
+  okra: [WARNING] KR "A Different Kr" appears in two projects:
+  - "Last Week"
+  - "Actual project"
   # Actual project
   
   ## Actual objective
