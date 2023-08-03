@@ -19,7 +19,8 @@
   (alcotest (and (>= 1.7.0) :with-test))
   (mdx (and (>= 2.2.1) :with-test))
   (logs (>= 0.7.0))
-  tls
+   tls-lwt
+   xdg
   (fmt (>= 0.9.0))
   (okra (= :version))
   (cmdliner (>= 1.1.1))
@@ -39,7 +40,7 @@
   (logs (>= 0.7.0))
   (fmt (>= 0.9.0))
   (lwt (>= 5.6.1))
-  (tls (>= 0.17.0))
+  (tls-lwt (>= 0.17.0))
   xdg
   get-activity
   (gitlab (>= 0.1.7))

@@ -9,5 +9,6 @@ RUN opam exec -- dune build --profile=dev
 
 FROM alpine
 COPY --from=build /src/_build/install/default/bin/okra /okra
+RUN apk add gmp
 WORKDIR /src
 ENTRYPOINT ["/okra"]
