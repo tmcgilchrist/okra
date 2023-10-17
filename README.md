@@ -69,7 +69,7 @@ To generate reports this subcommand requires a Github token stored in `~/.github
 
 If you get an HTTPS error while downloading the Github activity, TLS support is probably not compiled into cohttp/conduit. `opam install tls` should fix this.
 
-A list of projects you are working on can be provided in the configuration file in `~/.okra/conf.yaml`, for example:
+A list of projects you are working on can be provided in the configuration file in `~/.config/okra/conf.yaml`, for example:
 
 ```
 projects:
@@ -265,7 +265,7 @@ The `okra cat` command can be used to aggregate multiple engineer reports into o
 
 ## Okra Configuration File
 
-You can store a `conf.yaml` file in `~/.okra` to provide the binary with extra information to help writing weekly reports, aggregating across directories etc. You don't need a configuration file, there is a default one (but it isn't particularly useful).
+You can store a `conf.yaml` file in `~/.config/okra` to provide the binary with extra information to help writing weekly reports, aggregating across directories etc. You don't need a configuration file, there is a default one (but it isn't particularly useful).
 
 ```yaml
 # Projects are used in weekly report generation (optional)
