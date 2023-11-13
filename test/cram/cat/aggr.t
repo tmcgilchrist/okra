@@ -18,6 +18,10 @@ Engineer reports are aggregated correctly
   >   - @eng1 (0.5 days)
   >   - Little bit of work
   > 
+  > - Work without a KR (No WI)
+  >   - @eng1 (1.0 days)
+  >   - Some item of work
+  > 
   > EOF
 
   $ cat > eng2.md << EOF
@@ -62,6 +66,7 @@ Engineer reports are aggregated correctly
     - Some work
   
   - Work without a KR (No KR)
-    - @eng1 (0.5 days), @eng2 (1 day)
+    - @eng1 (1.5 days), @eng2 (1 day)
     - Little bit of work
+    - Some item of work
     - Small bit of work

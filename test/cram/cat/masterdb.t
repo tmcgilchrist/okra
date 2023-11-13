@@ -229,6 +229,29 @@ If KR ID is "No KR", look for title in database to get real KR ID.
     - @a (1 day)
     - Did all the things
 
+If WI ID is "No WI", look for title in database to get real WI ID.
+
+  $ okra cat --okr-db=okrs.csv << EOF
+  > # Actual project
+  > 
+  > ## Actual objective
+  > 
+  > - Actual title (No WI)
+  >   - @a (1 day)
+  >   - Did all the things
+  > 
+  > EOF
+  okra: [WARNING] KR ID updated from "No KR" to "KR1":
+  - "Actual title"
+  - "Actual title"
+  # Actual project
+  
+  ## Actual objective
+  
+  - Actual title (KR1)
+    - @a (1 day)
+    - Did all the things
+
 Use same case for KR ID as in database.
 
   $ okra cat --okr-db=okrs.csv << EOF
