@@ -74,7 +74,8 @@ let is_suffix suffix s =
 
 let parse_okr_title s =
   (* todo: could match on ??) too? *)
-  if is_suffix "(new kr)" s || is_suffix "(new okr)" s then
+  if is_suffix "(new kr)" s || is_suffix "(new okr)" s || is_suffix "(new wi)" s
+  then
     let i = String.rindex s '(' in
     let t = String.trim (String.sub s 0 i) in
     Some (t, KR.New_KR)
@@ -85,7 +86,9 @@ let parse_okr_title s =
     || String.lowercase_ascii s = "off kr"
     || String.lowercase_ascii s = "misc"
   then Some (s, No_KR)
-  else if is_suffix "(no kr)" s || is_suffix "(no okr)" s then
+  else if
+    is_suffix "(no kr)" s || is_suffix "(no okr)" s || is_suffix "(no wi)" s
+  then
     let i = String.rindex s '(' in
     let t = String.trim (String.sub s 0 i) in
     Some (t, No_KR)
