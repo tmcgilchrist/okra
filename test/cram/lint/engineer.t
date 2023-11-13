@@ -85,5 +85,5 @@ Only "No KR" and "New KR" are supported for KR's without identifiers
   [ERROR(S)]: <stdin>
   
   In KR "This is a KR (Off KR)":
-    No KR ID found. WIs should be in the format "This is a WI (#123)", where 123 is the WI issue ID. Legacy KRs should be in the format "This is a KR (PLAT123)", where PLAT123 is the KR ID. have an ID yet, use "New KR" and for work without a KR use "No KR".
+    No KR ID found. WIs should be in the format "This is a WI (#123)", where 123 is the WI issue ID. Legacy KRs should be in the format "This is a KR (PLAT123)", where PLAT123 is the KR ID. For WIs that don't have an ID yet, use "New WI" and for work without a WI use "No WI".
   [1]
