@@ -23,8 +23,8 @@ let string_of_kr = function
 
 let kr_of_string s =
   match String.uppercase_ascii s with
-  | "NEW KR" -> KR.New_KR
-  | "NO KR" -> No_KR
+  | "NEW KR" | "NEW WI" -> KR.New_KR
+  | "NO KR" | "NO WI" -> No_KR
   | _ -> ID s
 
 let kr_set l =
