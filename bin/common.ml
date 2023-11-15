@@ -402,7 +402,7 @@ let include_sections t = t.includes.include_sections
 let ignore_sections t = t.includes.ignore_sections
 let with_days t = t.printconf.days
 let with_names t = t.printconf.names
-let with_links t = not t.printconf.links
+let with_links t = t.printconf.links
 let with_description t = t.printconf.descriptions
 let conf t = t.conf
 
