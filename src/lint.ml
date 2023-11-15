@@ -77,8 +77,8 @@ let pp_error ppf = function
         "@[<hv 2>In KR %S:@ No KR ID found. WIs should be in the format \"This \
          is a WI (#123)\", where 123 is the WI issue ID. Legacy KRs should be \
          in the format \"This is a KR (PLAT123)\", where PLAT123 is the KR ID. \
-         have an ID yet, use \"New KR\" and for work without a KR use \"No \
-         KR\".@]@,"
+         For WIs that don't have an ID yet, use \"New WI\" and for work \
+         without a WI use \"No WI\".@]@,"
         s
   | No_project_found (_, s) ->
       Fmt.pf ppf "@[<hv 2>In KR %S:@ No project found (starting with '#')@]@," s
