@@ -1,5 +1,16 @@
-OKR report aggregation tool
-=======
+<h1 align="center">
+  okra
+</h1>
+
+<p align="center">
+  <strong>OKR report aggregation tool.</strong>
+</p>
+
+<p align="center">
+  <a href="https://ocaml.ci.dev/github/tarides/okra">
+    <img src="https://img.shields.io/endpoint?url=https://ocaml.ci.dev/badge/tarides/okra/main&logo=ocaml" alt="OCaml-CI Build Status" />
+  </a>
+</p>
 
 Prototype aggregation tool and library for markdown-based OKR reports. This is work in progress.
 
