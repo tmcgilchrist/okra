@@ -20,17 +20,15 @@ Each command is described in more detail below.
 
 ## Installation
 
-With opam (remove existing okra-related pins first):
-
+Install opam if you don't already have it, and set up [`tarides/opam-repository`](https://github.com/tarides/opam-repository).
+Then you can install okra with:
 ```
-$ opam pin -y https://github.com/tarides/okra.git#main
+opam install okra
 ```
-
-This should install two packages; `okra` and `okra-bin`. Note that `okra-bin` is required to have the `okra` command in path.
 
 ## Generating weekly engineer reports
 
-A weekly report based on Github activity can be generated using the `okra generate` command. Under the hood it is using [talex5/get-activity](https://github.com/talex5/get-activity) with added markdown formatting.
+A weekly report based on Github activity can be generated using the `okra generate` command. Under the hood it is using [tarides/get-activity](https://github.com/tarides/get-activity) with added markdown formatting.
 
 The output looks like this:
 
@@ -76,7 +74,7 @@ $ okra lint --engineer report.md
 
 ### Configuration
 
-To generate reports this subcommand requires a Github token stored in `~/.github/github-activity-token` to be able to access your activity. New tokens can be added in your Github profile [here](https://github.com/settings/tokens). The token should only have read access - if you just want to show public activity it doesn't need access to any additional scopes. For more details, see [talex5/get-activity](https://github.com/talex5/get-activity).
+To generate reports this subcommand requires a Github token stored in `~/.github/github-activity-token` to be able to access your activity. New tokens can be added in your Github profile [here](https://github.com/settings/tokens). The token should only have read access - if you just want to show public activity it doesn't need access to any additional scopes. For more details, see [tarides/get-activity](https://github.com/tarides/get-activity).
 
 If you get an HTTPS error while downloading the Github activity, TLS support is probably not compiled into cohttp/conduit. `opam install tls` should fix this.
 
