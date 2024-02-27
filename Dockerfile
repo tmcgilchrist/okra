@@ -1,7 +1,7 @@
 FROM ocaml/opam:alpine-ocaml-4.14 AS build
 RUN sudo mv /usr/bin/opam-2.2 /usr/bin/opam
 WORKDIR /src
-COPY okra.opam okra-bin.opam .
+COPY okra-lib.opam okra.opam .
 RUN opam install . --depext-only
 RUN opam install . --deps-only --with-test
 COPY . .
