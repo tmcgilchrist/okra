@@ -310,10 +310,6 @@ You can store a `conf.yaml` file in `~/.config/okra` to provide the binary with 
 # Projects are used in weekly report generation (optional)
 projects:
   - title: "Make okra great (Plat123)"
-# Locations will be used in aggregation across multiple directories (optional)
-locations:
-  - "/path/to/admin/dir1"
-  - "/path/to/admin/dir2"
 # Teams are used for the `okra team` subcommands.
 teams:
   - name: My Team
