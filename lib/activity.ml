@@ -100,23 +100,27 @@ let pp_activity ?(gitlab = false) ~no_links () ppf activity =
 
 let make ~projects activity = { projects; activity }
 
-let pp ?(gitlab = false) ?(no_links = false) () ppf
-    { projects; activity = { username; activity } } =
-  let newline fs () = Fmt.pf fs "@\n" in
-  Fmt.pf ppf
-    {|# Projects
+let pp_projects ~print_projects ppf projects =
+  if print_projects then
+    let newline fs () = Fmt.pf fs "@\n" in
+    Fmt.pf ppf {|# Projects
 
 %a
 
-# Last Week
+|}
+      Fmt.(list ~sep:newline (fun ppf s -> Fmt.pf ppf "- %s" s))
+      (List.map title projects)
+
+let pp ?(gitlab = false) ?(no_links = false) ~print_projects () ppf
+    { projects; activity = { username; activity } } =
+  pp_projects ~print_projects ppf projects;
+  Fmt.pf ppf {|# Last Week
 
 %a
 # Activity (move these items to last week)
 
 %a
 |}
-    Fmt.(list ~sep:newline (fun ppf s -> Fmt.pf ppf "- %s" s))
-    (List.map title projects)
     (pp_last_week ~no_links username)
     projects
     (pp_activity ~gitlab ~no_links ())
