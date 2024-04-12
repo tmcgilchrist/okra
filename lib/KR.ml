@@ -173,7 +173,8 @@ let compare a b =
   | _ -> compare_no_case a.title b.title
 
 let make_engineer ~time (e, d) =
-  if time then Fmt.str "@%s (%a)" e Time.pp d else Printf.sprintf "@%s" e
+  if time then Fmt.str "%a (%a)" (User.pp ~with_link:true) e Time.pp d
+  else Fmt.str "%a" (User.pp ~with_link:true) e
 
 let make_engineers ~time entries =
   let entries = List.of_seq (Hashtbl.to_seq entries) in

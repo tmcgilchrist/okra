@@ -21,13 +21,18 @@ let title { title; _ } = title
 
 type t = { projects : project list; activity : Get_activity.Contributions.t }
 
-let pp_last_week username ppf projects =
+let pp_last_week ?(no_links = false) username ppf projects =
   let pp_items ppf t =
     let t = if t = [] then [ "Work Item 1" ] else t in
     Fmt.(pf ppf "%a" (list (fun ppf s -> Fmt.pf ppf "  - %s" s))) t
   in
   let pp_project ppf { title; items } =
-    Fmt.pf ppf "- %s\n  - @%s (<X> days)\n%a@." title username pp_items items
+    let pp_user ppf = function
+      | "<USERNAME>" as u -> Fmt.pf ppf "@%s" u
+      | u -> User.pp ppf ~with_link:(not no_links) u
+    in
+    Fmt.pf ppf "- %s\n  - %a (<X> days)\n%a@." title pp_user username pp_items
+      items
   in
   Fmt.pf ppf "%a" Fmt.(list ~sep:(cut ++ cut) pp_project) projects
 
@@ -111,7 +116,9 @@ let pp ?(gitlab = false) ?(no_links = false) () ppf
 %a
 |}
     Fmt.(list ~sep:newline (fun ppf s -> Fmt.pf ppf "- %s" s))
-    (List.map title projects) (pp_last_week username) projects
+    (List.map title projects)
+    (pp_last_week ~no_links username)
+    projects
     (pp_activity ~gitlab ~no_links ())
     activity
 
