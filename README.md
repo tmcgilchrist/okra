@@ -7,9 +7,11 @@
 </p>
 
 <p align="center">
+  <!--
   <a href="https://ocaml.ci.dev/github/tarides/okra">
     <img src="https://img.shields.io/endpoint?url=https://ocaml.ci.dev/badge/tarides/okra/main&logo=ocaml" alt="OCaml-CI Build Status" />
   </a>
+  -->
 
   <a href="https://github.com/tarides/okra/actions/workflows/build.yml">
     <img src="https://github.com/tarides/okra/actions/workflows/build.yml/badge.svg?branch=main" alt="Build Status" />
