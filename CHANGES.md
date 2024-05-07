@@ -1,3 +1,9 @@
+## unreleased
+
+### Changed
+
+- Lint: check the quarter of workitems instead of their status (#228, @gpetiot)
+
 ## 0.5.0
 
 ### Changed
