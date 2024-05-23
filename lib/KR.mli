@@ -76,6 +76,12 @@ module Id : sig
   val compare : t -> t -> int
 end
 
+type warning =
+  | Objective_not_found of Work.t
+  | Migration of { work_item : Work.t; objective : Work.t option }
+      (** For retro-compatibility only.
+          This case should be removed once everything has migrated to objectives. *)
+
 val v :
   kind:Kind.t ->
   project:string ->
@@ -87,7 +93,7 @@ val v :
 val dump : t Fmt.t
 val merge : t -> t -> t
 val compare : t -> t -> int
-val update_from_master_db : t -> Masterdb.t -> t
+val update_from_master_db : t -> Masterdb.t -> t * warning option
 
 (** {2 Pretty-print} *)
 

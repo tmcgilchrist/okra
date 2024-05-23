@@ -142,9 +142,9 @@ let remove (t : t) (e : KR.t) =
 let add ?okr_db (t : t) (e : KR.t) =
   Log.debug (fun l -> l "Report.add %a %a" dump t KR.dump e);
   (* replace [e] fields with master db lookup if possible *)
-  let e =
+  let e, lookup_warning =
     match okr_db with
-    | None -> e (* no db *)
+    | None -> (e, None)
     | Some db -> KR.update_from_master_db e db
   in
   (* lookup an existing KR in the report *)
@@ -201,14 +201,15 @@ let add ?okr_db (t : t) (e : KR.t) =
   in
   update t.all_krs;
   (* update [objectives] and [projects] lists *)
-  update o.krs
+  update o.krs;
+  lookup_warning
 
 let empty () = { projects = Hashtbl.create 13; all_krs = empty_krs () }
 
 let of_krs ?okr_db entries =
   let t = empty () in
-  List.iter (add ?okr_db t) entries;
-  t
+  let warnings = List.rev @@ List.filter_map (add ?okr_db t) entries in
+  (t, warnings)
 
 let pp_warning ppf = function
   | Parser.No_time_found s -> Fmt.pf ppf "No time found in %S" s

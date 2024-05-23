@@ -5,6 +5,7 @@ Table of contents
   - [Generating a report](engineers-manual.md#generating-a-report)
     - [Configuration](engineers-manual.md#configuration)
   - [Linting your weekly report](engineers-manual.md#linting-your-weekly-report)
+  - [Rewriting workitems into objectives](#rewriting-workitems-into-objectives)
 - [Team Lead's Manual](team-leads-manual.md)
   - [Aggregating reports](team-leads-manual.md#aggregating-reports)
     - [Aggregating engineer reports](team-leads-manual.md#aggregating-engineer-reports)

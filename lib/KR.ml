@@ -358,21 +358,48 @@ let make_time_entries t =
   let aux (e, d) = Fmt.str "@%s (%a)" e Time.pp d in
   Item.[ Paragraph (Text (String.concat ", " (List.map aux t))) ]
 
+type warning =
+  | Objective_not_found of Work.t
+  | Migration of { work_item : Work.t; objective : Work.t option }
+
 let update_from_master_db orig_kr db =
   match orig_kr.kind with
-  | Meta _ -> orig_kr
+  | Meta _ -> (orig_kr, None)
   | Work orig_work -> (
       let db_kr =
         match orig_work.id with
-        | ID id -> Masterdb.find_kr_opt db id
-        | _ -> Masterdb.find_title_opt db orig_work.title
+        | ID id -> Masterdb.Objective.find_kr_opt db.Masterdb.objective_db id
+        | _ -> Masterdb.Objective.find_title_opt db.objective_db orig_work.title
       in
       match db_kr with
-      | None ->
+      | None -> (
           if orig_work.id = New_KR then
             Log.warn (fun l ->
                 l "KR ID not found for new KR %S" orig_work.title);
-          orig_kr
+          match db.work_item_db with
+          (* Not found in objectives, no WI database *)
+          | None -> (orig_kr, Some (Objective_not_found orig_work))
+          | Some work_item_db -> (
+              match
+                Masterdb.Work_item.find_title_opt work_item_db orig_work.title
+              with
+              (* Not found in objectives, not found in workitems *)
+              | None -> (orig_kr, Some (Objective_not_found orig_work))
+              | Some work_item_kr -> (
+                  let work_item = orig_work in
+                  match
+                    Masterdb.Objective.find_title_opt db.objective_db
+                      work_item_kr.objective
+                  with
+                  (* Not found in objectives, found in WI db, no objective *)
+                  | None ->
+                      (orig_kr, Some (Migration { work_item; objective = None }))
+                  (* Not found in objectives, found in WI db, has objective *)
+                  | Some { printable_id = id; title; quarter; _ } ->
+                      let work = { Work.id = ID id; title; quarter } in
+                      let kr = { orig_kr with kind = Work work } in
+                      (kr, Some (Migration { work_item; objective = Some work }))
+                  )))
       | Some db_kr ->
           if orig_work.id = No_KR then
             Log.warn (fun l ->
@@ -385,12 +412,10 @@ let update_from_master_db orig_kr db =
               quarter = db_kr.quarter;
             }
           in
-          let kr =
-            { orig_kr with kind = Work work; objective = db_kr.objective }
-          in
+          let kr = { orig_kr with kind = Work work } in
           (* show the warnings *)
           ignore (merge orig_kr kr);
-          kr)
+          (kr, None))
 
 let items ?(show_time = true) ?(show_time_calc = false) ?(show_engineers = true)
     kr =

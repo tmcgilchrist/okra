@@ -27,6 +27,7 @@ type lint_error =
   | Not_all_includes of string list
   | Invalid_markdown_in_work_items of int option * string
   | Invalid_quarter of KR.Work.t
+  | Invalid_objective of KR.warning
 
 type lint_result = (unit, lint_error list) result
 

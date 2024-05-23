@@ -1,109 +1,11 @@
+We used to report on workitems and now we use objectives.
 
-Team aggregate example
+During the transition, using workitems makes the linting fail
+and the error message points to the corresponding objective.
 
-  $ okra team aggregate -C admin/ -w 41 -y 2022 --conf ./conf.yml
-  # Last Week
-  
-  - A KR (KR100)
-    - @eng1 (1 day)
-    - Work 1
-  
-  - A KR (KR123)
-    - @eng1 (1 day), @eng2 (1 day)
-    - Work 1
-    - Work 1
-  
-  - A KR (KR124)
-    - @eng2 (1 day)
-    - Work 1
-  
-  - Learning
-    - @eng2 (1 day)
-    - Learn 1
-  
-  - Leave
-    - @eng2 (1 day)
+  $ mkdir -p admin/data
 
-Only select a few okrs
-
-  $ okra team aggregate -C admin/ -w 41 -y 2022 --conf ./conf.yml --include-krs KR123,KR124
-  # Last Week
-  
-  - A KR (KR123)
-    - @eng1 (1 day), @eng2 (1 day)
-    - Work 1
-    - Work 1
-  
-  - A KR (KR124)
-    - @eng2 (1 day)
-    - Work 1
-
-Exclude a few okrs
-
-  $ okra team aggregate -C admin/ -w 41 -y 2022 --conf ./conf.yml --exclude-krs KR123,KR124
-  # Last Week
-  
-  - A KR (KR100)
-    - @eng1 (1 day)
-    - Work 1
-  
-  - Learning
-    - @eng2 (1 day)
-    - Learn 1
-  
-  - Leave
-    - @eng2 (1 day)
-
-Multiple weeks
-
-  $ okra team aggregate -C admin/ -w 40-41 -y 2022 --conf ./conf.yml
-  # Last Week
-  
-  - A KR (KR100)
-    - @eng1 (2 days)
-    - Work 1
-    - Work 1
-  
-  - A KR (KR123)
-    - @eng1 (2 days), @eng2 (2 days)
-    - Work 1
-    - Work 1
-    - Work 1
-    - Work 1
-  
-  - A KR (KR124)
-    - @eng2 (2 days)
-    - Work 1
-    - Work 1
-  
-  - Learning
-    - @eng2 (1 day)
-    - Learn 1
-  
-  - Leave
-    - @eng1 (1 day), @eng2 (1 day)
-
-The result of aggregate should pass the lint
-
-  $ mkdir -p xxx/weekly/2024/10
-
-  $ cat > xxx/weekly/2024/10/eng1.md << EOF
-  > # Last week
-  > 
-  > - Leave (#1074)
-  >   - @dummy (5 days)
-  >   - xxx
-  > EOF
-
-  $ cat > xxx/weekly/2024/10/eng2.md << EOF
-  > # Last week
-  > 
-  > - Leave (#1074)
-  >   - @dummy (5 days)
-  >   - xxx
-  > EOF
-
-  $ cat > db.csv << EOF
+  $ cat > admin/data/db.csv << EOF
   > "id","title","status","quarter","team","pillar","objective","funder","labels","progress"
   > "Absence","Leave","Active 🏗","Rolling","Engineering","All","","","",""
   > "Learn","Learning","Active 🏗","Rolling","Engineering","All","","","",""
@@ -115,27 +17,7 @@ The result of aggregate should pass the lint
   > "#1115","General okra maintenance","Draft","","","","Maintenance - internal tooling","","pillar/ecosystem,team/internal-tooling",""
   > EOF
 
-  $ okra team aggregate --work-item-db db.csv -C xxx -y 2024 -w 10 --conf conf.yml > aggr.md
-
-  $ cat aggr.md
-  # Last week
-  
-  - Leave
-    - @dummy (10 days)
-    - xxx
-    - xxx
-
-  $ cat aggr.md | okra lint
-  [OK]: <stdin>
-
-We used to report on workitems and now we use objectives.
-
-During the transition, using workitems makes the linting fail
-and the error message points to the corresponding objective.
-
-  $ mkdir -p xxx/data
-  $ cp db.csv xxx/data
-  $ cat > xxx/data/team-objectives.csv << EOF
+  $ cat > admin/data/team-objectives.csv << EOF
   > "id","title","status","quarter","team","pillar","objective","funder","labels","progress"
   > "#558","Property-Based Testing for Multicore","In Progress","Q2 2024","Compiler & Language","Compiler","","","Proposal",""
   > "#677","Improve OCaml experience on Windows","Todo","Q2 2024","Multicore applications","Ecosystem","","","",""
@@ -144,8 +26,7 @@ and the error message points to the corresponding objective.
 
 This weekly is using using workitems:
 
-  $ mkdir -p xxx/weekly/2024/01
-  $ cat > xxx/weekly/2024/01/eng1.md << EOF
+  $ cat > eng1.md << EOF
   > # Last Week
   > 
   > - Property-Based Testing for Multicore (#1090)
@@ -162,8 +43,7 @@ This weekly is using using workitems:
 
 This weekly is using objectives:
 
-  $ mkdir -p xxx/weekly/2024/02
-  $ cat > xxx/weekly/2024/02/eng2.md << EOF
+  $ cat > eng2.md << EOF
   > # Last Week
   > 
   > - Property-Based Testing for Multicore (#558)
@@ -178,7 +58,7 @@ This weekly is using objectives:
   >   - @eng2 (2 days)
   > EOF
 
-  $ okra team aggregate -C xxx -y 2024 -w 01-02 --conf conf.yml
+  $ cat eng1.md eng2.md | okra cat -C admin --engineer
   # Last Week
   
   - Application and Operational Metrics (#1058)
@@ -196,3 +76,43 @@ This weekly is using objectives:
   
   - Leave
     - @eng1 (2 days), @eng2 (2 days)
+
+# Automatic update of weekly using okra cat
+
+  $ cat > eng1.workitems.md << EOF
+  > # Last Week
+  > 
+  > - Property-Based Testing for Multicore (#1090)
+  >   - @eng1 (3 days)
+  >   - This is a workitem with a parent objective in the DB
+  > 
+  > - Leave
+  >   - @eng1 (2 days)
+  > EOF
+
+Linting of the original file fails because we used workitems
+
+  $ okra lint -e -C admin eng1.workitems.md
+  [ERROR(S)]: eng1.workitems.md
+  
+  Invalid objective:
+    "Property-Based Testing for Multicore" is a work-item, you should use its parent objective "Property-Based Testing for Multicore" instead
+  [1]
+
+We rewrite the file using okra cat
+
+  $ okra cat -e -C admin eng1.workitems.md -o eng1.objectives.md
+  $ cat eng1.objectives.md
+  # Last Week
+  
+  - Property-Based Testing for Multicore (#558)
+    - @eng1 (3 days)
+    - This is a workitem with a parent objective in the DB
+  
+  - Leave
+    - @eng1 (2 days)
+
+Linting of the produced file succeeds because we now use objectives
+
+  $ okra lint -e -C admin eng1.objectives.md
+  [OK]: eng1.objectives.md
