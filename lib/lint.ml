@@ -17,21 +17,85 @@
 
 let ( let* ) = Result.bind
 
-type lint_error =
-  | Format_error of (int * string) list
-  | No_time_found of int option * string
-  | Invalid_time of { lnum : int option; title : string; entry : string }
-  | Invalid_total_time of string * Time.t * Time.t
-  | Multiple_time_entries of int option * string
-  | No_work_found of int option * string
-  | No_KR_ID_found of int option * string
-  | No_project_found of int option * string
-  | Not_all_includes of string list
-  | Invalid_markdown_in_work_items of int option * string
-  | Invalid_quarter of KR.Work.t
-  | Invalid_objective of KR.warning
+module Error = struct
+  type t =
+    | Format_error of (int * string) list
+    | Parsing_error of int option * Parser.Warning.t
+    | Invalid_total_time of string * Time.t * Time.t
+    | Invalid_quarter of int option * KR.Work.t
+    | Invalid_objective of int option * KR.Warning.t
 
-type lint_result = (unit, lint_error list) result
+  let pp_error_kw =
+    Fmt.styled `Bold
+    @@ Fmt.styled (`Fg `Red)
+    @@ fun ppf () -> Fmt.pf ppf "%s" "Error"
+
+  let pp ~filename ppf =
+    let pp_loc =
+      Fmt.styled `Bold @@ fun ppf (filename, line_number) ->
+      Fmt.pf ppf "File %S, line %i" filename line_number
+    in
+    let pf line_number_opt k =
+      let line_number = Option.value ~default:1 line_number_opt in
+      k (fun ppf ->
+          Fmt.pf ppf "@[<hv 0>@{<loc>%a@}:@\n%a: " pp_loc
+            (filename, line_number) pp_error_kw ();
+          Fmt.kpf (fun ppf -> Fmt.pf ppf "@]@,") ppf)
+    in
+    function
+    | Format_error x ->
+        let pp_msg ppf (pos, msg) =
+          Fmt.pf ppf "File %S, line %d:@\nError: %s" filename pos msg
+        in
+        Fmt.pf ppf "@[<v 0>%a@]" (Fmt.list ~sep:Fmt.sp pp_msg) x
+    | Parsing_error (line_number, w) ->
+        pf line_number (fun m -> m ppf "@[<hv 0>%a@]" Parser.Warning.pp w)
+    | Invalid_total_time (s, t, total) ->
+        pf None (fun m ->
+            m ppf
+              "@[<hv 0>Invalid total time found for %s:@ Reported %a, expected \
+               %a.@]"
+              s Time.pp t Time.pp total)
+    | Invalid_quarter (line_number, kr) ->
+        pf line_number (fun m ->
+            m ppf
+              "@[<hv 0>In objective \"%a\":@ Work logged on objective \
+               scheduled for %a@]"
+              KR.Work.pp kr (Fmt.option Quarter.pp) kr.quarter)
+    | Invalid_objective (line_number, w) ->
+        pf line_number (fun m -> m ppf "@[<hv 0>%a@]" KR.Warning.pp w)
+
+  let pp_short ~filename ppf =
+    let pp_loc =
+      Fmt.styled `Bold @@ fun ppf (filename, line_number) ->
+      Fmt.pf ppf "%s:%i" filename line_number
+    in
+    let pf line_number_opt k =
+      let line_number = Option.value ~default:1 line_number_opt in
+      k (fun ppf ->
+          Fmt.pf ppf "@[<hv 0>@{<loc>%a@}: " pp_loc (filename, line_number);
+          Fmt.kpf (fun ppf -> Fmt.pf ppf "@]@,") ppf)
+    in
+    function
+    | Format_error errs ->
+        List.iter
+          (fun (line_number, message) ->
+            pf (Some line_number) (fun m -> m ppf "%s" message))
+          errs
+    | Parsing_error (line_number, w) ->
+        pf line_number (fun m -> m ppf "%a" Parser.Warning.pp_short w)
+    | Invalid_total_time (s, t, total) ->
+        pf None (fun m ->
+            m ppf "Invalid total time for %S (%a/%a)" s Time.pp t Time.pp total)
+    | Invalid_quarter (line_number, kr) ->
+        pf line_number (fun m ->
+            m ppf "Using KR of invalid quarter: \"%a\" (%a)" KR.Work.pp kr
+              (Fmt.option Quarter.pp) kr.quarter)
+    | Invalid_objective (line_number, w) ->
+        pf line_number (fun m -> m ppf "%a" KR.Warning.pp_short w)
+end
+
+type lint_result = (unit, Error.t list) result
 
 let fail_fmt_patterns =
   [
@@ -54,70 +118,6 @@ let fail_fmt_patterns =
       "Placeholder text detected. Replace with actual activity." );
   ]
 
-let pp_error ppf = function
-  | Format_error x ->
-      let pp_msg ppf (pos, msg) = Fmt.pf ppf "Line %d: %s" pos msg in
-      Fmt.pf ppf "@[<v 0>%a@,%d formatting errors found. Parsing aborted.@]"
-        (Fmt.list ~sep:Fmt.sp pp_msg)
-        x (List.length x)
-  | No_time_found (_, s) ->
-      Fmt.pf ppf
-        "@[<hv 2>In KR %S:@ No time entry found. Each KR must be followed by \
-         '- @@... (x days)'@]@,"
-        s
-  | Invalid_time { lnum = _; title; entry } ->
-      Fmt.pf ppf
-        "@[<hv 2>In KR %S:@ Invalid time entry %S found. Format is '- @@eng1 \
-         (x days), @@eng2 (y days)'@ where x and y must be divisible by 0.5@]@,"
-        title entry
-  | Invalid_total_time (s, t, total) ->
-      Fmt.pf ppf
-        "@[<hv 2>Invalid total time found for %s (reported %a, expected %a).@]@,"
-        s Time.pp t Time.pp total
-  | Multiple_time_entries (_, s) ->
-      Fmt.pf ppf
-        "@[<hv 2>In KR %S:@ Multiple time entries found. Only one time entry \
-         should follow immediately after the KR.@]@,"
-        s
-  | No_work_found (_, s) ->
-      Fmt.pf ppf
-        "@[<hv 2>In KR %S:@ No work items found. This may indicate an \
-         unreported parsing error. Remove the KR if it is without work.@]@,"
-        s
-  | No_KR_ID_found (_, s) ->
-      Fmt.pf ppf
-        "@[<hv 2>In KR %S:@ No KR ID found. WIs should be in the format \"This \
-         is a WI (#123)\", where 123 is the WI issue ID. Legacy KRs should be \
-         in the format \"This is a KR (PLAT123)\", where PLAT123 is the KR ID. \
-         For WIs that don't have an ID yet, use \"New WI\" and for work \
-         without a WI use \"No WI\".@]@,"
-        s
-  | No_project_found (_, s) ->
-      Fmt.pf ppf "@[<hv 2>In KR %S:@ No project found (starting with '#')@]@," s
-  | Not_all_includes s ->
-      Fmt.pf ppf "Missing includes section: %a\n" Fmt.(list ~sep:comma string) s
-  | Invalid_markdown_in_work_items (_, s) ->
-      Fmt.pf ppf "@[<hv 2>Invalid markdown in work items:@ %s@]@," s
-  | Invalid_quarter kr ->
-      Fmt.pf ppf "@[<hv 2>In WI %S:@ Work logged on WI scheduled for %a@]@,"
-        kr.title (Fmt.option Quarter.pp) kr.quarter
-  | Invalid_objective w -> (
-      match w with
-      | Objective_not_found x ->
-          Fmt.pf ppf "@[<hv 2>Invalid objective:@ %S@]@," x.title
-      | Migration { work_item; objective = None } ->
-          Fmt.pf ppf
-            "@[<hv 2>Invalid objective:@ \"%a\" is a work-item, you should use \
-             an objective instead@]@,"
-            KR.Work.pp work_item
-      | Migration { work_item; objective = Some obj } ->
-          Fmt.pf ppf
-            "@[<hv 2>Invalid objective:@ \"%a\" is a work-item, you should use \
-             its parent objective \"%a\" instead@]@,"
-            KR.Work.pp work_item KR.Work.pp obj)
-
-let string_of_error = Fmt.to_to_string pp_error
-
 (* Check a single line for formatting errors returning a list of error messages
    with the position *)
 let check_line line pos =
@@ -132,17 +132,13 @@ let grep_n s lines =
     (fun (i, line) -> if Str.string_match re line 0 then Some i else None)
     lines
 
-let add_context lines = function
-  | Parser.No_time_found s -> No_time_found (grep_n s lines, s)
-  | Parser.Invalid_time { title; entry } ->
-      Invalid_time { lnum = grep_n entry lines; title; entry }
-  | Parser.Multiple_time_entries s -> Multiple_time_entries (grep_n s lines, s)
-  | Parser.No_work_found s -> No_work_found (grep_n s lines, s)
-  | Parser.No_KR_ID_found s -> No_KR_ID_found (grep_n s lines, s)
-  | Parser.No_project_found s -> No_project_found (grep_n s lines, s)
-  | Parser.Not_all_includes_accounted_for s -> Not_all_includes s
-  | Parser.Invalid_markdown_in_work_items s ->
-      Invalid_markdown_in_work_items (grep_n s lines, s)
+let add_context lines w =
+  let line_number =
+    match Parser.Warning.greppable w with
+    | Some s -> grep_n s lines
+    | None -> None
+  in
+  Error.Parsing_error (line_number, w)
 
 let check_total_time ?check_time (krs : KR.t list) report_kind =
   match report_kind with
@@ -167,17 +163,19 @@ let check_total_time ?check_time (krs : KR.t list) report_kind =
         (fun name time acc ->
           let* () = acc in
           if Time.equal time expected then Ok ()
-          else Error (Invalid_total_time (name, time, expected)))
+          else Error (Error.Invalid_total_time (name, time, expected)))
         tbl (Ok ())
 
-let check_quarters quarter krs warnings =
+let check_quarters quarter krs warnings lines =
   List.fold_left
     (fun acc kr ->
       match kr.KR.kind with
       | Meta _ -> acc
       | Work w ->
           if Quarter.check quarter w.quarter then acc
-          else Invalid_quarter w :: acc)
+          else
+            let line_number = grep_n w.title lines in
+            Error.Invalid_quarter (line_number, w) :: acc)
     warnings krs
 
 let maybe_emit warnings =
@@ -208,12 +206,18 @@ let check_document ?okr_db ~include_sections ~ignore_sections ?check_time
   let report, report_warnings = Report.of_krs ?okr_db okrs in
   let warnings =
     List.fold_left
-      (fun acc w -> Invalid_objective w :: acc)
+      (fun acc w ->
+        let line_number =
+          match KR.Warning.greppable w with
+          | Some s -> grep_n s lines
+          | None -> None
+        in
+        Error.Invalid_objective (line_number, w) :: acc)
       warnings report_warnings
   in
   let* () = maybe_emit warnings in
   let krs = Report.all_krs report in
-  let warnings = check_quarters quarter krs warnings in
+  let warnings = check_quarters quarter krs warnings lines in
   let* () = maybe_emit warnings in
   Ok ()
 
@@ -222,7 +226,7 @@ let document_ok ?okr_db ~include_sections ~ignore_sections ~format_errors
   if !format_errors <> [] then
     Error
       [
-        Format_error
+        Error.Format_error
           (List.sort (fun (x, _) (y, _) -> compare x y) !format_errors);
       ]
   else
@@ -261,53 +265,3 @@ let lint ?okr_db ?(include_sections = []) ?(ignore_sections = []) ?check_time
   let s = check_and_read (Buffer.create 1024) ic 1 in
   document_ok ?okr_db ~include_sections ~ignore_sections ~format_errors
     ?check_time ?report_kind ~filename s
-
-let short_messages_of_error file_name =
-  let short_message line_number msg =
-    [ Printf.sprintf "%s:%d:%s" file_name line_number msg ]
-  in
-  let short_messagef line_number_opt fmt =
-    let line_number = Option.value ~default:1 line_number_opt in
-    Format.kasprintf (short_message line_number) fmt
-  in
-  function
-  | Format_error errs ->
-      List.concat_map
-        (fun (line_number, message) -> short_message line_number message)
-        errs
-  | No_time_found (line_number, kr) ->
-      short_messagef line_number "No time found in %S" kr
-  | Invalid_time { lnum; title; entry } ->
-      short_messagef lnum "Invalid time entry %S in %S" entry title
-  | Invalid_total_time (s, t, total) ->
-      short_messagef None "Invalid total time for %S (%a/%a)" s Time.pp t
-        Time.pp total
-  | Multiple_time_entries (line_number, kr) ->
-      short_messagef line_number "Multiple time entries for %S" kr
-  | No_work_found (line_number, kr) ->
-      short_messagef line_number "No work found for %S" kr
-  | No_KR_ID_found (line_number, kr) ->
-      short_messagef line_number "No KR ID found for %S" kr
-  | No_project_found (line_number, kr) ->
-      short_messagef line_number "No project found for %S" kr
-  | Not_all_includes l ->
-      short_messagef None "Missing includes section: %s" (String.concat ", " l)
-  | Invalid_markdown_in_work_items (line_number, s) ->
-      short_messagef line_number "Invalid markdown in work items: %s" s
-  | Invalid_quarter kr ->
-      short_messagef None "Using KR of invalid quarter: %S (%a)" kr.title
-        (Fmt.option Quarter.pp) kr.quarter
-  | Invalid_objective w -> (
-      match w with
-      | Objective_not_found x ->
-          short_messagef None "Invalid objective: %S" x.title
-      | Migration { work_item; objective = None } ->
-          short_messagef None
-            "Invalid objective:@ \"%a\" is a work-item, an objective should be \
-             used instead"
-            KR.Work.pp work_item
-      | Migration { work_item; objective = Some obj } ->
-          short_messagef None
-            "Invalid objective:@ \"%a\" is a work-item, its parent objective \
-             \"%a\" should be used instead"
-            KR.Work.pp work_item KR.Work.pp obj)

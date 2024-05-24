@@ -15,21 +15,19 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *)
 
-type lint_error =
-  | Format_error of (int * string) list
-  | No_time_found of int option * string
-  | Invalid_time of { lnum : int option; title : string; entry : string }
-  | Invalid_total_time of string * Time.t * Time.t
-  | Multiple_time_entries of int option * string
-  | No_work_found of int option * string
-  | No_KR_ID_found of int option * string
-  | No_project_found of int option * string
-  | Not_all_includes of string list
-  | Invalid_markdown_in_work_items of int option * string
-  | Invalid_quarter of KR.Work.t
-  | Invalid_objective of KR.warning
+module Error : sig
+  type t =
+    | Format_error of (int * string) list
+    | Parsing_error of int option * Parser.Warning.t
+    | Invalid_total_time of string * Time.t * Time.t
+    | Invalid_quarter of int option * KR.Work.t
+    | Invalid_objective of int option * KR.Warning.t
 
-type lint_result = (unit, lint_error list) result
+  val pp_short : filename:string -> t Fmt.t
+  val pp : filename:string -> t Fmt.t
+end
+
+type lint_result = (unit, Error.t list) result
 
 val lint :
   ?okr_db:Masterdb.t ->
@@ -51,7 +49,3 @@ val lint_string_list :
   string list ->
   lint_result
 (** [lint_string_list] is like {!lint} except the input is a list of lines *)
-
-val string_of_error : lint_error -> string
-val short_messages_of_error : string -> lint_error -> string list
-val pp_error : Format.formatter -> lint_error -> unit

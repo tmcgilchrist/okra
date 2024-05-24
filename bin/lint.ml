@@ -40,14 +40,10 @@ let run conf =
     | Ok () -> (name, [])
     | Error errors -> (name, errors)
   in
-  let report_error name e =
+  let report_error filename e =
     match conf.format with
-    | Pretty ->
-        Fmt.(
-          pf stderr "%a: %s\n\n%s" (pp_status red) "ERROR(S)" name
-            (Okra.Lint.string_of_error e))
-    | Short ->
-        List.iter print_endline (Okra.Lint.short_messages_of_error name e)
+    | Pretty -> Fmt.(pf stderr "%a" (Okra.Lint.Error.pp ~filename) e)
+    | Short -> Fmt.(pf stderr "%a" (Okra.Lint.Error.pp_short ~filename) e)
   in
   let report_ok (name, _) =
     match conf.format with

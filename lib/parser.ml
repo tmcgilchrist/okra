@@ -21,15 +21,81 @@ let src = Logs.Src.create "okra.parser"
 module Log = (val Logs.src_log src : Logs.LOG)
 open Omd
 
-type warning =
-  | No_time_found of string
-  | Multiple_time_entries of string
-  | Invalid_time of { title : string; entry : string }
-  | No_work_found of string
-  | No_KR_ID_found of string
-  | No_project_found of string
-  | Not_all_includes_accounted_for of string list
-  | Invalid_markdown_in_work_items of string
+module Warning = struct
+  type t =
+    | No_time_found of KR.Heading.t
+    | Multiple_time_entries of KR.Heading.t
+    | Invalid_time of { kr : KR.Heading.t; entry : string }
+    | No_work_found of KR.Heading.t
+    | No_KR_ID_found of string
+    | No_project_found of KR.Heading.t
+    | Not_all_includes_accounted_for of string list
+    | Invalid_markdown_in_work_items of string
+
+  let pp ppf = function
+    | No_time_found kr ->
+        Fmt.pf ppf
+          "In objective \"%a\":@ No time entry found. Each objective must be \
+           followed by '- @@... (x days)'"
+          KR.Heading.pp kr
+    | Invalid_time { kr; entry } ->
+        Fmt.pf ppf
+          "In objective \"%a\":@ Invalid time entry %S found. Format is '- \
+           @@eng1 (x days), @@eng2 (y days)'@ where x and y must be divisible \
+           by 0.5"
+          KR.Heading.pp kr entry
+    | Multiple_time_entries kr ->
+        Fmt.pf ppf
+          "In objective \"%a\":@ Multiple time entries found. Only one time \
+           entry should follow immediately after the objective."
+          KR.Heading.pp kr
+    | No_work_found kr ->
+        Fmt.pf ppf
+          "In objective \"%a\":@ No work items found. This may indicate an \
+           unreported parsing error. Remove the objective if it is without \
+           work."
+          KR.Heading.pp kr
+    | No_KR_ID_found s ->
+        Fmt.pf ppf
+          "In objective %S:@ No ID found. Objectives should be in the format \
+           \"This is an objective (#123)\", where 123 is the objective issue \
+           ID. For objectives that don't have an ID yet, use \"New KR\" and \
+           for work without an objective use \"No KR\"."
+          s
+    | No_project_found kr ->
+        Fmt.pf ppf "In objective \"%a\":@ No project found (starting with '#')"
+          KR.Heading.pp kr
+    | Not_all_includes_accounted_for s ->
+        Fmt.pf ppf "Missing includes section:@ %a"
+          Fmt.(list ~sep:comma string)
+          s
+    | Invalid_markdown_in_work_items s -> Fmt.pf ppf "Invalid markdown:@ %s" s
+
+  let pp_short ppf = function
+    | No_time_found kr -> Fmt.pf ppf "No time found in \"%a\"" KR.Heading.pp kr
+    | Invalid_time { kr; entry } ->
+        Fmt.pf ppf "Invalid time entry %S in \"%a\"" entry KR.Heading.pp kr
+    | Multiple_time_entries kr ->
+        Fmt.pf ppf "Multiple time entries for \"%a\"" KR.Heading.pp kr
+    | No_work_found kr -> Fmt.pf ppf "No work found for \"%a\"" KR.Heading.pp kr
+    | No_KR_ID_found kr -> Fmt.pf ppf "No KR ID found for %S" kr
+    | No_project_found kr ->
+        Fmt.pf ppf "No project found for \"%a\"" KR.Heading.pp kr
+    | Not_all_includes_accounted_for l ->
+        Fmt.pf ppf "Missing includes section: %s" (String.concat ", " l)
+    | Invalid_markdown_in_work_items s ->
+        Fmt.pf ppf "Invalid markdown in work items: %s" s
+
+  let greppable = function
+    | No_time_found s -> Some (Fmt.str "%a" KR.Heading.pp s)
+    | Invalid_time { kr = _; entry } -> Some entry
+    | Multiple_time_entries s -> Some (Fmt.str "%a" KR.Heading.pp s)
+    | No_work_found s -> Some (Fmt.str "%a" KR.Heading.pp s)
+    | No_KR_ID_found s -> Some s
+    | No_project_found s -> Some (Fmt.str "%a" KR.Heading.pp s)
+    | Not_all_includes_accounted_for _ -> None
+    | Invalid_markdown_in_work_items s -> Some s
+end
 
 (* Types for parsing the AST *)
 type t =
@@ -40,7 +106,7 @@ type t =
 type markdown = Omd.doc
 type report_kind = Engineer | Team
 
-let warnings : warning list ref = ref []
+let warnings : Warning.t list ref = ref []
 let add_warning w = warnings := w :: !warnings
 let obj_re = Str.regexp "\\(.+\\) (\\([a-zA-Z ]+\\))$"
 (* Header: This is an objective (Tech lead name) *)
@@ -76,7 +142,7 @@ let err_multiple_time_entries s = add_warning (Multiple_time_entries s)
 let err_markdown s = add_warning (Invalid_markdown_in_work_items s)
 let err_no_work s = add_warning (No_work_found s)
 let err_no_id s = add_warning (No_KR_ID_found s)
-let err_time ~title ~entry = add_warning (Invalid_time { title; entry })
+let err_time ~kr ~entry = add_warning (Invalid_time { kr; entry })
 let err_no_time s = add_warning (No_time_found s)
 let err_missing_includes s = add_warning (Not_all_includes_accounted_for s)
 
@@ -134,8 +200,6 @@ let kr ~project ~objective = function
          This function will aggregate all entries for the same KR in an
          okr_entry record for easier processing later. *)
       let kr_heading = ref None in
-      (* for error messages only *)
-      let title = ref "" in
       let time_entries = ref [] in
 
       (* Assume each item in list has the same O/KR/Proj, so just parse the
@@ -144,9 +208,7 @@ let kr ~project ~objective = function
          same KR/O *)
       List.iter
         (function
-          | KR_heading s ->
-              kr_heading := Some s;
-              title := Format.asprintf "%a" KR.Heading.pp s
+          | KR_heading s -> kr_heading := Some s
           | Time t ->
               let t_split = String.split_on_char ',' (String.trim t) in
               let entry =
@@ -166,7 +228,11 @@ let kr ~project ~objective = function
                     with
                     | Some x -> Some x
                     | None ->
-                        err_time ~title:!title ~entry:t;
+                        let kr =
+                          Option.value !kr_heading
+                            ~default:(KR.Heading.Work ("", None))
+                        in
+                        err_time ~kr ~entry:t;
                         None)
                   t_split
               in
@@ -174,20 +240,20 @@ let kr ~project ~objective = function
           | _ -> ())
         l;
 
-      let title = String.trim !title in
+      let kr = Option.value !kr_heading ~default:(KR.Heading.Work ("", None)) in
 
       let () =
         match l with
         | [] -> ()
         | KR_heading _ :: Time _ :: _ -> ()
-        | _ -> err_no_time title
+        | _ -> err_no_time kr
       in
 
       let work = List.filter_map (function Work e -> Some e | _ -> None) l in
       (if work = [] then
          match !kr_heading with
          | Some (KR.Heading.Meta KR.Meta.Leave) -> ()
-         | Some _ -> err_no_work title
+         | Some _ -> err_no_work kr
          | None -> ());
 
       let kind =
@@ -205,6 +271,7 @@ let kr ~project ~objective = function
             KR.Kind.Work (KR.Work.v ~title ~id ~quarter)
         | None ->
             let id = KR.Work.Id.No_KR in
+            let title = "" in
             KR.Kind.Work (KR.Work.v ~title ~id ~quarter)
       in
 
@@ -214,12 +281,12 @@ let kr ~project ~objective = function
         | [] -> []
         | [ e ] -> e
         | x :: _ ->
-            err_multiple_time_entries title;
+            err_multiple_time_entries kr;
             x
       in
 
       let project = String.trim project in
-      if project = "" then err_no_project title;
+      if project = "" then err_no_project kr;
       let objective = String.trim objective in
       Some (KR.v ~kind ~project ~objective ~time_entries work)
 
