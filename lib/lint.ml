@@ -45,7 +45,7 @@ module Error = struct
     function
     | `Format_error x ->
         let pp_msg ppf (pos, msg) =
-          Fmt.pf ppf "File %S, line %d:@\nError: %s" filename pos msg
+          pf (Some pos) (fun m -> m ppf "@[%s@]" msg)
         in
         Fmt.pf ppf "@[<v 0>%a@]" (Fmt.list ~sep:Fmt.sp pp_msg) x
     | `Parsing_error (line_number, w) ->

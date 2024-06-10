@@ -8,8 +8,10 @@ Team Lint example with invalid reports:
     + Report week 41: Lint error at admin//weekly/2022/41/eng2.md
                       File "admin//weekly/2022/41/eng2.md", line 4:
                       Error: + used as bullet point, this can confuse the parser. Only use - as bullet marker.
+                      
                       File "admin//weekly/2022/41/eng2.md", line 5:
                       Error: + used as bullet point, this can confuse the parser. Only use - as bullet marker.
+                      
     + Report week 42: Not found: admin//weekly/2022/42/eng2.md
   [1]
 

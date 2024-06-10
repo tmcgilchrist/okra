@@ -102,7 +102,7 @@ let pp_member_lint ppf { member = _; week_reports } =
   else
     Error
       (fun () ->
-        Fmt.pf ppf "@[%a@]"
+        Fmt.pf ppf "@[<v 0>%a@]"
           (Fmt.list ~sep:(Fmt.any "@;<1 0>") pp_report_lint)
           not_complete)
 
