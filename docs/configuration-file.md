@@ -10,6 +10,7 @@ You can add a `footer` section to your configuration file which simply appends t
 # Projects are used in weekly report generation (optional)
 projects:
   - title: "Make okra great (#123)"
+admin_dir: path/to/admin/directory
 # Teams are used for the `okra team` subcommands.
 teams:
   - name: My Team
