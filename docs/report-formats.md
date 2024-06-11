@@ -12,7 +12,7 @@ General formatting requirements:
 
 ## Engineer Report
 
-Engineer reports should be in the following format. Only a section called `Last week` is included by default - the rest is free form as long as it's valid markdown:
+Engineer reports should be in the following format. **Only a section called `Last week` is included by default** - the rest is free form as long as it's valid markdown:
 
 ```
 # Last week
