@@ -290,10 +290,10 @@ let kr ~project ~objective = function
       let objective = String.trim objective in
       Some (KR.v ~kind ~project ~objective ~time_entries work)
 
-let block_okr = function
+let block_okr ?week = function
   | Paragraph (_, x) ->
       let okr_title = String.trim (inline_to_string (inline x)) in
-      [ KR_heading (KR.Heading.of_string okr_title) ]
+      [ KR_heading (KR.Heading.of_string ?week okr_title) ]
   | List (_, _, _, bls) ->
       List.map
         (fun bl ->
@@ -349,7 +349,7 @@ let include_section t =
       | (Some _ as t), _ | None, (Some _ as t) -> t
       | _ -> None)
 
-let process_block state acc = function
+let process_block ?week state acc = function
   | Heading (_, n, il) ->
       let title =
         match il with
@@ -372,7 +372,7 @@ let process_block state acc = function
           let includes = include_section state in
           if ignore_section state || Option.is_none includes then acc
           else
-            let block = List.concat (List.map block_okr xs) in
+            let block = List.concat (List.map (block_okr ?week) xs) in
             Log.debug (fun l -> l "items: %a" dump block);
             match
               kr ~project:state.current_proj ~objective:state.current_o block
@@ -385,7 +385,7 @@ let process_block state acc = function
       (* FIXME: also keep floating text *)
       acc
 
-let process t ast = List.fold_left (process_block t) ([], []) ast
+let process ?week t ast = List.fold_left (process_block ?week t) ([], []) ast
 
 let check_includes u_includes (includes : string list) =
   let missing =
@@ -398,8 +398,8 @@ let check_includes u_includes (includes : string list) =
 
 let default_report_kind = Team
 
-let of_markdown ?(ignore_sections = []) ?(include_sections = []) report_kind ast
-    =
+let of_markdown ?(ignore_sections = []) ?(include_sections = []) ?week
+    report_kind ast =
   warnings := [];
   let include_sections =
     match report_kind with
@@ -412,6 +412,6 @@ let of_markdown ?(ignore_sections = []) ?(include_sections = []) report_kind ast
   let u_ignore = List.map String.uppercase_ascii ignore_sections in
   let u_include = List.map String.uppercase_ascii include_sections in
   let state = init ~ignore_sections:u_ignore ~include_sections:u_include () in
-  let includes, krs = process state ast in
+  let includes, krs = process ?week state ast in
   check_includes u_include (List.sort_uniq String.compare includes);
   (List.rev krs, List.rev !warnings)

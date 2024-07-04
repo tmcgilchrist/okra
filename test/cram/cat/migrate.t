@@ -38,7 +38,7 @@ This weekly is using using workitems:
   >   - @eng1 (1 day)
   >   - This is a workitem with no parent objective in the DB
   > 
-  > - Leave
+  > - Off
   >   - @eng1 (2 days)
   > EOF
 
@@ -55,7 +55,7 @@ This weekly is using objectives:
   >   - @eng2 (1 day)
   >   - This is an objective
   > 
-  > - Leave
+  > - Off
   >   - @eng2 (2 days)
   > EOF
 
@@ -87,7 +87,7 @@ This weekly is using objectives:
   >   - @eng1 (3 days)
   >   - This is a workitem with a parent objective in the DB
   > 
-  > - Leave
+  > - Off
   >   - @eng1 (2 days)
   > EOF
 
@@ -126,7 +126,7 @@ Parentheses in the objective name:
   >   - @eng1 (1 day)
   >   - Something
   > 
-  > - Leave (#1074)
+  > - Off
   >   - @eng1 (4 days)
   >   - off
   > EOF

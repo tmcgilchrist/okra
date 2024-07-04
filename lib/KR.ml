@@ -33,12 +33,22 @@ module Meta = struct
     | Off -> Fmt.pf ppf "Off"
     | Misc -> Fmt.pf ppf "Misc"
 
-  let of_string s =
-    match String.lowercase_ascii s with
-    | "hack" -> Some Hack
-    | "off" | "leave" -> Some Off
-    | "misc" | "off-objective" | "off_objective" | "off objective" -> Some Misc
-    | _ -> None
+  let of_string ?week s =
+    let supported =
+      match week with
+      | Some file_week ->
+          (* June 10 - June 16 *)
+          let limit = { Week.year = 2024; week = 24 } in
+          Week.compare file_week limit >= 0
+      | None -> true
+    in
+    if supported then
+      match String.lowercase_ascii s with
+      | "hack" -> Some Hack
+      | "off" -> Some Off
+      | "misc" -> Some Misc
+      | _ -> None
+    else None
 
   let compare x y =
     String.compare (Fmt.to_to_string pp x) (Fmt.to_to_string pp y)
@@ -162,7 +172,7 @@ module Heading = struct
     | exception Invalid_argument _ -> None
     | r -> Some r
 
-  let of_string s =
+  let of_string ?week s =
     let title, id =
       match String.rindex_opt s '(' with
       | None -> (Some s, None)
@@ -179,7 +189,7 @@ module Heading = struct
     match title with
     | Some title -> (
         let title = String.trim title in
-        match Meta.of_string title with
+        match Meta.of_string ?week title with
         | Some m -> Meta m
         | None -> (
             match id with

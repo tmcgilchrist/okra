@@ -1,10 +1,10 @@
 
 The file admin/weekly/2024/01/eng1.md contains a code block that should preserve its formatting:
 
-  $ okra lint -e admin/weekly/2024/01/eng1.md
-  [OK]: admin/weekly/2024/01/eng1.md
+  $ okra lint -e admin/weekly/2024/24/eng1.md
+  [OK]: admin/weekly/2024/24/eng1.md
 
-  $ okra cat -e admin/weekly/2024/01/eng1.md > eng1-out.md
+  $ okra cat -e admin/weekly/2024/24/eng1.md > eng1-out.md
   $ cat eng1-out.md
   # Last Week
   

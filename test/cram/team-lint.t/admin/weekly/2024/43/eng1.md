@@ -1,5 +1,5 @@
 # Last Week
 
-- Leave
+- Off
   - @eng1 (5 days)
   - Work 1

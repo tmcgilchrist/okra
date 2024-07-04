@@ -215,7 +215,7 @@ let of_markdown ?existing_report ?ignore_sections ?include_sections ?okr_db
     ?report_kind ?week m =
   let kind = Option.value report_kind ~default:Parser.default_report_kind in
   let new_krs, warnings =
-    Parser.of_markdown ?ignore_sections ?include_sections kind m
+    Parser.of_markdown ?ignore_sections ?include_sections ?week kind m
   in
   List.iter
     (fun w -> Logs.warn (fun m -> m "@[<v 0>%a@]" Parser.Warning.pp_short w))

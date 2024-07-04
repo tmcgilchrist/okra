@@ -234,7 +234,7 @@ let check_document ?okr_db ~include_sections ~ignore_sections ?check_time
   let md = Omd.of_string s in
   let kind = Option.value report_kind ~default:Parser.default_report_kind in
   let okrs, warnings =
-    Parser.of_markdown ~include_sections ~ignore_sections kind md
+    Parser.of_markdown ~include_sections ~ignore_sections ?week kind md
   in
   let warnings =
     let warnings = List.map (add_context lines) warnings in

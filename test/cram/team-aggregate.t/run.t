@@ -1,7 +1,7 @@
 
 Team aggregate example
 
-  $ okra team aggregate -C admin/ -w 41 -y 2022 --conf ./conf.yml
+  $ okra team aggregate -C admin/ -w 41 -y 2024 --conf ./conf.yml
   # Last Week
   
   - A KR (KR100)
@@ -26,7 +26,7 @@ Team aggregate example
 
 Only select a few okrs
 
-  $ okra team aggregate -C admin/ -w 41 -y 2022 --conf ./conf.yml --include-krs KR123,KR124
+  $ okra team aggregate -C admin/ -w 41 -y 2024 --conf ./conf.yml --include-krs KR123,KR124
   # Last Week
   
   - A KR (KR123)
@@ -40,7 +40,7 @@ Only select a few okrs
 
 Exclude a few okrs
 
-  $ okra team aggregate -C admin/ -w 41 -y 2022 --conf ./conf.yml --exclude-krs KR123,KR124
+  $ okra team aggregate -C admin/ -w 41 -y 2024 --conf ./conf.yml --exclude-krs KR123,KR124
   # Last Week
   
   - A KR (KR100)
@@ -56,7 +56,7 @@ Exclude a few okrs
 
 Multiple weeks
 
-  $ okra team aggregate -C admin/ -w 40-41 -y 2022 --conf ./conf.yml
+  $ okra team aggregate -C admin/ -w 40-41 -y 2024 --conf ./conf.yml
   # Last Week
   
   - A KR (KR100)
@@ -85,20 +85,20 @@ Multiple weeks
 
 The result of aggregate should pass the lint
 
-  $ mkdir -p xxx/weekly/2024/10
+  $ mkdir -p xxx/weekly/2024/24
 
-  $ cat > xxx/weekly/2024/10/eng1.md << EOF
+  $ cat > xxx/weekly/2024/24/eng1.md << EOF
   > # Last week
   > 
-  > - Leave (#1074)
+  > - Off
   >   - @dummy (5 days)
   >   - xxx
   > EOF
 
-  $ cat > xxx/weekly/2024/10/eng2.md << EOF
+  $ cat > xxx/weekly/2024/24/eng2.md << EOF
   > # Last week
   > 
-  > - Leave (#1074)
+  > - Off
   >   - @dummy (5 days)
   >   - xxx
   > EOF
@@ -115,7 +115,7 @@ The result of aggregate should pass the lint
   > "#1115","General okra maintenance","Draft","","","","Maintenance - internal tooling","","pillar/ecosystem,team/internal-tooling",""
   > EOF
 
-  $ okra team aggregate --work-item-db db.csv -C xxx -y 2024 -w 10 --conf conf.yml > aggr.md
+  $ okra team aggregate --work-item-db db.csv -C xxx -y 2024 -w 24 --conf conf.yml > aggr.md
 
   $ cat aggr.md
   # Last week
@@ -144,8 +144,8 @@ and the error message points to the corresponding objective.
 
 This weekly is using using workitems:
 
-  $ mkdir -p xxx/weekly/2024/01
-  $ cat > xxx/weekly/2024/01/eng1.md << EOF
+  $ mkdir -p xxx/weekly/2024/25
+  $ cat > xxx/weekly/2024/25/eng1.md << EOF
   > # Last Week
   > 
   > - Property-Based Testing for Multicore (#1090)
@@ -156,14 +156,14 @@ This weekly is using using workitems:
   >   - @eng1 (1 day)
   >   - This is a workitem with no parent objective in the DB
   > 
-  > - Leave
+  > - Off
   >   - @eng1 (2 days)
   > EOF
 
 This weekly is using objectives:
 
-  $ mkdir -p xxx/weekly/2024/02
-  $ cat > xxx/weekly/2024/02/eng2.md << EOF
+  $ mkdir -p xxx/weekly/2024/26
+  $ cat > xxx/weekly/2024/26/eng2.md << EOF
   > # Last Week
   > 
   > - Property-Based Testing for Multicore (#558)
@@ -174,11 +174,11 @@ This weekly is using objectives:
   >   - @eng2 (1 day)
   >   - This is an objective
   > 
-  > - Leave
+  > - Off
   >   - @eng2 (2 days)
   > EOF
 
-  $ okra team aggregate -C xxx -y 2024 -w 01-02 --conf conf.yml
+  $ okra team aggregate -C xxx -y 2024 -w 25-26 --conf conf.yml
   # Last Week
   
   - Application and Operational Metrics (#1058)

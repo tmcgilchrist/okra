@@ -47,6 +47,7 @@ val default_report_kind : report_kind
 val of_markdown :
   ?ignore_sections:string list ->
   ?include_sections:string list ->
+  ?week:Week.t ->
   report_kind ->
   markdown ->
   KR.t list * Warning.t list

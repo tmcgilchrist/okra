@@ -10,7 +10,7 @@ Engineer reports are aggregated correctly
   >   - @eng1 (1.5 days)
   >   - Some work
   > 
-  > - Leave
+  > - Off
   >   - @eng1 (2 days)
   > EOF
 
@@ -21,7 +21,7 @@ Engineer reports are aggregated correctly
   >   - @eng2 (1.5 days)
   >   - Some other work
   > 
-  > - Leave
+  > - Off
   >   - @eng2 (2 days)
   > 
   > EOF
@@ -37,7 +37,7 @@ Engineer reports are aggregated correctly
   >   - @eng3 (1.5 days)
   >   - Some work
   > 
-  > - Leave
+  > - Off
   >   - @eng3 (2 days)
   > EOF
 

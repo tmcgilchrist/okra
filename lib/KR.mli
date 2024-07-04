@@ -64,7 +64,7 @@ type t = private {
 module Heading : sig
   type t = Meta of Meta.t | Work of string * Work.Id.t option
 
-  val of_string : string -> t
+  val of_string : ?week:Week.t -> string -> t
   val pp : t Fmt.t
 end
 
