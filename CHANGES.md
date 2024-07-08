@@ -1,3 +1,9 @@
+## unreleased
+
+### Added
+
+- Handle markdown syntax supported by omd (#262, @gpetiot)
+
 ## 3.0.0
 
 ### Changed
