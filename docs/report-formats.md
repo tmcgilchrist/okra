@@ -32,6 +32,8 @@ There are a few rules:
 
 ### Non-engineering work time
 
+(from Week 24 of 2024)
+
 For non-engineering work time, whenever relevant, the recommendation is to attribute the work to one of the ongoing objectives. So, dev meetings that you have for a particular project may be reported under the corresponding objective. The same goes for conference talks, workshops, interviews, blog posts, etc. The same goes for funded internships; report to the appropriate objective. For anything that does not fit in, use the dedicated categories to report the activities:
 
 |   Category | Description  |
