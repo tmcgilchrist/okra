@@ -26,7 +26,7 @@ Engineer reports should be in the following format. **Only a section called `Las
 ```
 
 There are a few rules:
-- Each objective needs an ID (you can refer to the objective database, or use "New ID" or "No ID" if you don't know the ID)
+- Each objective needs an ID (you can refer to the objective database or contact your TL/EM if you don't know the ID)
 - The total time reported must be 5 days (time off or partial work time must be reported)
 - The time must be reported in multiples of 0.5 days
 
