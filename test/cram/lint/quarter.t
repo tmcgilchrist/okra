@@ -22,15 +22,12 @@ If the report is out of a admin/weekly repository, we cannot guess the quarter:
   $ okra lint -C admin eng1.md
   [OK]: eng1.md
 
-If this report is for Q1, we emit a warning:
+If this report is for Q1, we should emit a warning (currently disabled):
 
   $ mkdir -p admin/weekly/2024/01
   $ cp eng1.md admin/weekly/2024/01
   $ okra lint -C admin admin/weekly/2024/01/eng1.md
   [OK]: admin/weekly/2024/01/eng1.md
-  File "admin/weekly/2024/01/eng1.md", line 3:
-  Warning: In objective "Improve OCaml experience on Windows (#677)":
-           Work logged on objective scheduled for 2024 Q2
 
 If this report is for Q2, no issue:
 

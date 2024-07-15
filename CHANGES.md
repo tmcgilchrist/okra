@@ -4,6 +4,11 @@
 
 - Handle markdown syntax supported by omd (#262, @gpetiot)
 
+### Removed
+
+- Disable invalid quarter warning (#279, @gpetiot)
+- Disable workitem warning before week 24 (#279, @gpetiot)
+
 ## 3.0.0
 
 ### Changed

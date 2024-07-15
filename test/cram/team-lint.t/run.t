@@ -32,12 +32,6 @@ Team Lint example with only valid reports but warnings:
 
   $ okra team lint -C admin/ -w 19 -y 2024 --conf ./conf.yml
   [OK]: 2 reports
-  Team "My Team":
-    + Report week 19: Complete
-                      File "admin/weekly/2024/19/eng2.md", line 3:
-                      Warning: Invalid objective:
-                               "General okra maintenance (#1115)" is a work-item. You should use an objective instead.
-                      
 
 Missing [--repo-dir] argument:
 

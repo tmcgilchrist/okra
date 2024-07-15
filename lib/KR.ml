@@ -386,6 +386,14 @@ module Error = struct
 end
 
 let update_from_master_db ?week orig_kr db =
+  let post_week_24 =
+    match week with
+    | Some file_week ->
+        (* June 10 - June 16 *)
+        let limit = { Week.year = 2024; week = 24 } in
+        Week.compare file_week limit >= 0
+    | None -> false
+  in
   match orig_kr.kind with
   | Meta _ -> (orig_kr, None)
   | Work orig_work -> (
@@ -424,18 +432,11 @@ let update_from_master_db ?week orig_kr db =
                         (new_kr, Some obj)
                   in
                   let error =
-                    let should_error =
-                      match week with
-                      | Some file_week ->
-                          (* June 10 - June 16 *)
-                          let limit = { Week.year = 2024; week = 24 } in
-                          Week.compare file_week limit >= 0
-                      | None -> false
-                    in
-                    if should_error then `Migration_error (work_item, objective)
-                    else `Migration_warning (work_item, objective)
+                    if post_week_24 then
+                      Some (`Migration_error (work_item, objective))
+                    else None
                   in
-                  (kr, Some error)))
+                  (kr, error)))
       | Some db_kr ->
           if orig_work.id = No_KR then
             Log.warn (fun l ->

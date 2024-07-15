@@ -255,9 +255,12 @@ let check_document ?okr_db ~include_sections ~ignore_sections ?check_time
       warnings report_warnings
   in
   let* () = maybe_emit warnings in
-  let krs = Report.all_krs report in
-  let warnings = check_quarters quarter krs warnings lines in
-  let* () = maybe_emit warnings in
+  (* Do not check the quarters for now *)
+  (* TODO: update the github dashboards to add begin/end quarters *)
+  ignore (report, quarter, check_quarters);
+  (* let krs = Report.all_krs report in *)
+  (* let warnings = check_quarters quarter krs warnings lines in *)
+  (* let* () = maybe_emit warnings in *)
   Ok ()
 
 let document_ok ?okr_db ~include_sections ~ignore_sections ~format_errors

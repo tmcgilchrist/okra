@@ -58,12 +58,6 @@ and the error message points to the corresponding objective.
   - "JSOO Effect Performance"
   File "weekly.md", line 3:
   Error: Invalid objective: "This objective does not exist"
-  File "weekly.md", line 19:
-  Warning: Invalid objective:
-           "General okra maintenance (#1115)" is a work-item. You should use an objective instead.
-  File "weekly.md", line 15:
-  Warning: Invalid objective:
-           "Property-Based Testing for Multicore (#1090)" is a work-item. You should use its parent objective "Property-Based Testing for Multicore (#558)" instead.
   [1]
 
   $ okra lint -e -C admin weekly.md --short
@@ -71,8 +65,6 @@ and the error message points to the corresponding objective.
   - "JSOO Effect Performance"
   - "JSOO Effect Performance"
   weekly.md:3: Invalid objective: "This objective does not exist" (not found)
-  weekly.md:19: Invalid objective: "General okra maintenance (#1115)" (work-item)
-  weekly.md:15: Invalid objective: "Property-Based Testing for Multicore (#1090)" (work-item), use "Property-Based Testing for Multicore (#558)" instead
   [1]
 
 The DB can be looked up in the [admin_dir] field set int the configuration file:
@@ -106,9 +98,6 @@ Using a work-item instead of an objective emits a warning before Week 24 (before
 
   $ okra lint -e -C admin admin/weekly/2024/23/eng1.md
   [OK]: admin/weekly/2024/23/eng1.md
-  File "admin/weekly/2024/23/eng1.md", line 3:
-  Warning: Invalid objective:
-           "Property-Based Testing for Multicore (#1090)" is a work-item. You should use its parent objective "Property-Based Testing for Multicore (#558)" instead.
 
 Using a work-item instead of an objective raises an error starting from Week 24 (from June 10, 2024)
 
