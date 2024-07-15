@@ -143,7 +143,7 @@ Format errors
   File "err-invalid-time.md", line 4:
   Error: In objective "Everything is great (E1)":
          Invalid time entry "@a (day)" found. Format is '- @eng1 (x days), @eng2 (y days)'
-         where x and y must be divisible by 0.5
+         where x and y must be divisible by 0.125
   [1]
   $ okra lint --short err-invalid-time.md
   err-invalid-time.md:4: Invalid time entry "@a (day)" in "Everything is great (E1)"

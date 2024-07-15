@@ -3,6 +3,7 @@
 ### Added
 
 - Handle markdown syntax supported by omd (#262, @gpetiot)
+- lint: Allow hourly-level granularity (0.125 days) (#281, @gpetiot)
 
 ### Removed
 

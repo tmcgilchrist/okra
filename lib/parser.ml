@@ -41,7 +41,7 @@ module Warning = struct
         Fmt.pf ppf
           "In objective \"%a\":@ Invalid time entry %S found. Format is '- \
            @@eng1 (x days), @@eng2 (y days)'@ where x and y must be divisible \
-           by 0.5"
+           by 0.125"
           KR.Heading.pp kr entry
     | Multiple_time_entries kr ->
         Fmt.pf ppf
@@ -114,17 +114,22 @@ let time_entry_regexp =
   let open Re in
   let user = seq [ char '@'; group (rep1 (alt [ wordc; char '-' ])) ] in
   let number =
+    let digits = rep1 digit in
     let with_int_part =
-      let int_part = rep1 digit in
-      let fract_part = seq [ char '.'; opt (alt [ char '0'; char '5' ]) ] in
-      seq [ int_part; opt fract_part ]
+      let fract_part = seq [ char '.'; opt digits ] in
+      seq [ digits; opt fract_part ]
     in
-    let without_int_part = seq [ str ".5"; opt (char '0') ] in
+    let without_int_part = seq [ char '.'; digits ] in
     group (alt [ with_int_part; without_int_part ])
   in
   let time_unit = group (alt [ str "day" ]) in
   let time = seq [ number; rep space; time_unit; opt (char 's') ] in
   compile @@ seq [ start; user; rep space; char '('; time; char ')'; stop ]
+
+let check_time unit time =
+  match unit with
+  | Time.Unit.Day when Float.is_integer @@ Float.div time 0.125 -> Some ()
+  | _ -> None
 
 let dump_elt ppf = function
   | KR_heading x -> Fmt.pf ppf "KR %a" KR.Heading.pp x
@@ -176,6 +181,7 @@ let kr ~project ~objective = function
                       let* f_time = Float.of_string_opt s_time in
                       let* s_unit = Re.Group.get_opt grp 3 in
                       let* t_unit = Time.Unit.of_string s_unit in
+                      let* () = check_time t_unit f_time in
                       let time = { Time.unit = t_unit; data = f_time } in
                       Some (user, time)
                     with

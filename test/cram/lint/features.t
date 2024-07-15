@@ -48,7 +48,7 @@ When errors are found in several files, they are all printed:
   File "err2.md", line 4:
   Error: In objective "Everything is great (E1)":
          Invalid time entry "@a" found. Format is '- @eng1 (x days), @eng2 (y days)'
-         where x and y must be divisible by 0.5
+         where x and y must be divisible by 0.125
   File "err.md", line 3:
   Error: In objective "Everything is great (E1)":
          No time entry found. Each objective must be followed by '- @... (x days)'

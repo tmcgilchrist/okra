@@ -13,7 +13,7 @@ Invalid time
   File "<stdin>", line 4:
   Error: In objective "This is a KR (KR123)":
          Invalid time entry "@eng1 (1 day), eng2 (2 days)" found. Format is '- @eng1 (x days), @eng2 (y days)'
-         where x and y must be divisible by 0.5
+         where x and y must be divisible by 0.125
   [1]
   $ okra lint << EOF
   > # Title
@@ -25,7 +25,7 @@ Invalid time
   File "<stdin>", line 4:
   Error: In objective "This is a KR (KR123)":
          Invalid time entry "@eng1 (1 day); @eng2 (2 days)" found. Format is '- @eng1 (x days), @eng2 (y days)'
-         where x and y must be divisible by 0.5
+         where x and y must be divisible by 0.125
   [1]
   $ okra lint << EOF
   > # Title
@@ -37,7 +37,7 @@ Invalid time
   File "<stdin>", line 4:
   Error: In objective "This is a KR (KR123)":
          Invalid time entry "@eng1 (1 day) @eng2 (2 days)" found. Format is '- @eng1 (x days), @eng2 (y days)'
-         where x and y must be divisible by 0.5
+         where x and y must be divisible by 0.125
   [1]
   $ okra lint << EOF
   > # Title
@@ -49,7 +49,7 @@ Invalid time
   File "<stdin>", line 4:
   Error: In objective "This is a KR (KR123)":
          Invalid time entry "@eng1 (. days)" found. Format is '- @eng1 (x days), @eng2 (y days)'
-         where x and y must be divisible by 0.5
+         where x and y must be divisible by 0.125
   [1]
 
 Valid time
@@ -102,4 +102,38 @@ Using the configuration file to change the default number of working days.
   File "<stdin>", line 1:
   Error: Invalid total time found for eng1:
          Reported 0.5 days, expected 1.5 days.
+  [1]
+
+Using 0.125 days granularity:
+
+  $ okra lint << EOF
+  > # Title
+  > 
+  > - This is a KR (KR123)
+  >   - @eng1 (.125 day)
+  >   - My work
+  > 
+  > - This is a KR (KR124)
+  >   - @eng1 (.25 days)
+  >   - My work
+  > 
+  > - This is a KR (KR124)
+  >   - @eng1 (4.625 days)
+  >   - My work
+  > EOF
+  [OK]: <stdin>
+
+Invalid granularity:
+
+  $ okra lint << EOF
+  > # Title
+  > 
+  > - This is a KR (KR123)
+  >   - @eng1 (.12 day)
+  >   - My work
+  > EOF
+  File "<stdin>", line 4:
+  Error: In objective "This is a KR (KR123)":
+         Invalid time entry "@eng1 (.12 day)" found. Format is '- @eng1 (x days), @eng2 (y days)'
+         where x and y must be divisible by 0.125
   [1]

@@ -116,7 +116,7 @@ Only "No KR" and "New KR" are supported for KR's without identifiers
   File "<stdin>", line 11:
   Error: In objective "This is a KR (KR1)":
          Invalid time entry "@eng1 (1.1 day)" found. Format is '- @eng1 (x days), @eng2 (y days)'
-         where x and y must be divisible by 0.5
+         where x and y must be divisible by 0.125
   [1]
 
   $ okra lint --engineer << EOF
@@ -140,7 +140,7 @@ Only "No KR" and "New KR" are supported for KR's without identifiers
   File "<stdin>", line 11:
   Error: In objective "This is a KR (KR1)":
          Invalid time entry "@eng1 ( day)" found. Format is '- @eng1 (x days), @eng2 (y days)'
-         where x and y must be divisible by 0.5
+         where x and y must be divisible by 0.125
   [1]
 
 The total time reported must be 5 days
@@ -201,3 +201,22 @@ The total time reported must be 5 days
   File "<stdin>", line 1:
   Error: Invalid total time found for eng1: Reported 10 days, expected 5 days.
   [1]
+
+Using 0.125 days granularity:
+
+  $ okra lint -e << EOF
+  > # Last week
+  > 
+  > - This is a KR (KR123)
+  >   - @eng1 (.125 day)
+  >   - My work
+  > 
+  > - This is a KR (KR124)
+  >   - @eng1 (.25 days)
+  >   - My work
+  > 
+  > - This is a KR (KR124)
+  >   - @eng1 (4.625 days)
+  >   - My work
+  > EOF
+  [OK]: <stdin>
