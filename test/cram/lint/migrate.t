@@ -19,6 +19,7 @@ and the error message points to the corresponding objective.
 
   $ cat > admin/data/team-objectives.csv << EOF
   > "id","title","status","quarter","team","pillar","objective","funder","labels","progress"
+  > "#548","CAstore: persistent and distributed heap for OCaml","In Progress","Q2 2024","Irmin","Ecosystem","","Jane Street","Proposal",""
   > "#558","Property-Based Testing for Multicore","In Progress","Q2 2024","Compiler & Language","Compiler","","","Proposal",""
   > "#677","Improve OCaml experience on Windows","Todo","Q2 2024","Multicore applications","Ecosystem","","","",""
   > "#701","JSOO Effect Performance","","Q2 2024","Compiler & Language","Compiler","","","focus/technology,level/team",""
@@ -109,3 +110,17 @@ Using a work-item instead of an objective raises an error starting from Week 24 
   Error: Invalid objective:
          "Property-Based Testing for Multicore (#1090)" is a work-item. You should use its parent objective "Property-Based Testing for Multicore (#558)" instead.
   [1]
+
+The whole title is taken into account (there was an issue with `:`)
+
+  $ mkdir -p admin/weekly/2024/24
+  $ cat > admin/weekly/2024/24/eng1.md << EOF
+  > # Last week
+  > 
+  > - CAstore: persistent and distributed heap for OCaml (#548)
+  >   - @eng1 (5 days)
+  >   - Something
+  > EOF
+
+  $ okra lint -e -C admin admin/weekly/2024/24/eng1.md
+  [OK]: admin/weekly/2024/24/eng1.md

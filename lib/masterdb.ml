@@ -46,11 +46,6 @@ module Objective = struct
     | Complete -> "Complete"
     | Closed -> "Closed"
 
-  let normalise_title s =
-    match Astring.String.cut ~sep:":" s with
-    | Some (_, s) -> String.trim s
-    | None -> s
-
   let empty_db = Hashtbl.create 13
 
   let load_csv ?(separator = ',') f =
@@ -72,7 +67,7 @@ module Objective = struct
               {
                 id = String.uppercase_ascii printable_id;
                 printable_id;
-                title = find_and_trim "title" |> normalise_title;
+                title = find_and_trim "title";
                 project = find_and_trim "project";
                 team = find_and_trim "team";
                 status = find_and_trim "status" |> status_of_string;
@@ -132,11 +127,6 @@ module Work_item = struct
 
   type t = (string, elt_t) Hashtbl.t
 
-  let normalise_title s =
-    match Astring.String.cut ~sep:":" s with
-    | Some (_, s) -> String.trim s
-    | None -> s
-
   let empty_db = Hashtbl.create 13
 
   let load_csv ?(separator = ',') f =
@@ -158,7 +148,7 @@ module Work_item = struct
               {
                 id = String.uppercase_ascii printable_id;
                 printable_id;
-                title = find_and_trim "title" |> normalise_title;
+                title = find_and_trim "title";
                 objective = find_and_trim "objective";
                 project = find_and_trim "project";
                 team = find_and_trim "team";
