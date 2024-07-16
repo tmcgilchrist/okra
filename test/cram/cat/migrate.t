@@ -22,6 +22,7 @@ and the error message points to the corresponding objective.
   > "#543","Ensure OCaml 5 series has feature parity with OCaml 4 (Commercial)","In Progress","Q2 2024","Compiler Backend","Compiler","","Jane Street - Commercial","Proposal",""
   > "#558","Property-Based Testing for Multicore","In Progress","Q2 2024","Compiler & Language","Compiler","","","Proposal",""
   > "#677","Improve OCaml experience on Windows","Todo","Q2 2024","Multicore applications","Ecosystem","","","",""
+  > "#678","Maintenance - internal tooling","In Progress","Rolling","Internal tools","Ecosystem","","","level/team",""
   > "#701","JSOO Effect Performance","","Q2 2024","Compiler & Language","Compiler","","","focus/technology,level/team",""
   > EOF
 
@@ -143,3 +144,29 @@ Parentheses in the objective name:
 
   $ okra lint -e -C admin eng1.cat.md
   [OK]: eng1.cat.md
+
+Mixing workitems and objectives:
+
+  $ cat > eng1.md << EOF
+  > # Last Week
+  > 
+  > - General okra maintenance (#1115)
+  >   - @eng1 (2 days)
+  >   - This is a workitem
+  > EOF
+
+  $ cat > eng2.md << EOF
+  > # Last Week
+  > 
+  > - Maintenance - internal tooling (#678)
+  >   - @eng2 (3 days)
+  >   - This is an objective
+  > EOF
+
+  $ cat eng1.md eng2.md | okra cat -C admin --engineer
+  # Last Week
+  
+  - Maintenance - internal tooling (#678)
+    - @eng1 (2 days), @eng2 (3 days)
+    - This is a workitem
+    - This is an objective

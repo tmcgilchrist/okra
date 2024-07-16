@@ -85,9 +85,9 @@ Multiple weeks
 
 The result of aggregate should pass the lint
 
-  $ mkdir -p xxx/weekly/2024/24
+  $ mkdir -p xxx/weekly/2024/28
 
-  $ cat > xxx/weekly/2024/24/eng1.md << EOF
+  $ cat > xxx/weekly/2024/28/eng1.md << EOF
   > # Last week
   > 
   > - Off
@@ -95,7 +95,7 @@ The result of aggregate should pass the lint
   >   - xxx
   > EOF
 
-  $ cat > xxx/weekly/2024/24/eng2.md << EOF
+  $ cat > xxx/weekly/2024/28/eng2.md << EOF
   > # Last week
   > 
   > - Off
@@ -115,7 +115,7 @@ The result of aggregate should pass the lint
   > "#1115","General okra maintenance","Draft","","","","Maintenance - internal tooling","","pillar/ecosystem,team/internal-tooling",""
   > EOF
 
-  $ okra team aggregate --work-item-db db.csv -C xxx -y 2024 -w 24 --conf conf.yml > aggr.md
+  $ okra team aggregate --work-item-db db.csv -C xxx -y 2024 -w 28 --conf conf.yml > aggr.md
 
   $ cat aggr.md
   # Last week
@@ -139,6 +139,7 @@ and the error message points to the corresponding objective.
   > "id","title","status","quarter","team","pillar","objective","funder","labels","progress"
   > "#558","Property-Based Testing for Multicore","In Progress","Q2 2024","Compiler & Language","Compiler","","","Proposal",""
   > "#677","Improve OCaml experience on Windows","Todo","Q2 2024","Multicore applications","Ecosystem","","","",""
+  > "#678","Maintenance - internal tooling","In Progress","Rolling","Internal tools","Ecosystem","","","level/team",""
   > "#701","JSOO Effect Performance","","Q2 2024","Compiler & Language","Compiler","","","focus/technology,level/team",""
   > EOF
 
@@ -196,3 +197,31 @@ This weekly is using objectives:
   
   - Off
     - @eng1 (2 days), @eng2 (2 days)
+
+Mixing workitems and objectives:
+
+  $ mkdir -p xxx/weekly/2024/23
+  $ cat > xxx/weekly/2024/23/eng1.md << EOF
+  > # Last Week
+  > 
+  > - General okra maintenance (#1115)
+  >   - @eng1 (2 days)
+  >   - This is a workitem
+  > EOF
+
+  $ mkdir -p xxx/weekly/2024/24
+  $ cat > xxx/weekly/2024/24/eng2.md << EOF
+  > # Last Week
+  > 
+  > - Maintenance - internal tooling (#678)
+  >   - @eng2 (3 days)
+  >   - This is an objective
+  > EOF
+
+  $ okra team aggregate -C xxx -y 2024 -w 23-24 --conf conf.yml
+  # Last Week
+  
+  - Maintenance - internal tooling (#678)
+    - @eng1 (2 days), @eng2 (3 days)
+    - This is a workitem
+    - This is an objective

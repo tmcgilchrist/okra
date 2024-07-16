@@ -5,6 +5,10 @@
 - Handle markdown syntax supported by omd (#262, @gpetiot)
 - lint: Allow hourly-level granularity (0.125 days) (#281, @gpetiot)
 
+### Fixed
+
+- stats: Take into account the workitem/objective DB (#283, @gpetiot)
+
 ### Removed
 
 - Disable invalid quarter warning (#279, @gpetiot)

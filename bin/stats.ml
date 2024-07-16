@@ -92,12 +92,13 @@ let print conf t =
         krs
 
 let run conf =
+  let okr_db = Common.okr_db conf.c in
   let okrs, _warnings =
     Okra.Report.of_markdown
       ~ignore_sections:(Common.ignore_sections conf.c)
       ~include_sections:(Common.include_sections conf.c)
       ?report_kind:(Common.report_kind conf.c)
-      conf.md
+      ?okr_db conf.md
   in
   let okrs = Okra.Filter.apply (Common.filter conf.c) okrs in
   print conf okrs

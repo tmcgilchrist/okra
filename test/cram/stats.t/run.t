@@ -36,3 +36,8 @@ Stats per KR
   - [Last Week: Project 2] CC (#321): 4.5 days = eng2 (1 day) + eng1 (3.5 days)
   - [Last Week: ] Off: 1.5 days = eng2 (1 day) + eng1 (0.5 days)
   - [Last Week: ] Misc: 0.5 days = eng1 (0.5 days)
+
+Mix workitems and objectives
+
+  $ cat admin/weekly/2024/*/*.md | okra stats -C admin --kind krs --show-details
+  - [Last Week: ] Maintenance - internal tooling (#678): 5 days = eng2 (3 days) + eng1 (2 days)
