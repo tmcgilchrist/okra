@@ -46,7 +46,7 @@ For anything that does not fit in, use the dedicated categories to report the ac
 |:------------------|:-------------|
 | Off   | Any kind of leave, holiday, or time off from work, including the two-week August company break. |
 | Hack  | Time spent on Hacking Days. |
-| Misc  | Only use this category when the time does not fall under specific objectives. See the note above. This includes any work that does not fall under specific objectives, including meetings, management work, offsite, workshops, training, conferences, tech talks and all hands. |
+| Misc  | Only use this category when the time does not fall under specific objectives. See the [note above](#meetings-are-billable). This includes any work that does not fall under specific objectives, including meetings, management work, offsite, workshops, training, conferences, tech talks and all hands. |
 
 Here is an example:
 ```md
