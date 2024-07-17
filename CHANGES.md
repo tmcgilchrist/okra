@@ -9,6 +9,7 @@
 
 - stats: Take into account the workitem/objective DB (#283, @gpetiot)
 - Fix parsing of titles from workitem/objective DB (#284, @gpetiot)
+- team aggregate: Take into account the [-o] argument (#286, @gpetiot)
 
 ### Removed
 

@@ -225,3 +225,14 @@ Mixing workitems and objectives:
     - @eng1 (2 days), @eng2 (3 days)
     - This is a workitem
     - This is an objective
+
+Using the [-o] option:
+
+  $ okra team aggregate -C xxx -y 2024 -w 23-24 --conf conf.yml -o out.md
+  $ cat out.md
+  # Last Week
+  
+  - Maintenance - internal tooling (#678)
+    - @eng1 (2 days), @eng2 (3 days)
+    - This is a workitem
+    - This is an objective
