@@ -36,7 +36,13 @@ There are a few rules:
 
 #### Meetings are billable!
 
-For non-"hacking" work time, whenever relevant, the recommendation is to attribute the work to one of the ongoing objectives. So, dev meetings that you have for a particular project may be reported under the corresponding objective. The same goes for 1:1s, team meetings, conference talks, workshops, interviews, blog posts, etc. Team leads may distribute the time for meetings across the objectives that the team is working on. There is no need to be 100% accurate here with regard to objectives. However, any meeting time that you spend on a project is billable and must be accounted for under some objective. The same goes for funded internships; report to the appropriate objective. 
+Engineering is not just writing or thinking about code. For non-coding work time, whenever relevant, the recommendation is to attribute the work to one of the ongoing objectives. Any meeting time that you spend on a project is billable. No need to be 100% accurate here; use your best judgement. Below is a non-exhaustive recommendation for reporting times.
+
+* Dev meetings that you have for a particular project may be reported under the corresponding objective. 
+* Participants in a 1:1 meeting may report their time on the objective(s) that they may be involved with.
+* For engineers, team meetings may be reported under the objectives that an engineer is working on. For TLs, they may spread the time across the ongoing objectives.
+* Conference talks, workshops, blog posts and the time spent preparing for them may be reported under the corresponding objective.
+* For funded internships, report mentoring time under that objective.
 
 #### Other categories
 
