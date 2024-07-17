@@ -30,17 +30,23 @@ There are a few rules:
 - The total time reported must be 5 days (time off or partial work time must be reported)
 - The time must be reported in multiples of 0.5 days
 
-### Non-engineering work time
+### Non-hacking work time
 
 (from Week 24 of 2024)
 
-For non-engineering work time, whenever relevant, the recommendation is to attribute the work to one of the ongoing objectives. So, dev meetings that you have for a particular project may be reported under the corresponding objective. The same goes for conference talks, workshops, interviews, blog posts, etc. The same goes for funded internships; report to the appropriate objective. For anything that does not fit in, use the dedicated categories to report the activities:
+#### Meetings are billable!
+
+For non-hacking work time, whenever relevant, the recommendation is to attribute the work to one of the ongoing objectives. So, dev meetings that you have for a particular project may be reported under the corresponding objective. The same goes for 1:1s, team meetings, conference talks, workshops, interviews, blog posts, etc. Team leads may distribute the time for meetings across the objectives that the team is working on. No need to be 100% accurate here with regards to objectives. But any meeting time that you spend on a project is billable, and must be accounted for under some objective. The same goes for funded internships; report to the appropriate objective. 
+
+#### Other categories
+
+For anything that does not fit in, use the dedicated categories to report the activities:
 
 |   Category | Description  |
 |:------------------|:-------------|
-| Off      | Any kind of leave, holiday, or time off from work, including the two-week August company break. |
-| Hack       | Time spent on Hacking Days. |
-| Misc  | This includes any work that does not fall under specific objectives, including meetings, management work, offsite, workshops, training, conferences, tech talks and all hands. |
+| Off   | Any kind of leave, holiday, or time off from work, including the two-week August company break. |
+| Hack  | Time spent on Hacking Days. |
+| Misc  | Only use this category when the time does not fall under specific objectives. See the note above. This includes any work that does not fall under specific objectives, including meetings, management work, offsite, workshops, training, conferences, tech talks and all hands. |
 
 Here is an example:
 ```md
