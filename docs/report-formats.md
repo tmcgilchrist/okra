@@ -2,7 +2,7 @@
 
 These are the formats currently recognised by the tool:
 - [Engineer Report](#engineer-report)
-  - [Non-engineering work time](#non-engineering-work-time)
+  - [Non-objective time](#non-objective-time)
 - [Repository Report](#repository-report)
 - [Team activity report](#team-activity-report)
 
@@ -30,13 +30,13 @@ There are a few rules:
 - The total time reported must be 5 days (time off or partial work time must be reported)
 - The time must be reported in multiples of 0.5 days
 
-### Non-hacking work time
+### Non-objective time
 
 (from Week 24 of 2024)
 
 #### Meetings are billable!
 
-For non-hacking work time, whenever relevant, the recommendation is to attribute the work to one of the ongoing objectives. So, dev meetings that you have for a particular project may be reported under the corresponding objective. The same goes for 1:1s, team meetings, conference talks, workshops, interviews, blog posts, etc. Team leads may distribute the time for meetings across the objectives that the team is working on. No need to be 100% accurate here with regards to objectives. But any meeting time that you spend on a project is billable, and must be accounted for under some objective. The same goes for funded internships; report to the appropriate objective. 
+For non-"hacking" work time, whenever relevant, the recommendation is to attribute the work to one of the ongoing objectives. So, dev meetings that you have for a particular project may be reported under the corresponding objective. The same goes for 1:1s, team meetings, conference talks, workshops, interviews, blog posts, etc. Team leads may distribute the time for meetings across the objectives that the team is working on. There is no need to be 100% accurate here with regard to objectives. However, any meeting time that you spend on a project is billable and must be accounted for under some objective. The same goes for funded internships; report to the appropriate objective. 
 
 #### Other categories
 
