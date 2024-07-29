@@ -57,17 +57,17 @@ module Meta = struct
     let pp_user ppf () = User.pp ~with_link:false ppf username in
     Fmt.pf ppf
       {|
-- Off
+- Misc
   - %a (0 days)
-  - Any kind of leaves, holidays, time off from work, including 2-week August company break.
+  - Any work that does not fall under specific objectives, including meetings, management work, offsite, workshops, training, conferences, tech talks and all hands.
 
 - Hack
   - %a (0 days)
   - Hacking Days.
 
-- Misc
+- Off
   - %a (0 days)
-  - Any work that does not fall under specific objectives, including meetings, management work, offsite, workshops, training, conferences, tech talks and all hands.
+  - Any kind of leaves, holidays, time off from work, including 2-week August company break.
 |}
       pp_user () pp_user () pp_user ()
 end

@@ -1,3 +1,9 @@
+## unreleased
+
+### Changed
+
+- gen: Reorder the non-objective categories in the generated template (#290, @gpetiot)
+
 ## 3.1.0
 
 ### Added
