@@ -22,3 +22,4 @@ Table of contents
 - [Configuration file](configuration-file.md)
 - [Emacs integration](emacs-integration.md)
 - [Vim integration](vim-integration.md)
+- [Releasing Okra](releasing-okra.md)
