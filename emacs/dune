@@ -2,4 +2,4 @@
  (package okra)
  (section share_root)
  (files
-  (flycheck-okra.el as emacs/site-lisp/flycheck-okra.el)))
+  (okra.el as emacs/site-lisp/okra.el)))
