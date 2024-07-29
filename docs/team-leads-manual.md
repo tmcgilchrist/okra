@@ -14,7 +14,7 @@ Table of contents
 
 `okra cat` can be used to aggregate weekly engineer or team reports in a single report. The tool will attempt to group data by project and objective if these match.
 
-The code reads data from stdin, aggregates per KR and outputs the result.
+The code reads data from stdin, aggregates per objective and outputs the result.
 
 If there are unexpected warnings or errors use `okra lint` to identify and fix them.
 
@@ -29,7 +29,6 @@ $ cat magnus.md patrick.md | okra cat --engineer
 - Improve OKRA (#123)
     - @MagnusS (0.5 days), @patricoferris (0.5 days)
     - Add output tests [#4](https://github.com/MagnusS/okra/issues/4)
-    - Add support for including only specified KR IDs [#5](https://github.com/MagnusS/okra/issues/5)
     - Meetings
     - Fixing mdx
 ```

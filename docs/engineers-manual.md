@@ -26,7 +26,6 @@ The output looks like this:
 # Activity (move these items to last week)
 
   - Add output tests [#4](https://github.com/MagnusS/okra/issues/4)
-  - Add support for including only specified KR IDs [#5](https://github.com/MagnusS/okra/issues/5)
 ```
 
 To prepare the final report, the work items under `Activity` should be moved to `Last week` under the right objective and time should be added (`<X>` should be replaced with a multiple of `0.5`). Additional context can also be added here.
@@ -37,7 +36,6 @@ To prepare the final report, the work items under `Activity` should be moved to 
 - Improve OKRA (#123)
   - @MagnusS (0.5 day)
   - Add output tests [#4](https://github.com/MagnusS/okra/issues/4)
-  - Add support for including only specified KR IDs [#5](https://github.com/MagnusS/okra/issues/5)
   - Meetings
 ```
 
