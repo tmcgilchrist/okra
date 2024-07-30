@@ -22,11 +22,5 @@ let add x y =
 let ( +. ) = add
 
 let pp fs { unit; data } =
-  let pp_float fs f =
-    if classify_float (fst (modf f)) = FP_zero then Fmt.pf fs "%.0f" f
-    else if Float.is_integer @@ Float.div data 0.1 then Fmt.pf fs "%.1f" f
-    else if Float.is_integer @@ Float.div data 0.01 then Fmt.pf fs "%.2f" f
-    else Fmt.pf fs "%.3f" f
-  in
   if data = 1. then Fmt.pf fs "1 %a" Unit.pp unit
-  else Fmt.pf fs "%a %as" pp_float data Unit.pp unit
+  else Fmt.pf fs "%g %as" data Unit.pp unit
