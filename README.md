@@ -40,6 +40,17 @@ Or to the list of opam repositories for all opam switches with the command:
 opam repository add --all tarides https://github.com/tarides/opam-repository.git
 ```
 
+However, note that if you use `--all` as above, you will then have to
+instruct opam to also search in that repository in each switch, as the list
+of repositories opam is considering is switch-specific. Once you are in a
+given switch, this can be done with:
+```sh
+opam remote set-repos default tarides
+```
+where the repositories are listed in search order, i.e. here we ask opam to
+look in its `default` repository first and in the `tarides` repository after
+that.
+
 Update your list of packages:
 ```sh
 opam update
