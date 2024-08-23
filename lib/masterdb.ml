@@ -14,6 +14,25 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *)
 
+let pp_error_kw =
+  Fmt.styled `Bold
+  @@ Fmt.styled (`Fg `Red)
+  @@ fun ppf () -> Fmt.pf ppf "%s" "Error"
+
+let pp_error line_number filename k =
+  let pp_loc =
+    Fmt.styled `Bold @@ fun ppf (filename, line_number) ->
+    Fmt.pf ppf "File %S, line %i" filename line_number
+  in
+  k (fun ppf ->
+      Fmt.pf ppf "@[<hv 0>@{<loc>%a@}:@\n%a: " pp_loc (filename, line_number)
+        pp_error_kw ();
+      Fmt.kpf (fun ppf -> Fmt.pf ppf "@]@,") ppf)
+
+let msg_to_error line_number filename msg =
+  pp_error line_number filename (fun m -> m Format.str_formatter "%s") msg;
+  Format.flush_str_formatter ()
+
 module Objective = struct
   type status_t = Todo | In_progress | Paused | Complete | Closed
 
@@ -74,16 +93,19 @@ module Objective = struct
                 quarter;
               }
             in
-            if e.id = "" then
-              Fmt.error_msg "line %i: A unique KR ID is required per line" !line
-            else if e.id <> "#" && Hashtbl.mem res e.id then
-              Fmt.error_msg "line %i: KR ID \"%s\" is not unique." !line e.id
-            else if e.title = "" then
-              Fmt.error_msg "line %i: KR ID \"%s\" does not have a title" !line
-                e.id
-            else (
-              Hashtbl.add res e.id e;
-              Ok ()))
+            let* () =
+              Result.map_error (fun (`Msg e) -> `Msg (msg_to_error !line f e))
+              @@
+              if e.id = "" then
+                Fmt.error_msg "A unique KR ID is required per line"
+              else if e.id <> "#" && Hashtbl.mem res e.id then
+                Fmt.error_msg "KR ID %S is not unique." e.id
+              else if e.title = "" then
+                Fmt.error_msg "KR ID %S does not have a title" e.id
+              else Ok ()
+            in
+            Hashtbl.add res e.id e;
+            Ok ())
           rows
       in
       Ok res
@@ -156,16 +178,19 @@ module Work_item = struct
                 quarter;
               }
             in
-            if e.id = "" then
-              Fmt.error_msg "line %i: A unique KR ID is required per line" !line
-            else if e.id <> "#" && Hashtbl.mem res e.id then
-              Fmt.error_msg "line %i: KR ID \"%s\" is not unique." !line e.id
-            else if e.title = "" then
-              Fmt.error_msg "line %i: KR ID \"%s\" does not have a title" !line
-                e.id
-            else (
-              Hashtbl.add res e.id e;
-              Ok ()))
+            let* () =
+              Result.map_error (fun (`Msg e) -> `Msg (msg_to_error !line f e))
+              @@
+              if e.id = "" then
+                Fmt.error_msg "A unique KR ID is required per line"
+              else if e.id <> "#" && Hashtbl.mem res e.id then
+                Fmt.error_msg "KR ID %S is not unique." e.id
+              else if e.title = "" then
+                Fmt.error_msg "KR ID %S does not have a title" e.id
+              else Ok ()
+            in
+            Hashtbl.add res e.id e;
+            Ok ())
           rows
       in
       Ok res

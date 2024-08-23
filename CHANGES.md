@@ -3,6 +3,7 @@
 ### Changed
 
 - gen: Reorder the non-objective categories in the generated template (#290, @gpetiot)
+- Improve error messages related to loading objective database (#294, @gpetiot)
 
 ## 3.1.0
 

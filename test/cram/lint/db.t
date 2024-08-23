@@ -123,3 +123,14 @@ Parentheses in the objective name:
 
   $ okra lint -e -C admin eng1.md
   [OK]: eng1.md
+
+Invalid db:
+
+  $ cat > invalid.csv << EOF
+  > DUPLICATE GOAL: https://github.com/tarides/objectives/issues/768
+  > "id","title","status","quarter","team","pillar","objective","funder","labels","progress"
+  > EOF
+  $ okra lint -e --objective-db invalid.csv weekly.md
+  File "invalid.csv", line 2:
+  Error: A unique KR ID is required per line
+  [1]
