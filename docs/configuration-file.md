@@ -1,6 +1,6 @@
 # Okra Configuration File
 
-You can store a `conf.yaml` file in `~/.config/okra` to provide the binary with extra information to help writing weekly reports, aggregating across directories etc.
+You can store a `conf.yaml` file in `~/.config/okra` (or `C:\Users\<user>\AppData\Local\okra\` on Windows) to provide the binary with extra information to help writing weekly reports, aggregating across directories etc.
 
 You don't need a configuration file, but the default configuration is not really useful.
 

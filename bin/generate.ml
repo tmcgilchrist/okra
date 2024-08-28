@@ -90,8 +90,11 @@ let user : Get_activity.User.t Term.t =
 (* Get activity configuration *)
 let home =
   match Sys.getenv_opt "HOME" with
-  | None -> Fmt.failwith "$HOME is not set!"
   | Some dir -> dir
+  | None -> (
+      match Sys.getenv_opt "userprofile" with
+      | Some dir -> dir
+      | None -> Fmt.failwith "$HOME is not set!")
 
 let default_token_file =
   let ( / ) = Filename.concat in
