@@ -7,6 +7,7 @@ Table of contents
 - [Linting reports](#linting-reports)
   - [Linting team reports](#linting-team-reports)
   - [Linting engineer reports](#linting-engineer-reports)
+- [Getting statistics on reports](#getting-statistics-on-reports)
 
 ## Aggregating reports
 
@@ -87,3 +88,22 @@ okra team lint -C /path/to/admin/ -W 40-41
 This will lint the reports of all of the team members you defined in your configuration file.
 
 Note that you need to define one or multiple teams in your Okra configuration file for the `okra team` subcommands to function, see [more details about the configuration file](configuration-file.md).
+
+## Getting statistics on reports
+
+You can get statistics on how the time was spent on each objectives using the `okra stats` command.
+It expects to receive the weekly reports on the standard input:
+```sh
+cat admin/weekly/2024/*/*.md | okra stats -C admin --kind krs
+- [Last Week: ] Objective 1 (#678): 3 days
+- [Last Week: ] Objective 2 (#576): 3 days
+- [Last Week: ] Objective 3 (#453): 4 days
+```
+
+The `--show-details` gives a breakdown per engineer:
+```sh
+cat admin/weekly/2024/*/*.md | okra stats -C admin --kind krs --show-details
+- [Last Week: ] Objective 1 (#678): 3 days = eng2 (1 days) + eng1 (2 days)
+- [Last Week: ] Objective 2 (#576): 3 days = eng2 (2 days) + eng1 (1 days)
+- [Last Week: ] Objective 3 (#453): 4 days = eng2 (2 days) + eng1 (2 days)
+```

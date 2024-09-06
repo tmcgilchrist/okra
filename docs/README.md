@@ -13,6 +13,7 @@ Table of contents
   - [Linting reports](team-leads-manual.md#linting-reports)
     - [Linting team reports](team-leads-manual.md#linting-team-reports)
     - [Linting engineer reports](team-leads-manual.md#linting-engineer-reports)
+  - [Getting statistics on reports](team-leads-manual.md#getting-statistics-on-reports)
 - [Github token](github-token.md)
 - [Report formats](report-formats.md)
   - [Engineer Report](report-formats.md#engineer-report)
