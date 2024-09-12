@@ -192,7 +192,7 @@ let check_total_time ?check_time (krs : KR.t list) report_kind =
               let time =
                 let open Time in
                 match Hashtbl.find_opt tbl name with
-                | Some x -> x +. time
+                | Some x -> x + time
                 | None -> time
               in
               Hashtbl.replace tbl name time)

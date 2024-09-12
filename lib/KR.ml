@@ -254,7 +254,7 @@ let v ~kind ~project ~objective ~time_entries work =
       (List.iter (fun (e, d) ->
            let open Time in
            let d =
-             match Hashtbl.find_opt tbl e with None -> d | Some x -> x +. d
+             match Hashtbl.find_opt tbl e with None -> d | Some x -> x + d
            in
            Hashtbl.replace tbl e d))
       time_entries;
@@ -307,7 +307,7 @@ let merge x y =
         let open Time in
         match Hashtbl.find_opt t k with
         | None -> Hashtbl.replace t k v
-        | Some v' -> Hashtbl.replace t k (v +. v'))
+        | Some v' -> Hashtbl.replace t k (v + v'))
       y.time_per_engineer;
     t
   in

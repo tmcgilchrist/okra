@@ -122,14 +122,9 @@ let time_entry_regexp =
     let without_int_part = seq [ char '.'; digits ] in
     group (alt [ with_int_part; without_int_part ])
   in
-  let time_unit = group (alt [ str "day" ]) in
-  let time = seq [ number; rep space; time_unit; opt (char 's') ] in
+  let time_unit = group (alt @@ List.map str Time.Unit.keywords) in
+  let time = seq [ number; rep space; time_unit ] in
   compile @@ seq [ start; user; rep space; char '('; time; char ')'; stop ]
-
-let check_time unit time =
-  match unit with
-  | Time.Unit.Day when Float.is_integer @@ Float.div time 0.125 -> Some ()
-  | _ -> None
 
 let dump_elt ppf = function
   | KR_heading x -> Fmt.pf ppf "KR %a" KR.Heading.pp x
@@ -180,9 +175,7 @@ let kr ~project ~objective = function
                       let* s_time = Re.Group.get_opt grp 2 in
                       let* f_time = Float.of_string_opt s_time in
                       let* s_unit = Re.Group.get_opt grp 3 in
-                      let* t_unit = Time.Unit.of_string s_unit in
-                      let* () = check_time t_unit f_time in
-                      let time = { Time.unit = t_unit; data = f_time } in
+                      let* time = Time.of_string f_time s_unit in
                       Some (user, time)
                     with
                     | Some x -> Some x

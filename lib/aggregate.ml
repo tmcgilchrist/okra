@@ -48,7 +48,7 @@ let by_ f ?(include_krs = []) t =
 
 let sum tbl =
   let open Time in
-  Hashtbl.fold (fun _ w acc -> acc +. w) tbl nil
+  Hashtbl.fold (fun _ w acc -> acc + w) tbl nil
 
 let by_kr =
   by_ (fun result e ->

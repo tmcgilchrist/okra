@@ -1,14 +1,16 @@
 module Unit : sig
-  type t = Day
-
-  val of_string : string -> t option
+  val keywords : string list
 end
 
-type t = { data : float; unit : Unit.t }
+type t
 
+val of_string : float -> string -> t option
 val nil : t
 val days : float -> t
 val equal : t -> t -> bool
 val add : t -> t -> t
-val ( +. ) : t -> t -> t
+
+val ( + ) : t -> t -> t
+(** Alias for [add]. *)
+
 val pp : t Fmt.t

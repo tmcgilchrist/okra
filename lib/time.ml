@@ -1,26 +1,29 @@
 module Unit = struct
-  type t = Day
+  module Day = struct
+    type t = float
 
-  let of_string = function "day" -> Some Day | _ -> None
-  let equal x y = match (x, y) with Day, Day -> true
-  let pp fs = function Day -> Fmt.pf fs "day"
+    let keywords = [ "d"; "day"; "days" ]
+
+    let of_string x y =
+      if List.mem y keywords && (Float.is_integer @@ Float.div x 0.125) then
+        Some x
+      else None
+  end
+
+  let keywords = Day.keywords
 end
 
-type t = { data : float; unit : Unit.t }
+type t = Days of Unit.Day.t
 
-let equal x y =
-  if Unit.equal x.unit y.unit then Float.equal x.data y.data
-  else x.data = 0. && y.data = 0.
+let days x = Days x
+let of_string x y = Option.map days @@ Unit.Day.of_string x y
+let to_days = function Days x -> x
+let equal x y = Float.equal (to_days x) (to_days y)
+let nil = Days 0.
+let add x y = Days (to_days x +. to_days y)
+let ( + ) = add
 
-let nil = { unit = Day; data = 0. }
-let days data = { unit = Day; data }
-
-let add x y =
-  match (x.unit, y.unit) with
-  | Day, Day -> { unit = x.unit; data = x.data +. y.data }
-
-let ( +. ) = add
-
-let pp fs { unit; data } =
-  if data = 1. then Fmt.pf fs "1 %a" Unit.pp unit
-  else Fmt.pf fs "%g %as" data Unit.pp unit
+let pp fs x =
+  let data, unit = match x with Days x -> (x, "day") in
+  if Float.equal data 1. then Fmt.pf fs "1 %s" unit
+  else Fmt.pf fs "%g %ss" data unit
