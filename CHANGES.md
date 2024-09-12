@@ -6,6 +6,10 @@
 - Improve error messages related to loading objective database (#294, @gpetiot)
 - Windows: add support for %userprofile% (#295, @rikusilvola)
 
+### Fixed
+
+- lint: Fix support of KR/New KR before migration to objectives pre-week 24 (#303, @gpetiot)
+
 ## 3.1.0
 
 ### Added

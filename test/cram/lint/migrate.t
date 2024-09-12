@@ -93,7 +93,10 @@ Using a work-item instead of an objective emits a warning before Week 24 (before
   > # Last week
   > 
   > - Property-Based Testing for Multicore (#1090)
-  >   - @eng1 (5 days)
+  >   - @eng1 (4 days)
+  >   - xxx
+  > - Invalid objective still supported pre-migration (No KR)
+  >   - @eng1 (1 day)
   >   - xxx
   > EOF
 
@@ -109,6 +112,8 @@ Using a work-item instead of an objective raises an error starting from Week 24 
   File "admin/weekly/2024/24/eng1.md", line 3:
   Error: Invalid objective:
          "Property-Based Testing for Multicore (#1090)" is a work-item. You should use its parent objective "Property-Based Testing for Multicore (#558)" instead.
+  File "admin/weekly/2024/24/eng1.md", line 6:
+  Error: Invalid objective: "Invalid objective still supported pre-migration"
   [1]
 
 The whole title is taken into account (there was an issue with `:`)

@@ -415,7 +415,16 @@ let update_from_master_db ?week orig_kr db =
                 Masterdb.Work_item.find_title_opt work_item_db orig_work.title
               with
               (* Not found in objectives, not found in workitems *)
-              | None -> (orig_kr, Some (`Objective_not_found orig_work))
+              | None ->
+                  let error =
+                    match orig_work.id with
+                    | No_KR | New_KR ->
+                        if post_week_24 then
+                          Some (`Objective_not_found orig_work)
+                        else None
+                    | ID _ -> Some (`Objective_not_found orig_work)
+                  in
+                  (orig_kr, error)
               | Some work_item_kr ->
                   let work_item = orig_work in
                   let kr, objective =

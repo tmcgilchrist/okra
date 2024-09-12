@@ -3,7 +3,8 @@ type t = { year : int; week : int }
 let pp ppf x = Fmt.pf ppf "%i %i" x.year x.week
 
 let compare x y =
-  match Int.compare x.year y.year with 0 -> compare x.week y.week | x -> x
+  let ( or ) x y = if Int.equal x 0 then y else x in
+  Int.compare x.year y.year or compare x.week y.week
 
 let of_filename ~filename =
   let segs = Fpath.segs (Fpath.v filename) in
