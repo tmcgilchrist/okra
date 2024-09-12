@@ -9,7 +9,7 @@ Team aggregate example
     - Work 1
   
   - A KR (KR123)
-    - @eng1 (1 day), @eng2 (1 day)
+    - @eng1 (10 hours), @eng2 (1 day)
     - Work 1
     - Work 1
   
@@ -30,7 +30,7 @@ Only select a few okrs
   # Last Week
   
   - A KR (KR123)
-    - @eng1 (1 day), @eng2 (1 day)
+    - @eng1 (10 hours), @eng2 (1 day)
     - Work 1
     - Work 1
   
@@ -65,7 +65,7 @@ Multiple weeks
     - Work 1
   
   - A KR (KR123)
-    - @eng1 (2 days), @eng2 (2 days)
+    - @eng1 (2.25 days), @eng2 (2 days)
     - Work 1
     - Work 1
     - Work 1

@@ -41,3 +41,4 @@ Mix workitems and objectives
 
   $ cat admin/weekly/2024/*/*.md | okra stats -C admin --kind krs --show-details
   - [Last Week: ] Maintenance - internal tooling (#678): 5 days = eng2 (3 days) + eng1 (2 days)
+  - [Last Week: ] Off: 1.5 days = eng2 (4 hours) + eng1 (1 day)

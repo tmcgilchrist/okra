@@ -115,8 +115,38 @@ Only "No KR" and "New KR" are supported for KR's without identifiers
   > EOF
   File "<stdin>", line 11:
   Error: In objective "This is a KR (KR1)":
-         Invalid time entry "@eng1 (1.1 day)" found. Format is '- @eng1 (x days), @eng2 (y days)'
-         where x and y must be divisible by 0.125
+         Invalid time entry "@eng1 (1.1 day)" found.
+          Accepted formats are:
+          - '@username (X days)' where X must be a multiple of 0.125
+          - '@username (X hours)' where X must be a multiple of 1
+          Multiple time entries must be comma-separated.
+  [1]
+
+  $ okra lint --engineer << EOF
+  > # Projects
+  > 
+  > - Project1 (KR1)
+  > - Project2 (KR2)
+  > 
+  > This is not formatted.
+  > 
+  > # Last week
+  > 
+  > - This is a KR (KR1)
+  >   - @eng1 (1.1 hours)
+  >   - My work
+  > 
+  > # Activity
+  > 
+  > More unformatted text.
+  > EOF
+  File "<stdin>", line 11:
+  Error: In objective "This is a KR (KR1)":
+         Invalid time entry "@eng1 (1.1 hours)" found.
+          Accepted formats are:
+          - '@username (X days)' where X must be a multiple of 0.125
+          - '@username (X hours)' where X must be a multiple of 1
+          Multiple time entries must be comma-separated.
   [1]
 
   $ okra lint --engineer << EOF
@@ -139,8 +169,11 @@ Only "No KR" and "New KR" are supported for KR's without identifiers
   > EOF
   File "<stdin>", line 11:
   Error: In objective "This is a KR (KR1)":
-         Invalid time entry "@eng1 ( day)" found. Format is '- @eng1 (x days), @eng2 (y days)'
-         where x and y must be divisible by 0.125
+         Invalid time entry "@eng1 ( day)" found.
+          Accepted formats are:
+          - '@username (X days)' where X must be a multiple of 0.125
+          - '@username (X hours)' where X must be a multiple of 1
+          Multiple time entries must be comma-separated.
   [1]
 
 The total time reported must be 5 days
@@ -220,3 +253,25 @@ Using 0.125 days granularity:
   >   - My work
   > EOF
   [OK]: <stdin>
+
+Reporting hours:
+
+  $ okra lint --engineer << EOF
+  > # Last week
+  > 
+  > - This is a KR (KR1)
+  >   - @eng1 ( hour)
+  >   - My work
+  > 
+  > # Activity
+  > 
+  > More unformatted text.
+  > EOF
+  File "<stdin>", line 4:
+  Error: In objective "This is a KR (KR1)":
+         Invalid time entry "@eng1 ( hour)" found.
+          Accepted formats are:
+          - '@username (X days)' where X must be a multiple of 0.125
+          - '@username (X hours)' where X must be a multiple of 1
+          Multiple time entries must be comma-separated.
+  [1]

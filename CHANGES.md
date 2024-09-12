@@ -1,5 +1,9 @@
 ## unreleased
 
+### Added
+
+- Allow to report time in hours (#296, @gpetiot)
+
 ### Changed
 
 - gen: Reorder the non-objective categories in the generated template (#290, @gpetiot)

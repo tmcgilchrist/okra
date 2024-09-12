@@ -39,10 +39,12 @@ module Warning = struct
           KR.Heading.pp kr
     | Invalid_time { kr; entry } ->
         Fmt.pf ppf
-          "In objective \"%a\":@ Invalid time entry %S found. Format is '- \
-           @@eng1 (x days), @@eng2 (y days)'@ where x and y must be divisible \
-           by 0.125"
-          KR.Heading.pp kr entry
+          "In objective \"%a\":@ Invalid time entry %S found.@\n\
+          \ Accepted formats are:@\n\
+          \ - '@@username (X days)' where X must be a multiple of 0.125@\n\
+          \ - '@@username (X hours)' where X must be a multiple of 1@\n\
+          \ Multiple time entries must be comma-separated." KR.Heading.pp kr
+          entry
     | Multiple_time_entries kr ->
         Fmt.pf ppf
           "In objective \"%a\":@ Multiple time entries found. Only one time \

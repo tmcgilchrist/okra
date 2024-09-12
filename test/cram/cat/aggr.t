@@ -36,7 +36,7 @@ Engineer reports are aggregated correctly
   >   - Some work
   > 
   > - Work without a KR (No KR)
-  >   - @eng2 (1.0 days)
+  >   - @eng2 (4 hours)
   >   - Small bit of work
   > 
   > EOF
@@ -66,7 +66,7 @@ Engineer reports are aggregated correctly
     - Some work
   
   - Work without a KR (No KR)
-    - @eng1 (1.5 days), @eng2 (1 day)
+    - @eng1 (1.5 days), @eng2 (4 hours)
     - Little bit of work
     - Some item of work
     - Small bit of work

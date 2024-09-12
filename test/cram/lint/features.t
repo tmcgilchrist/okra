@@ -47,8 +47,11 @@ When errors are found in several files, they are all printed:
   $ okra lint err.md err2.md
   File "err2.md", line 4:
   Error: In objective "Everything is great (E1)":
-         Invalid time entry "@a" found. Format is '- @eng1 (x days), @eng2 (y days)'
-         where x and y must be divisible by 0.125
+         Invalid time entry "@a" found.
+          Accepted formats are:
+          - '@username (X days)' where X must be a multiple of 0.125
+          - '@username (X hours)' where X must be a multiple of 1
+          Multiple time entries must be comma-separated.
   File "err.md", line 3:
   Error: In objective "Everything is great (E1)":
          No time entry found. Each objective must be followed by '- @... (x days)'

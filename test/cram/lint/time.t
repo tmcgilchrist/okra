@@ -12,8 +12,11 @@ Invalid time
   > EOF
   File "<stdin>", line 4:
   Error: In objective "This is a KR (KR123)":
-         Invalid time entry "@eng1 (1 day), eng2 (2 days)" found. Format is '- @eng1 (x days), @eng2 (y days)'
-         where x and y must be divisible by 0.125
+         Invalid time entry "@eng1 (1 day), eng2 (2 days)" found.
+          Accepted formats are:
+          - '@username (X days)' where X must be a multiple of 0.125
+          - '@username (X hours)' where X must be a multiple of 1
+          Multiple time entries must be comma-separated.
   [1]
   $ okra lint << EOF
   > # Title
@@ -24,8 +27,11 @@ Invalid time
   > EOF
   File "<stdin>", line 4:
   Error: In objective "This is a KR (KR123)":
-         Invalid time entry "@eng1 (1 day); @eng2 (2 days)" found. Format is '- @eng1 (x days), @eng2 (y days)'
-         where x and y must be divisible by 0.125
+         Invalid time entry "@eng1 (1 day); @eng2 (2 days)" found.
+          Accepted formats are:
+          - '@username (X days)' where X must be a multiple of 0.125
+          - '@username (X hours)' where X must be a multiple of 1
+          Multiple time entries must be comma-separated.
   [1]
   $ okra lint << EOF
   > # Title
@@ -36,8 +42,11 @@ Invalid time
   > EOF
   File "<stdin>", line 4:
   Error: In objective "This is a KR (KR123)":
-         Invalid time entry "@eng1 (1 day) @eng2 (2 days)" found. Format is '- @eng1 (x days), @eng2 (y days)'
-         where x and y must be divisible by 0.125
+         Invalid time entry "@eng1 (1 day) @eng2 (2 days)" found.
+          Accepted formats are:
+          - '@username (X days)' where X must be a multiple of 0.125
+          - '@username (X hours)' where X must be a multiple of 1
+          Multiple time entries must be comma-separated.
   [1]
   $ okra lint << EOF
   > # Title
@@ -48,8 +57,27 @@ Invalid time
   > EOF
   File "<stdin>", line 4:
   Error: In objective "This is a KR (KR123)":
-         Invalid time entry "@eng1 (. days)" found. Format is '- @eng1 (x days), @eng2 (y days)'
-         where x and y must be divisible by 0.125
+         Invalid time entry "@eng1 (. days)" found.
+          Accepted formats are:
+          - '@username (X days)' where X must be a multiple of 0.125
+          - '@username (X hours)' where X must be a multiple of 1
+          Multiple time entries must be comma-separated.
+  [1]
+
+  $ okra lint << EOF
+  > # Title
+  > 
+  > - This is a KR (KR123)
+  >   - @eng1 (. hours)
+  >   - My work
+  > EOF
+  File "<stdin>", line 4:
+  Error: In objective "This is a KR (KR123)":
+         Invalid time entry "@eng1 (. hours)" found.
+          Accepted formats are:
+          - '@username (X days)' where X must be a multiple of 0.125
+          - '@username (X hours)' where X must be a multiple of 1
+          Multiple time entries must be comma-separated.
   [1]
 
 Valid time
@@ -58,7 +86,7 @@ Valid time
   > # Title
   > 
   > - This is a KR (KR123)
-  >   - @eng1 (.5 day)
+  >   - @eng1 (.5 hours)
   >   - My work
   > 
   > - This is a KR (KR124)
@@ -74,10 +102,24 @@ Valid time
   >   - My work
   > 
   > - This is a KR (KR124)
-  >   - @eng1 (1.5 days), @eng1 (.5 day)
+  >   - @eng1 (1.5 days), @eng1 (.5 hours)
   >   - My work
   > EOF
-  [OK]: <stdin>
+  File "<stdin>", line 4:
+  Error: In objective "This is a KR (KR123)":
+         Invalid time entry "@eng1 (.5 hours)" found.
+          Accepted formats are:
+          - '@username (X days)' where X must be a multiple of 0.125
+          - '@username (X hours)' where X must be a multiple of 1
+          Multiple time entries must be comma-separated.
+  File "<stdin>", line 20:
+  Error: In objective "This is a KR (KR124)":
+         Invalid time entry "@eng1 (1.5 days), @eng1 (.5 hours)" found.
+          Accepted formats are:
+          - '@username (X days)' where X must be a multiple of 0.125
+          - '@username (X hours)' where X must be a multiple of 1
+          Multiple time entries must be comma-separated.
+  [1]
 
 Using the configuration file to change the default number of working days.
 
@@ -134,6 +176,9 @@ Invalid granularity:
   > EOF
   File "<stdin>", line 4:
   Error: In objective "This is a KR (KR123)":
-         Invalid time entry "@eng1 (.12 day)" found. Format is '- @eng1 (x days), @eng2 (y days)'
-         where x and y must be divisible by 0.125
+         Invalid time entry "@eng1 (.12 day)" found.
+          Accepted formats are:
+          - '@username (X days)' where X must be a multiple of 0.125
+          - '@username (X hours)' where X must be a multiple of 1
+          Multiple time entries must be comma-separated.
   [1]

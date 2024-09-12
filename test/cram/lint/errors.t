@@ -142,8 +142,11 @@ Format errors
   $ okra lint err-invalid-time.md
   File "err-invalid-time.md", line 4:
   Error: In objective "Everything is great (E1)":
-         Invalid time entry "@a (day)" found. Format is '- @eng1 (x days), @eng2 (y days)'
-         where x and y must be divisible by 0.125
+         Invalid time entry "@a (day)" found.
+          Accepted formats are:
+          - '@username (X days)' where X must be a multiple of 0.125
+          - '@username (X hours)' where X must be a multiple of 1
+          Multiple time entries must be comma-separated.
   [1]
   $ okra lint --short err-invalid-time.md
   err-invalid-time.md:4: Invalid time entry "@a (day)" in "Everything is great (E1)"
