@@ -102,7 +102,7 @@ module Work = struct
               let id = String.trim (Str.matched_group 1 s) in
               Some (ID id))
 
-    let merge ~title x y =
+    let merge x y =
       match (x, y) with
       | ID x, ID y ->
           assert (compare_no_case x y = 0);
@@ -110,11 +110,7 @@ module Work = struct
       | ID x, _ | _, ID x -> ID x
       | No_KR, No_KR -> No_KR
       | New_KR, New_KR -> New_KR
-      | No_KR, New_KR | New_KR, No_KR ->
-          Fmt.failwith
-            "Mismatch between KR kinds. Same title was used with both No KR \
-             and New KR. Title: %s"
-            title
+      | No_KR, New_KR | New_KR, No_KR -> New_KR
   end
 
   type t = { id : Id.t; title : string; quarter : Quarter.t option }
@@ -155,7 +151,7 @@ module Work = struct
                   x Quarter.pp y);
           Some x
     in
-    let id = Id.merge ~title x.id y.id in
+    let id = Id.merge x.id y.id in
     { title; id; quarter }
 end
 

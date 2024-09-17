@@ -9,6 +9,7 @@
 - gen: Reorder the non-objective categories in the generated template (#290, @gpetiot)
 - Improve error messages related to loading objective database (#294, @gpetiot)
 - Windows: add support for %userprofile% (#295, @rikusilvola)
+- legacy: Do not fail when a legacy KR is using "New KR" and "No KR" in different instances (#305, @gpetiot)
 
 ### Fixed
 
