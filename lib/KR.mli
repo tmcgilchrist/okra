@@ -40,9 +40,20 @@ module Work : sig
     val pp : t Fmt.t
   end
 
-  type t = { id : Id.t; title : string; quarter : Quarter.t option }
+  type t = {
+    id : Id.t;
+    title : string;
+    start_quarter : Quarter.t option;
+    end_quarter : Quarter.t option;
+  }
 
-  val v : title:string -> id:Id.t -> quarter:Quarter.t option -> t
+  val v :
+    title:string ->
+    id:Id.t ->
+    start_quarter:Quarter.t option ->
+    end_quarter:Quarter.t option ->
+    t
+
   val pp : t Fmt.t
 end
 

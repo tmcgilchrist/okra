@@ -112,9 +112,10 @@ module Warning = struct
     | `Invalid_quarter (line_number, kr) ->
         pf line_number (fun m ->
             m ppf
-              "@[<hv 0>In objective \"%a\":@ Work logged on objective \
-               scheduled for %a@]"
-              KR.Work.pp kr (Fmt.option Quarter.pp) kr.quarter)
+              "@[<hv 0>Wrong quarter: \"%a\".@ This objective is scheduled \
+               between %a and %a@]"
+              KR.Work.pp kr (Fmt.option Quarter.pp) kr.start_quarter
+              (Fmt.option Quarter.pp) kr.end_quarter)
 
   let pp_short ~filename ppf =
     let pp_loc =
@@ -132,8 +133,11 @@ module Warning = struct
         pf line_number (fun m -> m ppf "%a" KR.Warning.pp_short w)
     | `Invalid_quarter (line_number, kr) ->
         pf line_number (fun m ->
-            m ppf "Using KR of invalid quarter: \"%a\" (%a)" KR.Work.pp kr
-              (Fmt.option Quarter.pp) kr.quarter)
+            m ppf
+              "Wrong quarter: \"%a\".@ This objective is scheduled between %a \
+               and %a"
+              KR.Work.pp kr (Fmt.option Quarter.pp) kr.start_quarter
+              (Fmt.option Quarter.pp) kr.end_quarter)
 end
 
 let fail_fmt_patterns =
@@ -211,7 +215,8 @@ let check_quarters quarter krs warnings lines =
       match kr.KR.kind with
       | Meta _ -> acc
       | Work w ->
-          if Quarter.check quarter w.quarter then acc
+          if Quarter.check quarter ~starts:w.start_quarter ~ends:w.end_quarter
+          then acc
           else
             let line_number = grep_n w.title lines in
             `Invalid_quarter (line_number, w) :: acc)
@@ -255,12 +260,9 @@ let check_document ?okr_db ~include_sections ~ignore_sections ?check_time
       warnings report_warnings
   in
   let* () = maybe_emit warnings in
-  (* Do not check the quarters for now *)
-  (* TODO: update the github dashboards to add begin/end quarters *)
-  ignore (report, quarter, check_quarters);
-  (* let krs = Report.all_krs report in *)
-  (* let warnings = check_quarters quarter krs warnings lines in *)
-  (* let* () = maybe_emit warnings in *)
+  let krs = Report.all_krs report in
+  let warnings = check_quarters quarter krs warnings lines in
+  let* () = maybe_emit warnings in
   Ok ()
 
 let document_ok ?okr_db ~include_sections ~ignore_sections ~format_errors

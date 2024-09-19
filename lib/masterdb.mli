@@ -24,7 +24,8 @@ module Objective : sig
     project : string;
     team : string;
     status : status_t option;
-    quarter : Quarter.t option;
+    start_quarter : Quarter.t option;
+    end_quarter : Quarter.t option;
   }
 
   type t = (string, elt_t) Hashtbl.t

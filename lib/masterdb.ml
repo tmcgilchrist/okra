@@ -43,7 +43,8 @@ module Objective = struct
     project : string;
     team : string;
     status : status_t option;
-    quarter : Quarter.t option;
+    start_quarter : Quarter.t option;
+    end_quarter : Quarter.t option;
   }
 
   type t = (string, elt_t) Hashtbl.t
@@ -81,7 +82,12 @@ module Objective = struct
             line := !line + 1;
             let find_and_trim col = Csv.Row.find row col |> String.trim in
             let printable_id = find_and_trim "id" in
-            let* quarter = find_and_trim "quarter" |> Quarter.of_string in
+            let* start_quarter =
+              find_and_trim "start on quarter" |> Quarter.of_string
+            in
+            let* end_quarter =
+              find_and_trim "end on quarter" |> Quarter.of_string
+            in
             let e =
               {
                 id = String.uppercase_ascii printable_id;
@@ -90,7 +96,8 @@ module Objective = struct
                 project = find_and_trim "project";
                 team = find_and_trim "team";
                 status = find_and_trim "status" |> status_of_string;
-                quarter;
+                start_quarter;
+                end_quarter;
               }
             in
             let* () =

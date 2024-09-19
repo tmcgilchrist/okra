@@ -54,7 +54,8 @@ let of_filename ~filename =
       | None -> None)
   | _ -> None
 
-let check q kr_q =
-  match (q, kr_q) with
-  | None, _ | _, None -> true
-  | Some q, Some kr_q -> compare q kr_q = 0
+let check q ~starts ~ends =
+  let check_order x y =
+    match (x, y) with Some x, Some y -> compare x y <= 0 | _ -> true
+  in
+  check_order starts q && check_order q ends

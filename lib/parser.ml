@@ -211,7 +211,8 @@ let kr ~project ~objective = function
          | None -> ());
 
       let kind =
-        let quarter = None in
+        let start_quarter = None in
+        let end_quarter = None in
         match !kr_heading with
         | Some (Meta x) -> KR.Kind.Meta x
         | Some (Work (title, id)) ->
@@ -222,11 +223,11 @@ let kr ~project ~objective = function
                   KR.Work.Id.No_KR
               | Some id -> id
             in
-            KR.Kind.Work (KR.Work.v ~title ~id ~quarter)
+            KR.Kind.Work (KR.Work.v ~title ~id ~start_quarter ~end_quarter)
         | None ->
             let id = KR.Work.Id.No_KR in
             let title = "" in
-            KR.Kind.Work (KR.Work.v ~title ~id ~quarter)
+            KR.Kind.Work (KR.Work.v ~title ~id ~start_quarter ~end_quarter)
       in
 
       let time_entries =

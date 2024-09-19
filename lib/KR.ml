@@ -113,7 +113,12 @@ module Work = struct
       | No_KR, New_KR | New_KR, No_KR -> New_KR
   end
 
-  type t = { id : Id.t; title : string; quarter : Quarter.t option }
+  type t = {
+    id : Id.t;
+    title : string;
+    start_quarter : Quarter.t option;
+    end_quarter : Quarter.t option;
+  }
 
   let dump =
     let open Fmt.Dump in
@@ -121,11 +126,14 @@ module Work = struct
       [
         field "title" (fun t -> t.title) string;
         field "id" (fun t -> t.id) Id.pp;
-        field "quarter" (fun t -> t.quarter) (Fmt.option Quarter.pp);
+        field "start quarter" (fun t -> t.start_quarter) (Fmt.option Quarter.pp);
+        field "end quarter" (fun t -> t.end_quarter) (Fmt.option Quarter.pp);
       ]
 
   let pp ppf x = Format.fprintf ppf "%s (%a)" x.title Id.pp x.id
-  let v ~title ~id ~quarter = { title; id; quarter }
+
+  let v ~title ~id ~start_quarter ~end_quarter =
+    { title; id; start_quarter; end_quarter }
 
   let compare a b =
     match (a.id, b.id) with
@@ -141,18 +149,14 @@ module Work = struct
             Log.warn (fun l -> l "Conflicting titles:\n- %S\n- %S" x y);
           x
     in
-    let quarter =
-      match (x.quarter, y.quarter) with
-      | None, q | q, None -> q
-      | Some x, Some y ->
-          if Quarter.compare x y <> 0 then
-            Log.warn (fun l ->
-                l "KR %S appears in two quarters:\n- %a\n- %a" title Quarter.pp
-                  x Quarter.pp y);
-          Some x
+    let start_quarter =
+      match (x.start_quarter, y.start_quarter) with None, q | q, _ -> q
+    in
+    let end_quarter =
+      match (x.end_quarter, y.end_quarter) with None, q | q, _ -> q
     in
     let id = Id.merge x.id y.id in
-    { title; id; quarter }
+    { title; id; start_quarter; end_quarter }
 end
 
 module Heading = struct
@@ -431,8 +435,17 @@ let update_from_master_db ?week orig_kr db =
                     (* Not found in objectives, found in WI db, no objective *)
                     | None -> (orig_kr, None)
                     (* Not found in objectives, found in WI db, has objective *)
-                    | Some { printable_id = id; title; quarter; _ } ->
-                        let obj = { Work.id = ID id; title; quarter } in
+                    | Some
+                        {
+                          printable_id = id;
+                          title;
+                          start_quarter;
+                          end_quarter;
+                          _;
+                        } ->
+                        let obj =
+                          { Work.id = ID id; title; start_quarter; end_quarter }
+                        in
                         let new_kr = { orig_kr with kind = Work obj } in
                         (new_kr, Some obj)
                   in
@@ -451,7 +464,8 @@ let update_from_master_db ?week orig_kr db =
             {
               Work.id = ID db_kr.printable_id;
               title = db_kr.title;
-              quarter = db_kr.quarter;
+              start_quarter = db_kr.start_quarter;
+              end_quarter = db_kr.end_quarter;
             }
           in
           let kr = { orig_kr with kind = Work work } in

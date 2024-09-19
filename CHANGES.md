@@ -2,6 +2,7 @@
 
 ### Added
 
+- lint: Emit a warning when reporting work on an objective outside of its quarters (#306, @gpetiot)
 - Allow to report time in hours (#296, @gpetiot)
 
 ### Changed
