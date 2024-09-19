@@ -122,7 +122,11 @@ val merge : t -> t -> t
 val compare : t -> t -> int
 
 val update_from_master_db :
-  ?week:Week.t -> t -> Masterdb.t -> t * [> Warning.t | Error.t ] option
+  ?week:Week.t ->
+  ?quarter:Quarter.t ->
+  t ->
+  Masterdb.t ->
+  t * [> Warning.t | Error.t ] option
 
 (** {2 Pretty-print} *)
 

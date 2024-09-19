@@ -248,7 +248,7 @@ let check_document ?okr_db ~include_sections ~ignore_sections ?check_time
     | Error w -> w :: warnings
   in
   let* () = maybe_emit warnings in
-  let report, report_warnings = Report.of_krs ?okr_db ?week okrs in
+  let report, report_warnings = Report.of_krs ?okr_db ?week ?quarter okrs in
   let warnings =
     let line_number = function Some s -> grep_n s lines | None -> None in
     List.fold_left

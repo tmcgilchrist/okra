@@ -38,6 +38,7 @@ val empty : unit -> t
 val of_krs :
   ?okr_db:Masterdb.t ->
   ?week:Week.t ->
+  ?quarter:Quarter.t ->
   KR.t list ->
   t * [> KR.Warning.t | KR.Error.t ] list
 
@@ -48,6 +49,7 @@ val of_markdown :
   ?okr_db:Masterdb.t ->
   ?report_kind:Parser.report_kind ->
   ?week:Week.t ->
+  ?quarter:Quarter.t ->
   Parser.markdown ->
   t * [> KR.Warning.t | KR.Error.t ] list
 
@@ -63,6 +65,7 @@ val find : t -> KR.Id.t -> KR.t list
 val add :
   ?okr_db:Masterdb.t ->
   ?week:Week.t ->
+  ?quarter:Quarter.t ->
   t ->
   KR.t ->
   [> KR.Warning.t | KR.Error.t ] option

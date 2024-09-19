@@ -15,6 +15,7 @@
 ### Fixed
 
 - lint: Fix support of KR/New KR before migration to objectives pre-week 24 (#303, @gpetiot)
+- lint: Do not suggest an objective that is not valid at the time of the report (#307, @gpetiot)
 
 ## 3.1.0
 

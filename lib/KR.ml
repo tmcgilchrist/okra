@@ -385,7 +385,7 @@ module Error = struct
     | `Migration_error x -> Warning.greppable (`Migration_warning x)
 end
 
-let update_from_master_db ?week orig_kr db =
+let update_from_master_db ?week ?quarter orig_kr db =
   let post_week_24 =
     match week with
     | Some file_week ->
@@ -443,11 +443,21 @@ let update_from_master_db ?week orig_kr db =
                           end_quarter;
                           _;
                         } ->
-                        let obj =
-                          { Work.id = ID id; title; start_quarter; end_quarter }
-                        in
-                        let new_kr = { orig_kr with kind = Work obj } in
-                        (new_kr, Some obj)
+                        if
+                          Quarter.check quarter ~starts:start_quarter
+                            ~ends:end_quarter
+                        then
+                          let obj =
+                            {
+                              Work.id = ID id;
+                              title;
+                              start_quarter;
+                              end_quarter;
+                            }
+                          in
+                          let new_kr = { orig_kr with kind = Work obj } in
+                          (new_kr, Some obj)
+                        else (orig_kr, None)
                   in
                   let error =
                     if post_week_24 then

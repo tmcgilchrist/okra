@@ -139,13 +139,13 @@ let remove (t : t) (e : KR.t) =
   in
   remove t.all_krs
 
-let add ?okr_db ?week (t : t) (e : KR.t) =
+let add ?okr_db ?week ?quarter (t : t) (e : KR.t) =
   Log.debug (fun l -> l "Report.add %a %a" dump t KR.dump e);
   (* replace [e] fields with master db lookup if possible *)
   let e, lookup_warning =
     match okr_db with
     | None -> (e, None)
-    | Some db -> KR.update_from_master_db ?week e db
+    | Some db -> KR.update_from_master_db ?week ?quarter e db
   in
   (* lookup an existing KR in the report *)
   let existing_kr =
@@ -206,13 +206,15 @@ let add ?okr_db ?week (t : t) (e : KR.t) =
 
 let empty () = { projects = Hashtbl.create 13; all_krs = empty_krs () }
 
-let of_krs ?okr_db ?week entries =
+let of_krs ?okr_db ?week ?quarter entries =
   let t = empty () in
-  let warnings = List.rev @@ List.filter_map (add ?okr_db ?week t) entries in
+  let warnings =
+    List.rev @@ List.filter_map (add ?okr_db ?week ?quarter t) entries
+  in
   (t, warnings)
 
 let of_markdown ?existing_report ?ignore_sections ?include_sections ?okr_db
-    ?report_kind ?week m =
+    ?report_kind ?week ?quarter m =
   let kind = Option.value report_kind ~default:Parser.default_report_kind in
   let new_krs, warnings =
     Parser.of_markdown ?ignore_sections ?include_sections ?week kind m
@@ -222,7 +224,7 @@ let of_markdown ?existing_report ?ignore_sections ?include_sections ?okr_db
     warnings;
   let old_krs = match existing_report with None -> [] | Some t -> all_krs t in
   let krs = old_krs @ new_krs in
-  of_krs ?okr_db ?week krs
+  of_krs ?okr_db ?week ?quarter krs
 
 let make_objective ?show_time ?show_time_calc ?show_engineers o =
   let krs = Hashtbl.to_seq o.krs.ids |> Seq.map snd |> List.of_seq in
