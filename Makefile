@@ -11,3 +11,6 @@ build:
 
 push:
 	docker buildx build --platform=${PLATFORMS} -t ${IMAGE} . --push
+
+release:
+	scripts/release.sh
